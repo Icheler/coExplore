@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>tme_startup</name>
+  <version>0.0.0</version>
+  <description>The tme_startup package</description>
+  <maintainer email="j@todo.todo">j</maintainer>
+
+  <license>TODO</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>nav_msgs</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>visualization_msgs</build_depend>
+  <build_depend>multirobot_map_merge</build_depend>
+  <build_depend>explore_lite</build_depend>
+  <build_depend>robot_state_publisher</build_depend>
+  <build_export_depend>geometry_msgs</build_export_depend>
+  <build_export_depend>nav_msgs</build_export_depend>
+  <build_export_depend>sensor_msgs</build_export_depend>
+  <build_export_depend>std_msgs</build_export_depend>
+  <build_export_depend>visualization_msgs</build_export_depend>
+  <build_export_depend>multirobot_map_merge</build_export_depend>
+  <build_export_depend>explore_lite</build_export_depend>
+  <build_export_depend>robot_state_publisher</build_export_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>nav_msgs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>visualization_msgs</exec_depend>
+  <exec_depend>multirobot_map_merge</exec_depend>
+  <exec_depend>explore_lite</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+
+</package>

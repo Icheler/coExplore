@@ -1,0 +1,26 @@
+<launch>
+    <include file="$(find tme_startup)/launch/robots_start.launch"/>
+    <include file="$(find tme_startup)/launch/robot_nodes.launch">
+      <arg name="robot_name" value="robot1" />
+      <arg name="node_start_delay" value="3.0" />
+    </include>
+    <include file="$(find tme_startup)/launch/robot_nodes.launch" if="$(env tme_start_two)">
+      <arg name="robot_name" value="robot2" />
+      <arg name="node_start_delay" value="5.0" />
+    </include>
+    <include file="$(find tme_startup)/launch/robot_nodes.launch" if="$(env tme_start_three)">
+      <arg name="robot_name" value="robot3" />
+      <arg name="node_start_delay" value="7.0" />
+    </include>
+    <include file="$(find tme_startup)/launch/robot_nodes.launch" if="$(env tme_start_four)">
+      <arg name="robot_name" value="robot4" />
+      <arg name="node_start_delay" value="9.0" />
+    </include>
+    <include file="$(find tme_startup)/launch/robot_nodes.launch" if="$(env tme_start_five)">
+      <arg name="robot_name" value="robot5" />
+      <arg name="node_start_delay" value="11.0" />
+    </include>
+    <include file="$(find tme_startup)/launch/multi_map_merge.launch"/>
+    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find tme_startup)/config/rviz_basic_setup.rviz"/>
+    <!-- <node pkg="tme_startup" type="trace_removal" name="tme_trace_removal" output="screen" /> -->
+</launch>

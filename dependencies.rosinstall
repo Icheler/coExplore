@@ -1,0 +1,12 @@
+- git:
+    local-name: rto_core
+    uri: https://github.com/dietriro/rto_core.git
+    version: noetic-devel
+- git:
+    local-name: rto_simulation
+    uri: https://github.com/dietriro/rto_simulation.git
+    version: noetic-devel
+- git:
+    local-name: m-explore
+    uri: https://github.com/hrnr/m-explore.git
+    version: noetic-devel

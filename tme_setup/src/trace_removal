@@ -1,0 +1,81 @@
+#!/usr/bin/env python3
+import roslib
+import rospy
+import math
+import tf
+import numpy as np
+print(np.version.version)
+import geometry_msgs.msg
+from geometry_msgs.msg import Point, Pose
+from std_msgs.msg import Float32
+from nav_msgs.msg import OccupancyGrid
+import matplotlib.pyplot as plt
+
+"""
+    Robots Trace Removal
+
+        This node is implemented to clean the traces of the robots on the map if they get detected as an object
+        by the other robots. 
+
+        Considerations
+
+            This node is not active and it is only publishing on /testmap
+"""
+
+
+class Trace_removal(object):
+    def __init__(self):
+
+        self.robot1_position = Point()
+        self.robot2_position = Point()
+        self.resolution = 0.0
+        #self.map = np.zeros((801,800))
+        self.testmap = OccupancyGrid()
+
+        self.pub_map = rospy.Publisher('/testmap', OccupancyGrid, queue_size=10) #/map
+        self.sub_map = rospy.Subscriber('/map', OccupancyGrid, self.callback_map) #/map0
+        self.sub_pos_1 = rospy.Subscriber('/robot1/pose', Pose, self.callback_pos_1)
+        self.sub_pos_2 = rospy.Subscriber('/robot2/pose', Pose, self.callback_pos_2)
+        self.robot_radius = rospy.get_param("/robot1/move_base/local_costmap/robot_radius")
+
+    def callback_map(self, data):
+
+        #get the map from the merged map and put it in a matrix
+        self.map = (np.asarray(data.data, dtype=np.int8).reshape((data.info.width, data.info.height), order='F'))
+        #set the resolution form map meta data
+        self.resolution = data.info.resolution
+        #convert robots position into a cell in the map matrix
+        robot1_x=(1/self.resolution)*self.robot1_position.x
+        robot1_y=(1/self.resolution)*self.robot1_position.y
+        robot2_x=(1/self.resolution)*self.robot2_position.x
+        robot2_y=(1/self.resolution)*self.robot2_position.y
+        origin = [0,0]
+        #set the origin of the map in the map matrix
+        origin[0] = int(abs(data.info.origin.position.x)*(1/self.resolution))
+        origin[1] = int(abs(data.info.origin.position.y)*(1/self.resolution))
+        #create an offset based on robot's radius
+        offset = int(self.robot_radius * (1/self.resolution)) 
+        #set an square with 2*offset width to zero centered in robot position
+        self.map[origin[0]+int(robot1_x)-offset:origin[0]+int(robot1_x)+offset,origin[0]+int(robot1_y)-offset:origin[0]+int(robot1_y)+offset] = 0
+        self.map[origin[0]+int(robot2_x)-offset:origin[0]+int(robot2_x)+offset,origin[0]+int(robot2_y)-offset:origin[0]+int(robot2_y)+offset] = 0
+        #convert the map matrix to a occupancygrid 
+        self.testmap.header = data.header
+        self.testmap.info= data.info
+        self.testmap.data = np.ravel(self.map, order='F')
+        #publish the data on /testmap
+        self.pub_map.publish(self.testmap)
+
+    def callback_pos_1(self, data):
+        self.robot1_position=data.position
+
+    def callback_pos_2(self, data):
+        self.robot2_position=data.position
+
+
+if __name__ == '__main__':
+    rospy.init_node('trace_removal')
+    trace_removal = Trace_removal()
+    rospy.spin()
+
+
+

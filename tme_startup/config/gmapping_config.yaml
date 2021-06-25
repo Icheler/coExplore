@@ -1,0 +1,10 @@
+map_update_interval: 1
+# lskip : 2
+xmin : -29.6
+xmax : 29.6
+ymin : -29.6
+ymax : 29.6
+angularUpdate : 0.1
+linearUpdate : 0.1
+maxUrange : 5.0
+maxRange: 5.7

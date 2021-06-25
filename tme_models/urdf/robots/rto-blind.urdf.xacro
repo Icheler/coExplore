@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<robot name="rto" xmlns:xacro="http://wiki.ros.org/xacro">
+  <xacro:include filename="$(find tme_models)/urdf/components/rto_parts.urdf.xacro"/>
+  <xacro:include filename="$(find tme_models)/urdf/components/rto_blind_body.urdf.xacro"/>
+
+  <xacro:rto_body/>
+
+</robot>

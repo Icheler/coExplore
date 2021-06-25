@@ -1,0 +1,14 @@
+global_costmap: {
+  update_frequency: 5.0,
+  static_map: true,
+  global_frame: map,
+  robot_base_frame: blind_robot/base_link
+}
+
+local_costmap: {
+  update_frequency: 10.0,
+  publish_frequency: 10.0,
+  static_map: true,
+  global_frame: robot_blind/odom,
+  robot_base_frame: robot_blind/base_link,
+}

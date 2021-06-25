@@ -1,0 +1,105 @@
+<launch>
+    <arg name="robot" default="$(optenv tme_ROBOT rto-1)" doc="Robot type [rto-1]"/>
+    <arg name="robot_blind" default="$(optenv tme_ROBOT_BLIND rto-blind)" doc="Robot type [rto-1-blind]"/>
+    <arg name="robot_env" default="$(optenv tme_ROBOT_ENV simple_corridor)" doc="Simulation world [maze, maze_simple, simple_corridor]"/>
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <arg name="world_name" value="$(find tme_models)/worlds/$(arg robot_env).world"/>
+        <arg name="paused" value="false"/>
+        <arg name="use_sim_time" value="true"/>
+        <arg name="gui" value="true"/>
+        <arg name="headless" value="true"/>
+        <arg name="debug" value="false"/>
+    </include>
+
+    <param name="robot_description" command="$(find xacro)/xacro --inorder $(find tme_models)/urdf/robots/$(arg robot).urdf.xacro"/>
+    <param name="robot_blind_description" command="$(find xacro)/xacro --inorder $(find tme_models)/urdf/robots/$(arg robot_blind).urdf.xacro"/>
+
+
+    <group ns="robot1">
+        <param name="tf_prefix" value="robot1"/>
+        <arg name="name" default="robot1" />
+
+        <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen">
+            <param name="publish_frequency" type="double" value="20.0"/>
+        </node>
+
+        <node pkg="gazebo_ros" type="spawn_model" name="spawn_urdf"  args="-urdf -model $(arg name)
+            -x $(env tme_start_robot1_x)
+            -y $(env tme_start_robot1_y)
+            -z $(env tme_start_robot1_z)
+            -Y $(env tme_start_robot1_yaw)
+            -param /robot_description" />
+    </group>
+    <group ns="robot2" if="$(env tme_start_two)">
+        <param name="tf_prefix" value="robot2"/>
+        <arg name="name"  value="robot2"/>
+        <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen">
+            <param name="publish_frequency" type="double" value="20.0"/>
+        </node>
+
+        <node pkg="gazebo_ros" type="spawn_model" name="spawn_urdf"  args="-urdf -model $(arg name)
+          -x $(env tme_start_robot2_x)
+          -y $(env tme_start_robot2_y)
+          -z $(env tme_start_robot2_z)
+          -Y $(env tme_start_robot2_yaw)
+          -param /robot_description" />
+    </group>
+    <group ns="robot3" if="$(env tme_start_three)">
+        <param name="tf_prefix" value="robot3"/>
+        <arg name="name"  value="robot3"/>
+        <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen">
+            <param name="publish_frequency" type="double" value="20.0"/>
+        </node>
+
+        <node pkg="gazebo_ros" type="spawn_model" name="spawn_urdf"  args="-urdf -model $(arg name)
+          -x $(env tme_start_robot3_x)
+          -y $(env tme_start_robot3_y)
+          -z $(env tme_start_robot3_z)
+          -Y $(env tme_start_robot3_yaw)
+          -param /robot_description" />
+    </group>
+    <group ns="robot4" if="$(env tme_start_four)">
+        <param name="tf_prefix" value="robot4"/>
+        <arg name="name"  value="robot4"/>
+        <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen">
+            <param name="publish_frequency" type="double" value="20.0"/>
+        </node>
+
+        <node pkg="gazebo_ros" type="spawn_model" name="spawn_urdf"  args="-urdf -model $(arg name)
+          -x $(env tme_start_robot4_x)
+          -y $(env tme_start_robot4_y)
+          -z $(env tme_start_robot4_z)
+          -Y $(env tme_start_robot4_yaw)
+          -param /robot_description" />
+    </group>
+    <group ns="robot5" if="$(env tme_start_five)">
+        <param name="tf_prefix" value="robot5"/>
+        <arg name="name"  value="robot5"/>
+        <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen">
+            <param name="publish_frequency" type="double" value="20.0"/>
+        </node>
+
+        <node pkg="gazebo_ros" type="spawn_model" name="spawn_urdf"  args="-urdf -model $(arg name)
+          -x $(env tme_start_robot5_x)
+          -y $(env tme_start_robot5_y)
+          -z $(env tme_start_robot5_z)
+          -Y $(env tme_start_robot5_yaw)
+          -param /robot_description" />
+    </group>
+    <!-- <group ns="robot_blind">
+        <param name="tf_prefix" value="robot_blind"/>
+            <arg name="name"  value="robot_blind"/>
+
+        <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen">
+            <param name="publish_frequency" type="double" value="20.0"/>
+        </node>
+
+        <node pkg="gazebo_ros" type="spawn_model" name="spawn_urdf"  args="-urdf -model $(arg name)
+          -x $(env tme_start_robot_blind_x)
+          -y $(env tme_start_robot_blind_y)
+          -z $(env tme_start_robot_blind_z)
+          -Y $(env tme_start_robot_blind_yaw)
+          -param /robot_blind_description" />
+    </group>
+    -->
+</launch>

@@ -1,0 +1,45 @@
+global_costmap: {
+  global_frame: robot2/map,
+  robot_base_frame: robot2/base_link,
+  observation_sources: scan,
+  scan: {
+    sensor_frame: robot2/hokuyo_link, 
+    data_type: LaserScan, 
+    topic: scan, 
+    marking: true, 
+    clearing: true
+  },
+  obstacle_layer: {
+    observation_sources: scan,
+    scan: {
+      sensor_frame: robot2/hokuyo_link, 
+      data_type: LaserScan, 
+      topic: scan, 
+      marking: true, 
+      clearing: true
+    }
+  }
+}
+
+local_costmap: {
+  global_frame: robot2/map,
+  robot_base_frame: robot2/base_link,
+  observation_sources: scan,
+  scan: {
+    sensor_frame: robot2/hokuyo_link, 
+    data_type: LaserScan, 
+    topic: scan, 
+    marking: true, 
+    clearing: true
+  },
+  obstacle_layer: {
+    observation_sources: scan,
+    scan: {
+      sensor_frame: robot2/hokuyo_link, 
+      data_type: LaserScan, 
+      topic: scan, 
+      marking: true, 
+      clearing: true
+    },
+  }
+}
