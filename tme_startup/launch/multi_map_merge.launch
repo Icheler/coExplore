@@ -1,5 +1,4 @@
 <launch>
-    <!-- 
     <group ns="robot1/map_merge"> 
         <param name="init_pose_x" value="$(env tme_start_robot1_x)"/>
         <param name="init_pose_y" value="$(env tme_start_robot1_y)"/>
@@ -33,41 +32,6 @@
         <param name="init_pose_y" value="$(env tme_start_robot5_y)"/>
         <param name="init_pose_z" value="$(env tme_start_robot5_z)"/>
         <param name="init_pose_yaw" value="$(env tme_start_robot5_yaw)"/>
-    </group>-->
-
-    <group ns="robot1/map_merge"> 
-        <param name="init_pose_x" value="0"/>
-        <param name="init_pose_y" value="0"/>
-        <param name="init_pose_z" value="0"/>
-        <param name="init_pose_yaw" value="0"/>
-    </group>
-
-    <group ns="robot2/map_merge" if="$(env tme_start_two)">
-        <param name="init_pose_x" value="0"/>
-        <param name="init_pose_y" value="0"/>
-        <param name="init_pose_z" value="0"/>
-        <param name="init_pose_yaw" value="0"/>
-    </group>
-
-    <group ns="robot3/map_merge" if="$(env tme_start_three)">
-        <param name="init_pose_x" value="0"/>
-        <param name="init_pose_y" value="0"/>
-        <param name="init_pose_z" value="0"/>
-        <param name="init_pose_yaw" value="0"/>
-    </group>
-
-    <group ns="robot4/map_merge" if="$(env tme_start_four)">
-        <param name="init_pose_x" value="0"/>
-        <param name="init_pose_y" value="0"/>
-        <param name="init_pose_z" value="0"/>
-        <param name="init_pose_yaw" value="0"/>
-    </group>
-
-    <group ns="robot5/map_merge" if="$(env tme_start_five)">
-        <param name="init_pose_x" value="0"/>
-        <param name="init_pose_y" value="0"/>
-        <param name="init_pose_z" value="0"/>
-        <param name="init_pose_yaw" value="0"/>
     </group>
 
     <node pkg="multirobot_map_merge" type="map_merge" name="tme_merger" respawn="True">
@@ -79,16 +43,9 @@
         <param name="estimation_rate" value="0.5"/>
         <param name="estimation_confidence" value="1.5"/>
     </node>
-    <!-- 
     <node pkg="tf" type="static_transform_publisher" name="world_to_robot1_tf_broadcaster" args="$(env tme_start_robot1_x) $(env tme_start_robot1_y) $(env tme_start_robot1_z) 0 0 0 1 /map /robot1/map 100"/>
     <node pkg="tf" type="static_transform_publisher" name="world_to_robot2_tf_broadcaster" args="$(env tme_start_robot2_x) $(env tme_start_robot2_y) $(env tme_start_robot2_z) 0 0 0 1 /map /robot2/map 100"/>
     <node pkg="tf" type="static_transform_publisher" name="world_to_robot3_tf_broadcaster" args="$(env tme_start_robot3_x) $(env tme_start_robot3_y) $(env tme_start_robot3_z) 0 0 0 1 /map /robot3/map 100"/>
     <node pkg="tf" type="static_transform_publisher" name="world_to_robot4_tf_broadcaster" args="$(env tme_start_robot4_x) $(env tme_start_robot4_y) $(env tme_start_robot4_z) 0 0 0 1 /map /robot4/map 100"/>
     <node pkg="tf" type="static_transform_publisher" name="world_to_robot5_tf_broadcaster" args="$(env tme_start_robot5_x) $(env tme_start_robot5_y) $(env tme_start_robot5_z) 0 0 0 1 /map /robot5/map 100"/>
-    -->
-    <node pkg="tf" type="static_transform_publisher" name="world_to_robot1_tf_broadcaster" args="0 0 0 0 0 0 1 /map /robot1/map 100"/>
-    <node pkg="tf" type="static_transform_publisher" name="world_to_robot2_tf_broadcaster" args="0 0 0 0 0 0 1 /map /robot2/map 100"/>
-    <node pkg="tf" type="static_transform_publisher" name="world_to_robot3_tf_broadcaster" args="0 0 0 0 0 0 1 /map /robot3/map 100"/>
-    <node pkg="tf" type="static_transform_publisher" name="world_to_robot4_tf_broadcaster" args="0 0 0 0 0 0 1 /map /robot4/map 100"/>
-    <node pkg="tf" type="static_transform_publisher" name="world_to_robot5_tf_broadcaster" args="0 0 0 0 0 0 1 /map /robot5/map 100"/>
 </launch>
