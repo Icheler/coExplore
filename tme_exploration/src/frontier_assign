@@ -1,0 +1,54 @@
+#!/usr/bin/env python3
+
+from scipy.optimize import linear_sum_assignment
+from geometry_msgs import Point, Position
+import numpy as np
+import rospy
+import re
+
+class frontierAssign:
+    def __init__(self):
+        self.frontiers = None
+        self.distances = None
+        self.robotPosition = None
+        self.data = None
+
+    def callback_frontiers(self, data):
+        self.frontiers = data
+
+    def callback_position(self, data, topic):
+        number = re.search(r'\d+', topic)
+        self.robotPosition[number] = data
+
+    def euclid_distance(self, a: Point, b: Point):
+        result = np.sqrt(np.sum(
+            np.square(a.x - b.x),np.square(a.y - b.y)))
+        return result
+
+    def frontier_distance(self):
+        for i in self.frontiers[0]:
+            for j in self.robotPosition:
+                self.distances[i][j] = self.euclid_distance(self.frontiers[0][i], self.robotPosition[j])
+
+    if __name__ == '__main__':
+        
+        rospy.init_node('tme_frontier_assign')
+
+        param_rate = rospy.get_param('~frontier_rate')
+
+        topic = '/robot1/position_listener'
+        sub_pos_1 = rospy.Subscriber(topic, Position, callback = callback_position, callback_args = topic)
+        topic = '/robot2/position_listener'
+        sub_pos_2 = rospy.Subscriber(topic, Position, callback = callback_position, callback_args = topic)
+        topic = '/robot3/position_listener'
+        sub_pos_3 = rospy.Subscriber(topic, Position, callback = callback_position, callback_args = topic)
+        topic = '/robot4/position_listener'
+        sub_pos_4 = rospy.Subscriber(topic, Position, callback = callback_position, callback_args = topic)
+        topic = '/robot5/position_listener'
+        sub_pos_5 = rospy.Subscriber(topic, Position, callback = callback_position, callback_args = topic)
+        
+        rate = rospy.Rate(param_rate)
+        
+        while not rospy.is_shutdown():
+
+            rate.sleep()
