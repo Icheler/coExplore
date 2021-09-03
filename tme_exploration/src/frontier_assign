@@ -1,17 +1,27 @@
 #!/usr/bin/env python3
 
-from scipy.optimize import linear_sum_assignment
-from geometry_msgs import Point, Position
 import numpy as np
 import rospy
 import re
+import actionlib
+
+from scipy.optimize import linear_sum_assignment
+
+from geometry_msgs import Point, Position
+from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
+from sensor_msgs.msg import LaserScan
 
 class frontierAssign:
     def __init__(self):
-        self.frontiers = None
-        self.distances = None
-        self.robotPosition = None
-        self.data = None
+        self.frontiers = []
+        self.distances = []
+        self.numberRobots = rospy.get_param('/frontier_assign/number_of_robots')
+        self.robotPrefix = rospy.get_param('/frontier_assign/robot_ns')
+        self.robotPosition = np.empty(self.numberRobots)
+        self.robotSpeeds = np.empty(self.numberRobots)
+        self.maxSpeed = None
+        self.speedModifier = np.empty(self.numberRobots)
+        self.visibilityModifier = np.empty(self.numberRobots)
 
     def callback_frontiers(self, data):
         self.frontiers = data
@@ -26,29 +36,75 @@ class frontierAssign:
         return result
 
     def frontier_distance(self):
+        self.distances = np.empty((len(self.frontiers[0]), len(self.robotPosition)))
         for i in self.frontiers[0]:
             for j in self.robotPosition:
                 self.distances[i][j] = self.euclid_distance(self.frontiers[0][i], self.robotPosition[j])
+
+    def get_robot_speed(self):
+        for i in range(0, self.numberRobots):
+            temp_str = '/' + self.robotPrefix + str(i+1) + '/max_velocity'
+            self.robotSpeeds[i] = rospy.get_param(temp_str)
+        self.maxSpeed = np.max(self.robotSpeeds)
+
+    def speed_modifier(self):
+        self.speedModifier = np.empty(self.numberRobots)
+        for i in range(self.numberRobots):
+            self.speedModifier[i] = self.robotSpeeds[i]/self.maxSpeed
+        
+    def visibility_params(self):
+        for i in range(self.numberRobots):
+            topic = '/' + self.robotPrefix + str(self.numberRobots) + '/laser_scan'
+            data = rospy.wait_for_message(topic, LaserScan)
+            overall_angle = data.angle_max - data.angle_min
+            overall_range = data.range_max - data.range_min
+            self.visibilityModifier[i] = overall_angle * overall_range
+        maximum = np.max(self.visibilityModifier)
+        self.visiblityModifier = self.visibilityModifier / maximum
+    
+    def frontier_modifier(self):
+        
+
+    def movebase_client(self, topic, position):
+        client = actionlib.SimpleActionClient(topic, MoveBaseAction)
+
+        client.wait_for_server()
+
+        goal = MoveBaseGoal()
+        goal.target_pose.header.frame_id = 'map'
+        goal.target_pose.header.stamp = rospy.Time.now()
+        goal.target_pose.pose.position.x = position[0]
+        goal.target_pose.pose.position.y = position[1]
+        goal.target_pose.pose.position.z = 0
+
+        client.send_goal(goal)
+        wait = client.wait_for_result()
+        if not wait:
+            rospy.logerr('Action server not available!')
+            rospy.signal_shutdown('Action server not available')
+        else:
+            return client.get_result()
 
     if __name__ == '__main__':
         
         rospy.init_node('tme_frontier_assign')
 
-        param_rate = rospy.get_param('~frontier_rate')
+        param_rate = rospy.get_param('/frontier_assign/frontier_rate')
 
-        topic = '/robot1/position_listener'
-        sub_pos_1 = rospy.Subscriber(topic, Position, callback = callback_position, callback_args = topic)
-        topic = '/robot2/position_listener'
-        sub_pos_2 = rospy.Subscriber(topic, Position, callback = callback_position, callback_args = topic)
-        topic = '/robot3/position_listener'
-        sub_pos_3 = rospy.Subscriber(topic, Position, callback = callback_position, callback_args = topic)
-        topic = '/robot4/position_listener'
-        sub_pos_4 = rospy.Subscriber(topic, Position, callback = callback_position, callback_args = topic)
-        topic = '/robot5/position_listener'
-        sub_pos_5 = rospy.Subscriber(topic, Position, callback = callback_position, callback_args = topic)
-        
+        subscriber_position = []
+
+        for i in range(self.numberRobots):
+            topic = '/' + self.robotPrefix + str(self.numberRobots) + '/position_listener'
+            subscriber_position.append = rospy.Subscriber(topic, Position, callback=self.callback_position, callback_args = topic)
+
         rate = rospy.Rate(param_rate)
         
         while not rospy.is_shutdown():
+            
+
+
+            distances = self.frontier_distance()
+
+            assignment = linear_sum_assignment(distances)
 
             rate.sleep()
