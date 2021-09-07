@@ -25,6 +25,8 @@ class frontierAssign:
         self.frontierVisibilityModifier = None
         self.frontierDistanceModifier = None
 
+    # Getters for various methods to allow for access in the __main__ part of the class to allow for proper function of the code
+
     def get_numberRobots(self):
         return self.numberRobots
 
@@ -43,6 +45,8 @@ class frontierAssign:
     def get_firstFrontier(self, index):
         return self.frontiers[index][0]
 
+    # Callbacks for the frontiers and position data from the ros topics
+
     def callback_frontiers(self, data):
         self.frontiers = data
 
@@ -50,28 +54,33 @@ class frontierAssign:
         number = re.search(r'\d+', topic)
         self.robotPosition[number] = data
 
+    # Get euclidean distance between two points
     def euclid_distance(self, a: Point, b: Point):
         result = np.sqrt(np.sum(
             np.square(a.x - b.x),np.square(a.y - b.y)))
         return result
 
+    # Instanciate the self.distances matrix with the distance for every robot to every frontier
     def frontier_distance(self):
         self.distances = np.empty((len(self.frontiers[0]), len(self.robotPosition)))
         for i in self.frontiers[0]:
             for j in self.robotPosition:
                 self.distances[i][j] = self.euclid_distance(self.frontiers[i][0], self.robotPosition[j])
 
+    # Get speed for every robot from ros parameters and assign maxSpeed
     def get_robot_speed(self):
         for i in range(0, self.numberRobots):
             temp_str = '/' + self.robotPrefix + str(i+1) + '/max_velocity'
             self.robotSpeeds[i] = rospy.get_param(temp_str)
         self.maxSpeed = np.max(self.robotSpeeds)
 
+    # Assign speed modifiers for every robot by normalizing the values to 0,1 through dividing with the maxSpeed
     def speed_modifier(self):
         self.speedModifier = np.empty(self.numberRobots)
         for i in range(self.numberRobots):
             self.speedModifier[i] = self.robotSpeeds[i]/self.maxSpeed
         
+    # Find angle and range of every robot, multiply them and normalize for all values
     def visibility_params(self):
         for i in range(self.numberRobots):
             topic = '/' + self.robotPrefix + str(self.numberRobots) + '/laser_scan'
@@ -82,18 +91,21 @@ class frontierAssign:
         maximum = np.max(self.visibilityModifier)
         self.visiblityModifier = self.visibilityModifier / maximum
     
+    # Computes the modifier from robot speed and distance between robot and frontiers, Normalize again
     def frontier_distance_modifier(self):
         for i in range(self.frontiers[0]):
             for j in range(self.numberRobots):
                 self.frontierDistanceModifier[i][j] = self.speedModifier[j] * self.distances[i][j]
         self.frontierDistanceModifier = self.frontierDistanceModifier / np.max(self.frontierDistanceModifier)
 
+    # Computes the modifier from robot visibility and size of frontiers, Normalize again
     def frontier_visibility_modifier(self):
         for i in range(self.frontiers[0]):
             for j in range(self.numberRobots):
                 self.frontierVisibilityModifier[i][j] = self.visibilityModifier[j] * self.frontiers[i].shape
         self.frontierVisibilityModifier = self.frontierVisibilityModifier / np.max(self.frontierVisibilityModifier)
 
+    # Method to allow the parsing of move_base actions 
     def movebase_client(self, topic, position):
         client = actionlib.SimpleActionClient(topic, MoveBaseAction)
 
@@ -114,9 +126,12 @@ class frontierAssign:
         else:
             return client.get_result()
 
+    # minPos approximation by assigning rank based on distance between goal and robot locations
     def rank_matrix(self, matrix):
         result = None
         return result
+
+
 
     if __name__ == '__main__':
         
@@ -127,8 +142,6 @@ class frontierAssign:
         # one of: nearest, greedy, combined, minPos
         chosen_method = rospy.get_param('/frontier_assign/frontier_method')
 
-        visibility_weighting = rospy.get_param('/frontier_assign/visibility_weighting')
-        speed_weighting = rospy.get_param('/frontier_assign/speed_weighting')
 
         subscriber_position = []
 
@@ -146,6 +159,10 @@ class frontierAssign:
             chosen_method_id = 2
         else:
             chosen_method_id = 3
+
+        if(chosen_method_id == 2):
+            visibility_weighting = rospy.get_param('/frontier_assign/visibility_weighting', 1)
+            speed_weighting = rospy.get_param('/frontier_assign/speed_weighting', 1)
 
         rate = rospy.Rate(param_rate)
         
@@ -165,7 +182,7 @@ class frontierAssign:
                 frontier_visibility_modifier()
                 frontier_distance()
                 frontier_distance_modifier()
-                cost_matrix = get_frontierDistanceModifier() + get_frontierVisibilityModifier()
+                cost_matrix = speed_weighting * get_frontierDistanceModifier() + visibility_weighting * get_frontierVisibilityModifier()
                 
             else:
                 #TODO
