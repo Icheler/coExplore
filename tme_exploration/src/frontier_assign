@@ -40,6 +40,9 @@ class frontierAssign:
     def get_frontierDistanceModifier(self):
         return self.frontierDistanceModifier
 
+    def get_firstFrontier(self, index):
+        return self.frontiers[index][0]
+
     def callback_frontiers(self, data):
         self.frontiers = data
 
@@ -111,7 +114,9 @@ class frontierAssign:
         else:
             return client.get_result()
 
-
+    def rank_matrix(self, matrix):
+        result = None
+        return result
 
     if __name__ == '__main__':
         
@@ -149,18 +154,27 @@ class frontierAssign:
             cost_matrix = None
             
             if(chosen_method_id == 0):
+                frontier_distance()
                 cost_matrix = get_frontierDistance()
             
             elif(chosen_method_id == 1):
+                frontier_visibility_modifier()
                 cost_matrix = get_frontierVisibilityModifier()
             
             elif(chosen_method_id == 2):
+                frontier_visibility_modifier()
+                frontier_distance()
+                frontier_distance_modifier()
                 cost_matrix = get_frontierDistanceModifier() + get_frontierVisibilityModifier()
                 
             else:
                 #TODO
-                cost_matrix = get_distanceRank()
+                cost_matrix = rank_matrix()
 
             assignment = linear_sum_assignment(cost_matrix)
+
+            for i in range(get_numberRobots()):
+                topic = '/robot' + str(i) + '/move_base'
+                movebase_client(topic=topic, position=get_firstFrontier(index=assignment[i]))
 
             rate.sleep()
