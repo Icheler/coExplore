@@ -8,8 +8,7 @@
 
 #include <explore/costmap_tools.h>
 
-namespace frontier_exploration
-  {
+namespace frontier_exploration {
   using costmap_2d::LETHAL_OBSTACLE;
   using costmap_2d::NO_INFORMATION;
   using costmap_2d::FREE_SPACE;
@@ -20,11 +19,10 @@ namespace frontier_exploration
     : costmap_(costmap)
     , potential_scale_(potential_scale)
     , gain_scale_(gain_scale)
-    , min_frontier_size_(min_frontier_size)
-    {}
+    , min_frontier_size_(min_frontier_size) {
+  }
 
-  std::vector<Frontier> FrontierSearch::searchFrom(geometry_msgs::Point position)
-  {
+  std::vector<Frontier> FrontierSearch::searchFrom(geometry_msgs::Point position) {
     std::vector<Frontier> frontier_list;
 
     // Sanity check that robot is inside costmap bounds before searching
@@ -95,8 +93,7 @@ namespace frontier_exploration
 
   Frontier FrontierSearch::buildNewFrontier(unsigned int initial_cell,
                                             unsigned int reference,
-                                            std::vector<bool>& frontier_flag)
-  {
+                                            std::vector<bool>& frontier_flag) {
     // initialize frontier structure
     Frontier output;
     output.centroid.x = 0;
@@ -169,8 +166,7 @@ namespace frontier_exploration
   }
 
   bool FrontierSearch::isNewFrontierCell(unsigned int idx,
-                                        const std::vector<bool>& frontier_flag)
-  {
+                                        const std::vector<bool>& frontier_flag) {
     // check that cell is unknown and not already marked as frontier
     if (map_[idx] != NO_INFORMATION || frontier_flag[idx]) {
       return false;
@@ -187,8 +183,7 @@ namespace frontier_exploration
     return false;
   }
 
-  double FrontierSearch::frontierCost(const Frontier& frontier)
-  {
+  double FrontierSearch::frontierCost(const Frontier& frontier) {
     return (potential_scale_ * frontier.min_distance *
             costmap_->getResolution()) -
           (gain_scale_ * frontier.size * costmap_->getResolution());
