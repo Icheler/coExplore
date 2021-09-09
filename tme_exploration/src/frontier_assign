@@ -142,7 +142,6 @@ class frontierAssign:
         # one of: nearest, greedy, combined, minPos
         chosen_method = rospy.get_param('/frontier_assign/frontier_method')
 
-
         subscriber_position = []
 
         for i in range(get_numberRobots()):
