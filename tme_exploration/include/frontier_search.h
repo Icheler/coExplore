@@ -34,8 +34,7 @@ public:
    * @brief Constructor for search task
    * @param costmap Reference to costmap data to search.
    */
-  FrontierSearch(costmap_2d::Costmap2D* costmap, double potential_scale,
-                 double gain_scale, double min_frontier_size);
+  FrontierSearch(costmap_2d::Costmap2D* costmap, double min_frontier_size);
 
   /**
    * @brief Runs search implementation, outward from the start position
@@ -68,20 +67,11 @@ protected:
   bool isNewFrontierCell(unsigned int idx,
                          const std::vector<bool>& frontier_flag);
 
-  /**
-   * @brief computes frontier cost
-   * @details cost function is defined by potential_scale and gain_scale
-   *
-   * @param frontier frontier for which compute the cost
-   * @return cost of the frontier
-   */
-  double frontierCost(const Frontier& frontier);
 
 private:
   costmap_2d::Costmap2D* costmap_;
   unsigned char* map_;
   unsigned int size_x_, size_y_;
-  double potential_scale_, gain_scale_;
   double min_frontier_size_;
 };
 }

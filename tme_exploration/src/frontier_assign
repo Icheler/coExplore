@@ -25,8 +25,8 @@ class frontierAssign:
         self.frontierVisibilityModifier = None
         self.frontierDistanceModifier = None
 
-    # Getters for various methods to allow for access in the __main__ part of the class to allow for proper function of the code
-
+    # Getters for various parameters
+    
     def get_numberRobots(self):
         return self.numberRobots
 

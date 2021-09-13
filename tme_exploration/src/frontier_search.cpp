@@ -1,25 +1,20 @@
-#include <explore/frontier_search.h>
-
 #include <mutex>
 
 #include <costmap_2d/cost_values.h>
 #include <costmap_2d/costmap_2d.h>
 #include <geometry_msgs/Point.h>
 
-#include <explore/costmap_tools.h>
+#include <frontier_search.h>
+#include <costmap_tools.h>
 
 namespace frontier_exploration {
   using costmap_2d::LETHAL_OBSTACLE;
   using costmap_2d::NO_INFORMATION;
   using costmap_2d::FREE_SPACE;
 
-  FrontierSearch::FrontierSearch(costmap_2d::Costmap2D* costmap,
-                                double potential_scale, double gain_scale,
-                                double min_frontier_size)
-    : costmap_(costmap)
-    , potential_scale_(potential_scale)
-    , gain_scale_(gain_scale)
-    , min_frontier_size_(min_frontier_size) {
+  FrontierSearch::FrontierSearch(costmap_2d::Costmap2D* costmap, double min_frontier_size): 
+  costmap_(costmap) , min_frontier_size_(min_frontier_size) 
+  {
   }
 
   std::vector<Frontier> FrontierSearch::searchFrom(geometry_msgs::Point position) {
@@ -79,15 +74,7 @@ namespace frontier_exploration {
         }
       }
     }
-
-    // set costs of frontiers
-    for (auto& frontier : frontier_list) {
-      frontier.cost = frontierCost(frontier);
-    }
-    std::sort(
-        frontier_list.begin(), frontier_list.end(),
-        [](const Frontier& f1, const Frontier& f2) { return f1.cost < f2.cost; });
-
+    
     return frontier_list;
   }
 
@@ -99,7 +86,6 @@ namespace frontier_exploration {
     output.centroid.x = 0;
     output.centroid.y = 0;
     output.size = 1;
-    output.min_distance = std::numeric_limits<double>::infinity();
 
     // record initial contact point for frontier
     unsigned int ix, iy;
@@ -145,13 +131,6 @@ namespace frontier_exploration {
 
           // determine frontier's distance from robot, going by closest gridcell
           // to robot
-          double distance = sqrt(pow((double(reference_x) - double(wx)), 2.0) +
-                                pow((double(reference_y) - double(wy)), 2.0));
-          if (distance < output.min_distance) {
-            output.min_distance = distance;
-            output.middle.x = wx;
-            output.middle.y = wy;
-          }
 
           // add to queue for breadth first search
           bfs.push(nbr);
@@ -181,11 +160,5 @@ namespace frontier_exploration {
     }
 
     return false;
-  }
-
-  double FrontierSearch::frontierCost(const Frontier& frontier) {
-    return (potential_scale_ * frontier.min_distance *
-            costmap_->getResolution()) -
-          (gain_scale_ * frontier.size * costmap_->getResolution());
   }
 }
