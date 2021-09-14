@@ -2,6 +2,8 @@
 #define FRONTIER_SEARCH_H_
 
 #include <costmap_2d/costmap_2d.h>
+#include <costmap_client.h>
+#include <costmap_tools.h>
 
 namespace frontier_exploration
 {
@@ -73,6 +75,11 @@ private:
   unsigned char* map_;
   unsigned int size_x_, size_y_;
   double min_frontier_size_;
+  ros::NodeHandle private_nh;
+  ros::NodeHandle relative_nh;
+  tf::TransformListener tf_listener_;
+  frontier_exploration::FrontierSearch search_;
+  explore::Costmap2DClient costmap_client_;
 };
 }
 #endif

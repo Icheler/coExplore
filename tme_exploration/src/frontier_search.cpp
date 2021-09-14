@@ -6,15 +6,21 @@
 
 #include <frontier_search.h>
 #include <costmap_tools.h>
+#include <costmap_client.h>
 
 namespace frontier_exploration {
   using costmap_2d::LETHAL_OBSTACLE;
   using costmap_2d::NO_INFORMATION;
   using costmap_2d::FREE_SPACE;
 
-  FrontierSearch::FrontierSearch(costmap_2d::Costmap2D* costmap, double min_frontier_size): 
-  costmap_(costmap) , min_frontier_size_(min_frontier_size) 
+  FrontierSearch::FrontierSearch(costmap_2d::Costmap2D* costmap, double min_frontier_size)
+  : costmap_(costmap), 
+    min_frontier_size_(min_frontier_size),
+    private_nh_("~"),
+    tf_listener_(ros::Duration(10.0)),
+    costmap_client_(private_nh_, relative_nh_)
   {
+    search_ = frontier_exploration::FrontierSearch(costmap_client_.getCostmap(), min_frontier_size);
   }
 
   std::vector<Frontier> FrontierSearch::searchFrom(geometry_msgs::Point position) {
@@ -160,5 +166,20 @@ namespace frontier_exploration {
     }
 
     return false;
+  }
+
+  int main(int argc, char** argv)
+  {
+    ros::init(argc, argv, "frontier_search");
+    if (ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME,
+                                      ros::console::levels::Debug)) {
+      ros::console::notifyLoggerLevelsChanged();
+    }
+    FrontierSearch::FrontierSearch frontiersearch;
+
+    frontiersearch.searchFrom();
+    ros::spin();
+
+    return 0;
   }
 }

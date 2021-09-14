@@ -58,13 +58,7 @@ namespace explore {
        * @param subscription_nh node hadle where topics will be subscribed
        * @param tf_listener Will be used for transformation of robot pose.
        */
-      Costmap2DClient(ros::NodeHandle& param_nh, ros::NodeHandle& subscription_nh,
-                      const tf::TransformListener* tf_listener);
-      /**
-       * @brief Get the pose of the robot in the global frame of the costmap
-       * @return pose of the robot in the global frame of the costmap
-       */
-      geometry_msgs::Pose getRobotPose() const;
+      Costmap2DClient(ros::NodeHandle& param_nh, ros::NodeHandle& subscription_nh);
 
       /**
        * @brief Return a pointer to the "master" costmap which receives updates from
