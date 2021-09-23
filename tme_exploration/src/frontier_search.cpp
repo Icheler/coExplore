@@ -16,9 +16,9 @@ namespace frontier_exploration {
   FrontierSearch::FrontierSearch(costmap_2d::Costmap2D* costmap, double min_frontier_size)
   : costmap_(costmap), 
     min_frontier_size_(min_frontier_size),
-    private_nh_("~"),
+    private_nh("~"),
     tf_listener_(ros::Duration(10.0)),
-    costmap_client_(private_nh_, relative_nh_)
+    costmap_client_(private_nh, relative_nh)
   {
     search_ = frontier_exploration::FrontierSearch(costmap_client_.getCostmap(), min_frontier_size);
   }
@@ -177,7 +177,10 @@ namespace frontier_exploration {
     }
     FrontierSearch::FrontierSearch frontiersearch;
 
-    frontiersearch.searchFrom();
+    geometry_msgs::Point position;
+    position.x = 0;
+    position.y = 0;
+    frontiersearch.searchFrom(position);
     ros::spin();
 
     return 0;

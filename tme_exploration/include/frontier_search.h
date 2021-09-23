@@ -5,6 +5,8 @@
 #include <costmap_client.h>
 #include <costmap_tools.h>
 
+#include <ros/ros.h>
+
 namespace frontier_exploration
 {
 /**
@@ -28,15 +30,13 @@ struct Frontier {
 class FrontierSearch
 {
 public:
-  FrontierSearch()
-  {
-  }
+  FrontierSearch();
 
   /**
    * @brief Constructor for search task
    * @param costmap Reference to costmap data to search.
    */
-  FrontierSearch(costmap_2d::Costmap2D* costmap, double min_frontier_size);
+  FrontierSearch(costmap_2d::Costmap2D* costmap, double min_frontier_size;
 
   /**
    * @brief Runs search implementation, outward from the start position
