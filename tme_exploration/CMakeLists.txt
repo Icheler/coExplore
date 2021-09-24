@@ -13,7 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 set(YOUR_DIRECTORY /opt/ros/noetic/share/costmap_2d)
 include_directories( ${YOUR_DIRECTORY})
-set(SOURCES ${YOUR_DIRECTORY}/costmap_2d/costmap_2d_ros.h )
+set(SOURCES ${YOUR_DIRECTORY}/costmap_2d/costmap_2d.h )
 
 include_directories(include ${catkin_INCLUDE_DIRS})
 

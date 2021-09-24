@@ -175,12 +175,12 @@ namespace frontier_exploration {
                                       ros::console::levels::Debug)) {
       ros::console::notifyLoggerLevelsChanged();
     }
-    frontier_exploration::FrontierSearch frontiersearch;
+    // frontier_exploration::FrontierSearch search_;
 
     geometry_msgs::Point position;
     position.x = 0;
     position.y = 0;
-    frontiersearch.searchFrom(position);
+    // search_.searchFrom(position);
     ros::spin();
 
     return 0;
