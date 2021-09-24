@@ -7,7 +7,7 @@ import actionlib
 
 from scipy.optimize import linear_sum_assignment
 
-from geometry_msgs import Point, Position
+from geometry_msgs.msg import Point, Pose
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from sensor_msgs.msg import LaserScan
 
@@ -15,8 +15,8 @@ class frontierAssign:
     def __init__(self):
         self.frontiers = []
         self.distances = []
-        self.numberRobots = rospy.get_param('/frontier_assign/number_of_robots')
-        self.robotPrefix = rospy.get_param('/frontier_assign/robot_ns')
+        self.numberRobots = rospy.get_param('number_of_robots', 2)
+        self.robotPrefix = rospy.get_param('robot_ns', 'robot')
         self.robotPosition = np.empty(self.numberRobots)
         self.robotSpeeds = np.empty(self.numberRobots)
         self.maxSpeed = None
@@ -132,65 +132,66 @@ class frontierAssign:
         return result
 
 
+if __name__ == '__main__':
+    
+    rospy.init_node('frontier_assign')
 
-    if __name__ == '__main__':
-        
-        rospy.init_node('tme_frontier_assign')
+    param_rate = rospy.get_param('frontier_rate', 5)
 
-        param_rate = rospy.get_param('/frontier_assign/frontier_rate')
-        
-        # one of: nearest, greedy, combined, minPos
-        chosen_method = rospy.get_param('/frontier_assign/frontier_method')
+    fInstance = frontierAssign()
+    
+    # one of: nearest, greedy, combined, minPos
+    chosen_method = rospy.get_param('frontier_method', "combined")
 
-        subscriber_position = []
+    subscriber_position = []
 
-        for i in range(get_numberRobots()):
-            topic = '/' + get_robotPrefix() + str(get_numberRobots()) + '/position_listener'
-            subscriber_position.append = rospy.Subscriber(topic, Position, callback=callback_position, callback_args = topic)
+    for i in range(fInstance.get_numberRobots()):
+        topic = '/' + fInstance.get_robotPrefix() + str(fInstance.get_numberRobots()) + '/position_listener'
+        subscriber_position.append(rospy.Subscriber(topic, Point, callback=fInstance.callback_position, callback_args = topic))
 
+    chosen_method_id = 0
+
+    if(chosen_method == 'nearest'):
         chosen_method_id = 0
+    elif(chosen_method == 'greedy'):
+        chosen_method_id = 1
+    elif(chosen_method == 'combined'):
+        chosen_method_id = 2
+    else:
+        chosen_method_id = 3
 
-        if(chosen_method == 'nearest'):
-            chosen_method_id = 0
-        elif(chosen_method == 'greedy'):
-            chosen_method_id = 1
-        elif(chosen_method == 'combined'):
-            chosen_method_id = 2
-        else:
-            chosen_method_id = 3
+    if(chosen_method_id == 2):
+        visibility_weighting = rospy.get_param('visibility_weighting', 1)
+        speed_weighting = rospy.get_param('speed_weighting', 1)
 
-        if(chosen_method_id == 2):
-            visibility_weighting = rospy.get_param('/frontier_assign/visibility_weighting', 1)
-            speed_weighting = rospy.get_param('/frontier_assign/speed_weighting', 1)
+    rate = rospy.Rate(param_rate)
+    
+    while not rospy.is_shutdown():
 
-        rate = rospy.Rate(param_rate)
+        cost_matrix = None
         
-        while not rospy.is_shutdown():
-
-            cost_matrix = None
+        if(chosen_method_id == 0):
+            fInstance.frontier_distance()
+            cost_matrix = fInstance.get_frontierDistance()
+        
+        elif(chosen_method_id == 1):
+            fInstance.frontier_visibility_modifier()
+            cost_matrix = fInstance.get_frontierVisibilityModifier()
+        
+        elif(chosen_method_id == 2):
+            fInstance.frontier_visibility_modifier()
+            fInstance.frontier_distance()
+            fInstance.frontier_distance_modifier()
+            cost_matrix = speed_weighting * fInstance.get_frontierDistanceModifier() + visibility_weighting * fInstance.get_frontierVisibilityModifier()
             
-            if(chosen_method_id == 0):
-                frontier_distance()
-                cost_matrix = get_frontierDistance()
-            
-            elif(chosen_method_id == 1):
-                frontier_visibility_modifier()
-                cost_matrix = get_frontierVisibilityModifier()
-            
-            elif(chosen_method_id == 2):
-                frontier_visibility_modifier()
-                frontier_distance()
-                frontier_distance_modifier()
-                cost_matrix = speed_weighting * get_frontierDistanceModifier() + visibility_weighting * get_frontierVisibilityModifier()
-                
-            else:
-                #TODO
-                cost_matrix = rank_matrix()
+        else:
+            #TODO
+            cost_matrix = fInstance.rank_matrix()
 
-            assignment = linear_sum_assignment(cost_matrix)
+        assignment = fInstance.linear_sum_assignment(cost_matrix)
 
-            for i in range(get_numberRobots()):
-                topic = '/robot' + str(i) + '/move_base'
-                movebase_client(topic=topic, position=get_firstFrontier(index=assignment[i]))
+        for i in range(fInstance.get_numberRobots()):
+            topic = '/robot' + str(i) + '/move_base'
+            fInstance.movebase_client(topic=topic, position=fInstance.get_firstFrontier(index=assignment[i]))
 
-            rate.sleep()
+        rate.sleep()
