@@ -36,7 +36,7 @@ public:
    * @brief Constructor for search task
    * @param costmap Reference to costmap data to search.
    */
-  FrontierSearch(costmap_2d::Costmap2D* costmap, double min_frontier_size;
+  FrontierSearch(costmap_2d::Costmap2D* costmap, double min_frontier_size);
 
   /**
    * @brief Runs search implementation, outward from the start position
@@ -78,7 +78,6 @@ private:
   ros::NodeHandle private_nh;
   ros::NodeHandle relative_nh;
   tf::TransformListener tf_listener_;
-  frontier_exploration::FrontierSearch search_;
   explore::Costmap2DClient costmap_client_;
 };
 }

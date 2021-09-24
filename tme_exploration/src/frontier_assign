@@ -138,6 +138,8 @@ if __name__ == '__main__':
 
     param_rate = rospy.get_param('frontier_rate', 5)
 
+    data = rospy.wait_for_message('frontiers', frontiers)
+
     fInstance = frontierAssign()
     
     # one of: nearest, greedy, combined, minPos
@@ -188,7 +190,7 @@ if __name__ == '__main__':
             #TODO
             cost_matrix = fInstance.rank_matrix()
 
-        assignment = fInstance.linear_sum_assignment(cost_matrix)
+        assignment = linear_sum_assignment(cost_matrix)
 
         for i in range(fInstance.get_numberRobots()):
             topic = '/robot' + str(i) + '/move_base'

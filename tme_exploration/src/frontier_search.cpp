@@ -20,7 +20,7 @@ namespace frontier_exploration {
     tf_listener_(ros::Duration(10.0)),
     costmap_client_(private_nh, relative_nh)
   {
-    search_ = frontier_exploration::FrontierSearch(costmap_client_.getCostmap(), min_frontier_size);
+    frontier_exploration::FrontierSearch search_(costmap_client_.getCostmap(), min_frontier_size);
   }
 
   std::vector<Frontier> FrontierSearch::searchFrom(geometry_msgs::Point position) {
@@ -175,7 +175,7 @@ namespace frontier_exploration {
                                       ros::console::levels::Debug)) {
       ros::console::notifyLoggerLevelsChanged();
     }
-    FrontierSearch::FrontierSearch frontiersearch;
+    frontier_exploration::FrontierSearch frontiersearch;
 
     geometry_msgs::Point position;
     position.x = 0;
