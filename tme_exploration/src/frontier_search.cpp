@@ -167,22 +167,22 @@ namespace frontier_exploration {
 
     return false;
   }
+};
 
-  int main(int argc, char** argv)
-  {
-    ros::init(argc, argv, "frontier_search");
-    if (ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME,
-                                      ros::console::levels::Debug)) {
-      ros::console::notifyLoggerLevelsChanged();
-    }
-    // frontier_exploration::FrontierSearch search_;
-
-    geometry_msgs::Point position;
-    position.x = 0;
-    position.y = 0;
-    // search_.searchFrom(position);
-    ros::spin();
-
-    return 0;
+int main(int argc, char** argv)
+{
+  ros::init(argc, argv, "frontier_search");
+  if (ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME,
+                                    ros::console::levels::Debug)) {
+    ros::console::notifyLoggerLevelsChanged();
   }
+  frontier_exploration::FrontierSearch search_;
+
+  geometry_msgs::Point position;
+  position.x = 0;
+  position.y = 0;
+  search_.searchFrom(position);
+  ros::spin();
+
+  return 0;
 }
