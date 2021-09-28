@@ -39,6 +39,9 @@
 
 #include <thread>
 
+#include <tme_exploration/frontier.h>
+#include <tme_exploration/frontierArray.h>
+
 namespace exploration
 {
 Explore::Explore()
@@ -51,9 +54,18 @@ Explore::Explore()
   private_nh_.param("min_frontier_size", min_frontier_size, 0.5);
   private_nh_.param("visualize", visualize_, false);
 
-  // search_ = exploration::FrontierSearch(costmap_client_.getCostmap(),
-  //                                               min_frontier_size);
+  ros::Publisher frontiers_pub = private_nh_.advertise<tme_exploration::frontierArray>("frontiers", 1000);
+  search_ = exploration::FrontierSearch(costmap_client_.getCostmap(),
+                                                min_frontier_size);
+  
+  geometry_msgs::Point position;
+  position.x = 0;
+  position.y = 0;
+  
+  std::vector<Frontier> frontiers = search_.searchFrom(position);
 
+  frontiers_pub.publish(frontiers);
+  
   if (visualize_) {
     marker_array_publisher_ =
         private_nh_.advertise<visualization_msgs::MarkerArray>("frontiers", 10);
@@ -149,7 +161,7 @@ int main(int argc, char** argv)
                                     ros::console::levels::Debug)) {
     ros::console::notifyLoggerLevelsChanged();
   }
-  // exploration::Explore explore;
+  exploration::Explore explore;
   
   ros::spin();
 
