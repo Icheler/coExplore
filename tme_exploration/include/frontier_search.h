@@ -7,7 +7,7 @@
 
 #include <ros/ros.h>
 
-namespace frontier_exploration
+namespace exploration
 {
 /**
  * @brief Represents a frontier
@@ -75,10 +75,6 @@ private:
   unsigned char* map_;
   unsigned int size_x_, size_y_;
   double min_frontier_size_;
-  ros::NodeHandle private_nh;
-  ros::NodeHandle relative_nh;
-  tf::TransformListener tf_listener_;
-  explore::Costmap2DClient costmap_client_;
 };
 }
 #endif

@@ -6,7 +6,7 @@
 #include <geometry_msgs/PolygonStamped.h>
 #include <ros/ros.h>
 
-namespace frontier_exploration {
+namespace exploration {
   /**
    * @brief Determine 4-connected neighbourhood of an input cell, checking for map
    * edges

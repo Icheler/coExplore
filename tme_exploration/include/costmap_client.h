@@ -45,7 +45,7 @@
 #include <tf/tf.h>
 #include <tf/transform_listener.h>
 
-namespace explore {
+namespace exploration {
   class Costmap2DClient {
     public:
       /**
