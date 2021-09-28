@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(tme_exploration)
 
-
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   sensor_msgs
@@ -16,6 +15,19 @@ find_package(catkin REQUIRED COMPONENTS
   actionlib
   multirobot_map_merge
   robot_state_publisher
+  message_generation
+)
+
+add_message_files(
+  FILES
+  frontier.msg
+  frontierArray.msg
+)
+
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+  geometry_msgs
 )
 
 catkin_package(
@@ -33,11 +45,13 @@ catkin_package(
     actionlib
     multirobot_map_merge
     robot_state_publisher
+    message_runtime
 )
 
 ###########
 ## Build ##
 ###########
+
 
 include_directories(${catkin_INCLUDE_DIRS} include )
 

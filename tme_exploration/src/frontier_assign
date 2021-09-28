@@ -7,9 +7,11 @@ import actionlib
 
 from scipy.optimize import linear_sum_assignment
 
+from tme_exploration.msg import frontier, frontierArray
 from geometry_msgs.msg import Point, Pose
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from sensor_msgs.msg import LaserScan
+
 
 class frontierAssign:
     def __init__(self):
@@ -138,7 +140,7 @@ if __name__ == '__main__':
 
     param_rate = rospy.get_param('frontier_rate', 5)
 
-    data = rospy.wait_for_message('frontiers', frontiers)
+    data = rospy.wait_for_message('frontiers', frontierArray)
 
     fInstance = frontierAssign()
     

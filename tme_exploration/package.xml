@@ -34,4 +34,7 @@
   <depend>multirobot_map_merge</depend>
   <depend>robot_state_publisher</depend>
 
+  <depend>message_generation</depend>
+  <depend>message_runtime</depend>
+
 </package>
