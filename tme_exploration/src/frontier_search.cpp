@@ -17,7 +17,6 @@ namespace exploration {
   : costmap_(costmap), 
     min_frontier_size_(min_frontier_size)
   {
-
   }
 
   std::vector<Frontier> FrontierSearch::searchFrom(geometry_msgs::Point position) {

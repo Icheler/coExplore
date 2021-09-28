@@ -3,27 +3,47 @@ project(tme_exploration)
 
 
 find_package(catkin REQUIRED COMPONENTS
-  costmap_2d
-  geometry_msgs
   roscpp
   sensor_msgs
   std_msgs
   move_base_msgs
+  visualization_msgs
+  geometry_msgs
+  map_msgs
+  nav_msgs
+  actionlib_msgs
+  tf
+  costmap_2d
+  actionlib
+  multirobot_map_merge
+  robot_state_publisher
 )
 
 catkin_package(
   CATKIN_DEPENDS
-    costmap_2d
-    geometry_msgs
     roscpp
     sensor_msgs
     std_msgs
     move_base_msgs
+    visualization_msgs
+    geometry_msgs
+    map_msgs
+    nav_msgs
+    actionlib_msgs
+    tf
+    costmap_2d
+    actionlib
+    multirobot_map_merge
+    robot_state_publisher
 )
 
-include_directories(include ${catkin_INCLUDE_DIRS})
+###########
+## Build ##
+###########
 
-add_executable(frontier_search src/explore.cpp src/costmap_client.cpp src/frontier_search.cpp)
+include_directories(${catkin_INCLUDE_DIRS} include )
+
+add_executable(frontier_search src/costmap_client.cpp src/explore.cpp src/frontier_search.cpp)
 add_dependencies(frontier_search ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(frontier_search ${catkin_LIBRARIES})
 

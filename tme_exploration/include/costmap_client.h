@@ -42,8 +42,6 @@
 #include <map_msgs/OccupancyGridUpdate.h>
 #include <nav_msgs/OccupancyGrid.h>
 #include <ros/ros.h>
-#include <tf/tf.h>
-#include <tf/transform_listener.h>
 
 namespace exploration {
   class Costmap2DClient {
@@ -56,7 +54,6 @@ namespace exploration {
        *
        * @param param_nh node hadle to retrieve parameters from
        * @param subscription_nh node hadle where topics will be subscribed
-       * @param tf_listener Will be used for transformation of robot pose.
        */
       Costmap2DClient(ros::NodeHandle& param_nh, ros::NodeHandle& subscription_nh);
 

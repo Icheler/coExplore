@@ -137,7 +137,7 @@ void Explore::visualizeFrontiers(
 
   last_markers_count_ = current_markers_count;
   marker_array_publisher_.publish(markers_msg);
-}
+  }
 
 };
 
