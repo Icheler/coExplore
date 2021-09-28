@@ -27,7 +27,7 @@ struct Frontier {
 class FrontierSearch
 {
 public:
-  FrontierSearch();
+  FrontierSearch(){};
 
   /**
    * @brief Constructor for search task

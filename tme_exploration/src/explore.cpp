@@ -51,8 +51,8 @@ Explore::Explore()
   private_nh_.param("min_frontier_size", min_frontier_size, 0.5);
   private_nh_.param("visualize", visualize_, false);
 
-  search_ = exploration::FrontierSearch(costmap_client_.getCostmap(),
-                                                 min_frontier_size);
+  // search_ = exploration::FrontierSearch(costmap_client_.getCostmap(),
+  //                                               min_frontier_size);
 
   if (visualize_) {
     marker_array_publisher_ =
