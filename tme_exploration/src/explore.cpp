@@ -49,6 +49,7 @@ Explore::Explore()
   double min_frontier_size;
   private_nh_.param("planner_frequency", planner_frequency_, 1.0);
   private_nh_.param("min_frontier_size", min_frontier_size, 0.5);
+  private_nh_.param("visualize", visualize_, false);
 
   search_ = exploration::FrontierSearch(costmap_client_.getCostmap(),
                                                  min_frontier_size);
@@ -148,7 +149,7 @@ int main(int argc, char** argv)
                                     ros::console::levels::Debug)) {
     ros::console::notifyLoggerLevelsChanged();
   }
-  exploration::Explore explore;
+  // exploration::Explore explore;
   
   ros::spin();
 

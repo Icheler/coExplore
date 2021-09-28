@@ -1,12 +1,11 @@
 #include <mutex>
 
 #include <costmap_2d/cost_values.h>
-#include <costmap_2d/costmap_2d.h>
 #include <geometry_msgs/Point.h>
 
-#include <frontier_search.h>
-#include <costmap_tools.h>
 #include <costmap_client.h>
+#include <costmap_tools.h>
+#include <frontier_search.h>
 
 namespace exploration {
   using costmap_2d::LETHAL_OBSTACLE;

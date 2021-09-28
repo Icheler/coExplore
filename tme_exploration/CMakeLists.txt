@@ -12,7 +12,6 @@ find_package(catkin REQUIRED COMPONENTS
   map_msgs
   nav_msgs
   actionlib_msgs
-  tf
   costmap_2d
   actionlib
   multirobot_map_merge
@@ -30,7 +29,6 @@ catkin_package(
     map_msgs
     nav_msgs
     actionlib_msgs
-    tf
     costmap_2d
     actionlib
     multirobot_map_merge
