@@ -39,8 +39,7 @@
 
 #include <thread>
 
-#include <tme_exploration/frontier.h>
-#include <tme_exploration/frontierArray.h>
+#include <ros/console.h>
 
 namespace exploration
 {
@@ -52,24 +51,44 @@ Explore::Explore()
   double min_frontier_size;
   private_nh_.param("planner_frequency", planner_frequency_, 1.0);
   private_nh_.param("min_frontier_size", min_frontier_size, 0.5);
-  private_nh_.param("visualize", visualize_, false);
+  private_nh_.param("visualize", visualize_, true);
 
-  ros::Publisher frontiers_pub = private_nh_.advertise<tme_exploration::frontierArray>("frontiers", 1000);
+  frontiers_pub = private_nh_.advertise<tme_exploration::frontierArray>("frontiers", 1000);
   search_ = exploration::FrontierSearch(costmap_client_.getCostmap(),
                                                 min_frontier_size);
   
-  geometry_msgs::Point position;
-  position.x = 0;
-  position.y = 0;
+  position.x = 522;
+  position.y = 522;
   
-  std::vector<Frontier> frontiers = search_.searchFrom(position);
-
-  frontiers_pub.publish(frontiers);
   
   if (visualize_) {
     marker_array_publisher_ =
         private_nh_.advertise<visualization_msgs::MarkerArray>("frontiers", 10);
   }
+}
+
+void Explore::Exploration(){
+  std::vector<Frontier> frontiers = search_.searchFrom(position);
+
+  frontiers_pub.publish(Explore::msgConversion(frontiers));
+}
+
+tme_exploration::frontierArray Explore::msgConversion(std::vector<Frontier> frontiers){
+  tme_exploration::frontierArray msg;
+  tme_exploration::frontier data;
+
+  for(auto & elem: frontiers){
+    data.size = elem.size;
+    data.min_distance = elem.min_distance;
+    data.cost = elem.cost;
+    data.initial = elem.initial;
+    data.centroid = elem.centroid;
+    data.middle = elem.middle;
+    data.points = elem.points;
+    msg.frontiers.push_back(data);
+  }
+
+  return msg;
 }
 
 void Explore::visualizeFrontiers(
@@ -156,14 +175,19 @@ void Explore::visualizeFrontiers(
 
 int main(int argc, char** argv)
 {
+  ROS_WARN("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
   ros::init(argc, argv, "tme_explore");
   if (ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME,
                                     ros::console::levels::Debug)) {
     ros::console::notifyLoggerLevelsChanged();
   }
   exploration::Explore explore;
+  ros::Rate rate(1.);
   
-  ros::spin();
+  while(ros::ok()){
+    explore.Exploration();
+    rate.sleep();
+  }
 
   return 0;
 }

@@ -49,6 +49,9 @@
 #include <costmap_client.h>
 #include <frontier_search.h>
 
+#include <tme_exploration/frontier.h>
+#include <tme_exploration/frontierArray.h>
+
 namespace exploration
 {
 /**
@@ -61,7 +64,21 @@ class Explore
 public:
   Explore();
 
+  /**
+   * @brief  Method to find new frontiers and publish them to 'frontiers' topic
+   */
+  void Exploration();
+
+  ros::Publisher frontiers_pub;
+  exploration::FrontierSearch search_;
+  geometry_msgs::Point position;
+
 private:
+
+  /**
+   * @brief  Convert frontiers struct to frontierArray msg
+   */
+  tme_exploration::frontierArray msgConversion(std::vector<Frontier> frontiers);
 
   /**
    * @brief  Publish a frontiers as markers
@@ -74,7 +91,6 @@ private:
   ros::Publisher marker_array_publisher_;
 
   Costmap2DClient costmap_client_;
-  exploration::FrontierSearch search_;
   size_t last_markers_count_;
 
   // parameters
