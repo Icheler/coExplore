@@ -20,6 +20,7 @@ namespace exploration {
 
   std::vector<Frontier> FrontierSearch::searchFrom(geometry_msgs::Point position) {
     std::vector<Frontier> frontier_list;
+    
 
     // Sanity check that robot is inside costmap bounds before searching
     unsigned int mx, my;
@@ -48,7 +49,7 @@ namespace exploration {
       bfs.push(clear);
     } else {
       bfs.push(pos);
-      ROS_WARN("Could not find nearby clear cell to start search");
+      ROS_WARN("Could not find nearby clear cell to start search, %i, %i", mx, my);
     }
     visited_flag[bfs.front()] = true;
 

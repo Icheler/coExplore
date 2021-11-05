@@ -35,6 +35,7 @@
  *********************************************************************/
 
 #include <costmap_client.h>
+#include <ros/console.h>
 
 #include <functional>
 #include <mutex>
@@ -51,7 +52,6 @@ namespace exploration
                                   ros::NodeHandle& subscription_nh)
   {
     std::string costmap_topic;
-    std::string footprint_topic;
     std::string costmap_updates_topic;
     param_nh.param("map_topic", costmap_topic, std::string("map"));
     param_nh.param("map_updates_topic", costmap_updates_topic,
@@ -85,6 +85,8 @@ namespace exploration
 
     unsigned int size_in_cells_x = msg->info.width;
     unsigned int size_in_cells_y = msg->info.height;
+
+    ROS_INFO("%i, %i this is the size of the map", size_in_cells_x, size_in_cells_y);
     double resolution = msg->info.resolution;
     double origin_x = msg->info.origin.position.x;
     double origin_y = msg->info.origin.position.y;

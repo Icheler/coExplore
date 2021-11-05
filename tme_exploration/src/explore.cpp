@@ -53,12 +53,12 @@ Explore::Explore()
   private_nh_.param("min_frontier_size", min_frontier_size, 0.5);
   private_nh_.param("visualize", visualize_, true);
 
-  frontiers_pub = private_nh_.advertise<tme_exploration::frontierArray>("frontiers", 1000);
+  frontiers_pub = private_nh_.advertise<tme_exploration::frontierArray>("frontierArray", 1000);
   search_ = exploration::FrontierSearch(costmap_client_.getCostmap(),
                                                 min_frontier_size);
   
-  position.x = 522;
-  position.y = 522;
+  position.x = 0.5;
+  position.y = 0.5;
   
   
   if (visualize_) {
