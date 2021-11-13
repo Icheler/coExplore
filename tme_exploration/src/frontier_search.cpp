@@ -1,6 +1,7 @@
 #include <mutex>
 
 #include <costmap_2d/cost_values.h>
+#include <costmap_2d/costmap_2d.h>
 #include <geometry_msgs/Point.h>
 
 #include <costmap_client.h>
@@ -21,7 +22,6 @@ namespace exploration {
   std::vector<Frontier> FrontierSearch::searchFrom(geometry_msgs::Point position) {
     std::vector<Frontier> frontier_list;
     
-
     // Sanity check that robot is inside costmap bounds before searching
     unsigned int mx, my;
     if (!costmap_->worldToMap(position.x, position.y, mx, my)) {
@@ -92,7 +92,10 @@ namespace exploration {
     // record initial contact point for frontier
     unsigned int ix, iy;
     costmap_->indexToCells(initial_cell, ix, iy);
-    costmap_->mapToWorld(ix, iy, output.initial.x, output.initial.y);
+    //costmap_->mapToWorld(ix, iy, output.initial.x, output.initial.y);
+
+    output.initial.x = (double) ix;
+    output.initial.y = (double) iy;
 
     // push initial gridcell onto queue
     std::queue<unsigned int> bfs;
@@ -102,7 +105,9 @@ namespace exploration {
     unsigned int rx, ry;
     double reference_x, reference_y;
     costmap_->indexToCells(reference, rx, ry);
-    costmap_->mapToWorld(rx, ry, reference_x, reference_y);
+    // costmap_->mapToWorld(rx, ry, reference_x, reference_y);
+    reference_x = (double) rx;
+    reference_y = (double) ry;
 
     while (!bfs.empty()) {
       unsigned int idx = bfs.front();
@@ -117,7 +122,9 @@ namespace exploration {
           unsigned int mx, my;
           double wx, wy;
           costmap_->indexToCells(nbr, mx, my);
-          costmap_->mapToWorld(mx, my, wx, wy);
+          // costmap_->mapToWorld(mx, my, wx, wy);
+          wx = (double) mx;
+          wy = (double) my;
 
           geometry_msgs::Point point;
           point.x = wx;
