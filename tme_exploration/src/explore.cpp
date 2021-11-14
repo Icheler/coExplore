@@ -69,7 +69,7 @@ Explore::Explore()
 
 void Explore::Exploration(){
   std::vector<Frontier> frontiers = search_.searchFrom(position);
-  ROS_WARN("We found %i frontiers", frontiers.size());
+  ROS_WARN("We found %lu frontiers", frontiers.size());
 
   frontiers_pub.publish(Explore::msgConversion(frontiers));
 }
@@ -82,14 +82,9 @@ tme_exploration::frontierArray Explore::msgConversion(std::vector<Frontier> fron
     data.size = elem.size;
     data.initial = elem.initial;
     data.centroid = elem.centroid;
-    data.middle = elem.middle;
     data.points = elem.points;
     msg.frontiers.push_back(data);
-    ROS_WARN("Data includes middle: %i, %d, %d", data.size, data.middle.x, data.middle.y);
-    ROS_WARN("Data includes initial: %i, %d, %d", data.size, data.initial.x, data.initial.y);
-    ROS_WARN("Data includes centroid: %i, %d, %d", data.size, data.centroid.x, data.centroid.y);
   }
-  ROS_WARN("msgConversion happened");
   return msg;
 }
 

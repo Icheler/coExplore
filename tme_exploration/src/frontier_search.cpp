@@ -92,10 +92,10 @@ namespace exploration {
     // record initial contact point for frontier
     unsigned int ix, iy;
     costmap_->indexToCells(initial_cell, ix, iy);
-    //costmap_->mapToWorld(ix, iy, output.initial.x, output.initial.y);
+    // costmap_->mapToWorld(ix, iy, output.initial.x, output.initial.y);
 
-    output.initial.x = (double) ix;
-    output.initial.y = (double) iy;
+    output.initial.x = ix;
+    output.initial.y = iy;
 
     // push initial gridcell onto queue
     std::queue<unsigned int> bfs;
@@ -105,9 +105,7 @@ namespace exploration {
     unsigned int rx, ry;
     double reference_x, reference_y;
     costmap_->indexToCells(reference, rx, ry);
-    // costmap_->mapToWorld(rx, ry, reference_x, reference_y);
-    reference_x = (double) rx;
-    reference_y = (double) ry;
+    costmap_->mapToWorld(rx, ry, reference_x, reference_y);
 
     while (!bfs.empty()) {
       unsigned int idx = bfs.front();
@@ -122,21 +120,19 @@ namespace exploration {
           unsigned int mx, my;
           double wx, wy;
           costmap_->indexToCells(nbr, mx, my);
-          // costmap_->mapToWorld(mx, my, wx, wy);
-          wx = (double) mx;
-          wy = (double) my;
+          costmap_->mapToWorld(mx, my, wx, wy);
 
           geometry_msgs::Point point;
-          point.x = wx;
-          point.y = wy;
+          point.x = mx;
+          point.y = my;
           output.points.push_back(point);
 
           // update frontier size
           output.size++;
 
           // update centroid of frontier
-          output.centroid.x += wx;
-          output.centroid.y += wy;
+          output.centroid.x += mx;
+          output.centroid.y += my;
 
           // determine frontier's distance from robot, going by closest gridcell
           // to robot

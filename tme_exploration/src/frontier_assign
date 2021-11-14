@@ -140,7 +140,7 @@ if __name__ == '__main__':
 
     param_rate = rospy.get_param('frontier_rate', 5)
 
-    data = rospy.wait_for_message('frontierArray', frontierArray)
+    data = rospy.wait_for_message('/tme_frontier_search/frontierArray', frontierArray)
 
     fInstance = frontierAssign()
     
