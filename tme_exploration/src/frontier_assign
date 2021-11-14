@@ -95,14 +95,14 @@ class frontierAssign:
     
     # Computes the modifier from robot speed and distance between robot and frontiers, Normalize again
     def frontier_distance_modifier(self):
-        for i in range(self.frontiers[0]):
+        for i in range(len(self.frontiers)):
             for j in range(self.numberRobots):
                 self.frontierDistanceModifier[i][j] = self.speedModifier[j] * self.distances[i][j]
         self.frontierDistanceModifier = self.frontierDistanceModifier / np.max(self.frontierDistanceModifier)
 
     # Computes the modifier from robot visibility and size of frontiers, Normalize again
     def frontier_visibility_modifier(self):
-        for i in range(self.frontiers[0]):
+        for i in range(len(self.frontiers)):
             for j in range(self.numberRobots):
                 self.frontierVisibilityModifier[i][j] = self.visibilityModifier[j] * self.frontiers[i].shape
         self.frontierVisibilityModifier = self.frontierVisibilityModifier / np.max(self.frontierVisibilityModifier)
