@@ -3,7 +3,8 @@ Panels:
     Help Height: 78
     Name: Displays
     Property Tree Widget:
-      Expanded: ~
+      Expanded:
+        - /MarkerArray1
       Splitter Ratio: 0.5
     Tree Height: 1106
   - Class: rviz/Selection
@@ -24,7 +25,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: LaserScan
+    SyncSource: ""
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -273,13 +274,13 @@ Visualization Manager:
       Value: false
       Visual Enabled: true
     - Class: rviz/MarkerArray
-      Enabled: false
-      Marker Topic: /robot1/tme_explorer/frontiers
+      Enabled: true
+      Marker Topic: /tme_frontier_search/frontiers
       Name: MarkerArray
       Namespaces:
         {}
       Queue Size: 100
-      Value: false
+      Value: true
     - Class: rviz/MarkerArray
       Enabled: false
       Marker Topic: /robot2/tme_explorer/frontiers

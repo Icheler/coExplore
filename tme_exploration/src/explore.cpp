@@ -49,6 +49,7 @@ Explore::Explore()
 {
   double timeout;
   double min_frontier_size;
+  last_markers_count_ = 0;
   private_nh_.param("planner_frequency", planner_frequency_, 1.0);
   private_nh_.param("min_frontier_size", min_frontier_size, 0.5);
   private_nh_.param("visualize", visualize_, true);
@@ -71,6 +72,7 @@ void Explore::Exploration(){
   std::vector<Frontier> frontiers = search_.searchFrom(position);
   ROS_WARN("We found %lu frontiers", frontiers.size());
 
+  visualizeFrontiers(frontiers);
   frontiers_pub.publish(Explore::msgConversion(frontiers));
 }
 
@@ -107,7 +109,7 @@ void Explore::visualizeFrontiers(
   green.b = 0;
   green.a = 1.0;
 
-  ROS_DEBUG("visualising %lu frontiers", frontiers.size());
+  ROS_WARN("visualising %lu frontiers", frontiers.size());
   visualization_msgs::MarkerArray markers_msg;
   std::vector<visualization_msgs::Marker>& markers = markers_msg.markers;
   visualization_msgs::Marker m;
@@ -127,7 +129,7 @@ void Explore::visualizeFrontiers(
   m.frame_locked = true;
 
   // weighted frontiers are always sorted
-  double min_cost = frontiers.empty() ? 0. : frontiers.front().cost;
+  // double min_cost = frontiers.empty() ? 0. : frontiers.front().cost;
 
   m.action = visualization_msgs::Marker::ADD;
   size_t id = 0;
@@ -145,11 +147,12 @@ void Explore::visualizeFrontiers(
     m.type = visualization_msgs::Marker::SPHERE;
     m.id = int(id);
     m.pose.position = frontier.initial;
+    m.pose.orientation.w = 1.0;
     // scale frontier according to its cost (costier frontiers will be smaller)
-    double scale = std::min(std::abs(min_cost * 0.4 / frontier.cost), 0.5);
-    m.scale.x = scale;
+    // double scale = std::min(std::abs(min_cost * 0.4 / frontier.cost), 0.5);
+    /* m.scale.x = scale;
     m.scale.y = scale;
-    m.scale.z = scale;
+    m.scale.z = scale; */
     m.points = {};
     m.color = green;
     markers.push_back(m);
@@ -161,13 +164,12 @@ void Explore::visualizeFrontiers(
   m.action = visualization_msgs::Marker::DELETE;
   for (; id < last_markers_count_; ++id) {
     m.id = int(id);
+    ROS_WARN("print id: %i, %lu", m.id, last_markers_count_);
     markers.push_back(m);
   }
-
   last_markers_count_ = current_markers_count;
   marker_array_publisher_.publish(markers_msg);
   }
-
 };
 
 int main(int argc, char** argv)

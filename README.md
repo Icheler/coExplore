@@ -6,6 +6,7 @@ New repository for research @TUM looking into Multi-Robot Exploration by using v
 
 search: \
 costmap doesn't update on map/map_update refresh (temp fix by killing the tme_search node every time)
+fixed visualizeFrontiers breaks/ is broken
 
 assign: \
 fixed some wrong topic names and minor bugs in assign

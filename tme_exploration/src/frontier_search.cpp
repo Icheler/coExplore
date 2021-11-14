@@ -92,10 +92,10 @@ namespace exploration {
     // record initial contact point for frontier
     unsigned int ix, iy;
     costmap_->indexToCells(initial_cell, ix, iy);
-    // costmap_->mapToWorld(ix, iy, output.initial.x, output.initial.y);
+    costmap_->mapToWorld(ix, iy, output.initial.x, output.initial.y);
 
-    output.initial.x = ix;
-    output.initial.y = iy;
+    /* output.initial.x = ix;
+    output.initial.y = iy; */
 
     // push initial gridcell onto queue
     std::queue<unsigned int> bfs;
@@ -123,8 +123,8 @@ namespace exploration {
           costmap_->mapToWorld(mx, my, wx, wy);
 
           geometry_msgs::Point point;
-          point.x = mx;
-          point.y = my;
+          point.x = wx;
+          point.y = wy;
           output.points.push_back(point);
 
           // update frontier size
