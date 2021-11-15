@@ -131,8 +131,8 @@ namespace exploration {
           output.size++;
 
           // update centroid of frontier
-          output.centroid.x += mx;
-          output.centroid.y += my;
+          output.centroid.x += wx;
+          output.centroid.y += wy;
 
           // determine frontier's distance from robot, going by closest gridcell
           // to robot

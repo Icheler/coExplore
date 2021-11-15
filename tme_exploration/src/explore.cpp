@@ -174,7 +174,6 @@ void Explore::visualizeFrontiers(
 
 int main(int argc, char** argv)
 {
-  ROS_WARN("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
   ros::init(argc, argv, "tme_explore");
   if (ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME,
                                     ros::console::levels::Debug)) {

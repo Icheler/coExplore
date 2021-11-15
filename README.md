@@ -10,4 +10,6 @@ fixed visualizeFrontiers breaks/ is broken
 
 assign: \
 fixed some wrong topic names and minor bugs in assign
-assign still crashes because of noneType Division
+fixed assign still crashes because of noneType Division
+robots move to the same goal
+robots don't search for next goal after arriving/ mission success
