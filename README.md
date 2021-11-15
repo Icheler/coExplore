@@ -4,6 +4,9 @@ New repository for research @TUM looking into Multi-Robot Exploration by using v
 
 ## Some known bugs for basic bug tracking
 
+overall: \
+weird scan issue where part of the scans are ignored or something else for unknown reason
+
 search: \
 costmap doesn't update on map/map_update refresh (temp fix by killing the tme_search node every time)
 fixed visualizeFrontiers breaks/ is broken
@@ -11,5 +14,6 @@ fixed visualizeFrontiers breaks/ is broken
 assign: \
 fixed some wrong topic names and minor bugs in assign
 fixed assign still crashes because of noneType Division
-robots move to the same goal
+fixed robots move to the same goal
 robots don't search for next goal after arriving/ mission success
+robots start randomly spinning and are not looking for new goals
