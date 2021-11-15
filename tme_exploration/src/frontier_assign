@@ -26,6 +26,9 @@ class frontierAssign:
         self.visibilityModifier = np.empty(self.numberRobots)
         self.frontierVisibilityModifier = None
         self.frontierDistanceModifier = None
+        self.assign_robot_speed()
+        self.speed_modifier()
+        self.visibility_params()
 
     # Getters for various parameters
     
@@ -78,10 +81,11 @@ class frontierAssign:
             pass
 
     # Get speed for every robot from ros parameters and assign maxSpeed
-    def get_robot_speed(self):
+    def assign_robot_speed(self):
         for i in range(0, self.numberRobots):
             temp_str = '/' + self.robotPrefix + str(i+1) + '/max_velocity'
-            self.robotSpeeds[i] = rospy.get_param(temp_str)
+            #TODO
+            self.robotSpeeds[i] = 1#rospy.get_param(temp_str)
         self.maxSpeed = np.max(self.robotSpeeds)
 
     # Assign speed modifiers for every robot by normalizing the values to 0,1 through dividing with the maxSpeed
@@ -94,7 +98,7 @@ class frontierAssign:
     def visibility_params(self):
         self.visibilityModifier = np.zeros(self.numberRobots)
         for i in range(self.numberRobots):
-            topic = '/' + self.robotPrefix + str(self.numberRobots) + '/laser_scan'
+            topic = '/' + self.robotPrefix + str(self.numberRobots) + '/scan'
             data = rospy.wait_for_message(topic, LaserScan)
             overall_angle = data.angle_max - data.angle_min
             overall_range = data.range_max - data.range_min
@@ -105,7 +109,7 @@ class frontierAssign:
     # Computes the modifier from robot speed and distance between robot and frontiers, Normalize again
     def frontier_distance_modifier(self):
         try:
-            self.frontierDistanceModifier = np.zeros((len(self.frontiers.frontiers), self.numberRobots))
+            self.frontierDistanceModifier = np.ones((len(self.frontiers.frontiers), self.numberRobots))
             for i in range(len(self.frontiers.frontiers)):
                 for j in range(self.numberRobots):
                     self.frontierDistanceModifier[i][j] = self.speedModifier[j] * self.distances[i][j]
@@ -116,7 +120,7 @@ class frontierAssign:
     # Computes the modifier from robot visibility and size of frontiers, Normalize again
     def frontier_visibility_modifier(self):
         try:
-            self.frontierVisibilityModifier = np.zeros((len(self.frontiers.frontiers), self.numberRobots))
+            self.frontierVisibilityModifier = np.ones((len(self.frontiers.frontiers), self.numberRobots))
             for i in range(len(self.frontiers.frontiers)):
                 for j in range(self.numberRobots):
                     self.frontierVisibilityModifier[i][j] = self.visibilityModifier[j] * self.frontiers.frontiers[i].size
@@ -136,7 +140,6 @@ class frontierAssign:
         goal.target_pose.pose.position.x = position.x
         goal.target_pose.pose.position.y = position.y
         goal.target_pose.pose.position.z = 0
-        rospy.logwarn(goal.target_pose.pose.position)
         goal.target_pose.pose.orientation.w = 1
 
         client.send_goal(goal)
@@ -172,7 +175,6 @@ if __name__ == '__main__':
     for i in range(fInstance.get_numberRobots()):
         j = i+1
         topic = '/' + fInstance.get_robotPrefix() + str(j) + '/poseupdate'
-        rospy.logwarn(topic)
         subscriber_position.append(rospy.Subscriber(topic, PoseWithCovarianceStamped, callback=fInstance.callback_position, callback_args = topic))
 
     chosen_method_id = 0
@@ -214,15 +216,15 @@ if __name__ == '__main__':
             else:
                 #TODO
                 cost_matrix = fInstance.rank_matrix()
-
+            
             assignment = linear_sum_assignment(cost_matrix)
 
             for i in range(fInstance.get_numberRobots()):
                 j = i+1
                 topic = '/robot' + str(j) + '/move_base'
-                rospy.logwarn(topic)
                 temp_frontiers = fInstance.get_frontiers()
-                fInstance.movebase_client(topic=topic, position=temp_frontiers.frontiers[i].centroid)
+                temp_assignment = temp_frontiers.frontiers[assignment[0][i]]
+                fInstance.movebase_client(topic=topic, position=temp_assignment.centroid)
 
         else:
             rospy.logwarn("frontiers is empty")
