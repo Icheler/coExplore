@@ -29,6 +29,7 @@ class frontierAssign:
         self.assign_robot_speed()
         self.speed_modifier()
         self.visibility_params()
+        self.lastSearchTime = rospy.Time.now()
 
     # Getters for various parameters
     
@@ -128,6 +129,36 @@ class frontierAssign:
         except ValueError:
             pass
 
+    def active_cb(self):
+        rospy.loginfo("Goal pose is now being processed by the Action Server...")
+
+    def feedback_cb(self, feedback):
+        #To print current pose at each feedback:
+        #rospy.loginfo("Feedback for goal: "+str(feedback))
+        rospy.loginfo("Feedback for goal pose received")
+
+    def done_cb(self, status, result):
+    # Reference for terminal status values: http://docs.ros.org/diamondback/api/actionlib_msgs/html/msg/GoalStatus.html
+        if status == 2:
+            rospy.loginfo("Goal pose received a cancel request after it started executing, completed execution!")
+
+        if status == 3:
+            rospy.loginfo("Goal pose reached")
+
+        if status == 4:
+            rospy.loginfo("Goal pose was aborted by the Action Server")
+            rospy.signal_shutdown("Goal pose aborted, shutting down!")
+            return
+
+        if status == 5:
+            rospy.loginfo("Goal pose has been rejected by the Action Server")
+            rospy.signal_shutdown("Goal pose rejected, shutting down!")
+            return
+
+        if status == 8:
+            rospy.loginfo("Goal pose received a cancel request before it started executing, successfully cancelled!")
+
+
     # Method to allow the parsing of move_base actions 
     def movebase_client(self, topic, position):
         client = actionlib.SimpleActionClient(topic, MoveBaseAction)
@@ -142,7 +173,7 @@ class frontierAssign:
         goal.target_pose.pose.position.z = 0
         goal.target_pose.pose.orientation.w = 1
 
-        client.send_goal(goal)
+        client.send_goal(goal, self.done_cb, self.active_cb, self.feedback_cb) 
         """ wait = client.wait_for_result()
         if not wait:
             rospy.logerr('Action server not available!')
@@ -160,7 +191,7 @@ if __name__ == '__main__':
     
     rospy.init_node('frontier_assign')
 
-    param_rate = rospy.get_param('frontier_rate', 5)
+    param_rate = rospy.get_param('frontier_rate', 0.5)
 
     data = rospy.wait_for_message('/tme_frontier_search/frontierArray', frontierArray)
 
