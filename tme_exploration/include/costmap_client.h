@@ -88,9 +88,10 @@ namespace exploration {
         return global_frame_;
       }
 
-    protected:
       void updateFullMap(const nav_msgs::OccupancyGrid::ConstPtr& msg);
       void updatePartialMap(const map_msgs::OccupancyGridUpdate::ConstPtr& msg);
+
+    protected:
 
       costmap_2d::Costmap2D costmap_;
       std::string global_frame_;      ///< @brief The global frame for the costmap

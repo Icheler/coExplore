@@ -45,38 +45,30 @@ namespace exploration
 {
   // static translation table to speed things up
   std::array<unsigned char, 256> init_translation_table();
-  static const std::array<unsigned char, 256> cost_translation_table__ =
-      init_translation_table();
+  static const std::array<unsigned char, 256> cost_translation_table__ = init_translation_table();
 
-  Costmap2DClient::Costmap2DClient(ros::NodeHandle& param_nh,
-                                  ros::NodeHandle& subscription_nh)
+  Costmap2DClient::Costmap2DClient(ros::NodeHandle& param_nh, ros::NodeHandle& subscription_nh)
   {
     std::string costmap_topic;
     std::string costmap_updates_topic;
     param_nh.param("map_topic", costmap_topic, std::string("map"));
-    param_nh.param("map_updates_topic", costmap_updates_topic,
-                  std::string("map_updates"));
+    param_nh.param("map_updates_topic", costmap_updates_topic, std::string("map_updates"));
 
-    /* initialize costmap */
-    costmap_sub_ = subscription_nh.subscribe<nav_msgs::OccupancyGrid>(
-        costmap_topic, 1000,
-        [this](const nav_msgs::OccupancyGrid::ConstPtr& msg) {
-          updateFullMap(msg);
-        });
-    ROS_INFO("Waiting for costmap to become available, topic: %s",
-            costmap_topic.c_str());
-    auto costmap_msg = ros::topic::waitForMessage<nav_msgs::OccupancyGrid>(
-        costmap_topic, subscription_nh);
+    /* initialize costmap 
+    costmap_sub_ = subscription_nh.subscribe<nav_msgs::OccupancyGrid>(costmap_topic, 1000,
+      [this](const nav_msgs::OccupancyGrid::ConstPtr& msg) {
+        updateFullMap(msg);
+      });
+    ROS_INFO("Waiting for costmap to become available, topic: %s", costmap_topic.c_str());
+    auto costmap_msg = ros::topic::waitForMessage<nav_msgs::OccupancyGrid>(costmap_topic, subscription_nh);
     updateFullMap(costmap_msg);
 
-    /* subscribe to map updates */
-    costmap_updates_sub_ =
-        subscription_nh.subscribe<map_msgs::OccupancyGridUpdate>(
-            costmap_updates_topic, 1000,
-            [this](const map_msgs::OccupancyGridUpdate::ConstPtr& msg) {
-              updatePartialMap(msg);
-            });
-
+    subscribe to map updates 
+    costmap_updates_sub_ = subscription_nh.subscribe<map_msgs::OccupancyGridUpdate>(costmap_updates_topic, 1000,
+      [this](const map_msgs::OccupancyGridUpdate::ConstPtr& msg) {
+        updatePartialMap(msg);
+      });
+    */
   }
 
   void Costmap2DClient::updateFullMap(const nav_msgs::OccupancyGrid::ConstPtr& msg)

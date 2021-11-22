@@ -55,20 +55,20 @@ Explore::Explore()
   private_nh_.param("visualize", visualize_, true);
 
   frontiers_pub = private_nh_.advertise<tme_exploration::frontierArray>("frontierArray", 1000);
-  search_ = exploration::FrontierSearch(costmap_client_.getCostmap(),
-                                                min_frontier_size);
+  search_ = exploration::FrontierSearch(costmap_client_.getCostmap(), min_frontier_size);
   
   position.x = 0.5;
   position.y = 0.5;
   
   
   if (visualize_) {
-    marker_array_publisher_ =
-        private_nh_.advertise<visualization_msgs::MarkerArray>("frontiers", 10);
+    marker_array_publisher_ = private_nh_.advertise<visualization_msgs::MarkerArray>("frontiers", 10);
   }
 }
 
 void Explore::Exploration(){
+  auto costmap_msg = ros::topic::waitForMessage<nav_msgs::OccupancyGrid>("map", relative_nh_);
+  costmap_client_.updateFullMap(costmap_msg);
   std::vector<Frontier> frontiers = search_.searchFrom(position);
   ROS_WARN("We found %lu frontiers", frontiers.size());
 

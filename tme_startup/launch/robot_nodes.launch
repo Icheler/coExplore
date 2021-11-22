@@ -49,7 +49,7 @@
             <param name="min_frontier_size" value="0.1"/>
         </node>
         -->
-        <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+        <node pkg="move_base" type="move_base" respawn="true" name="move_base" output="screen">
             <rosparam file="$(find tme_startup)/config/costmap_common_params.yaml" command="load" ns="global_costmap" />
             <rosparam file="$(find tme_startup)/config/costmap_common_params.yaml" command="load" ns="local_costmap" />
             <rosparam file="$(find tme_startup)/config/costmap_params.yaml" command="load" />

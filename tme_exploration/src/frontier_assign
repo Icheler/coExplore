@@ -133,8 +133,6 @@ class frontierAssign:
         rospy.loginfo("Goal pose is now being processed by the Action Server...")
 
     def feedback_cb(self, feedback):
-        #To print current pose at each feedback:
-        #rospy.loginfo("Feedback for goal: "+str(feedback))
         rospy.loginfo("Feedback for goal pose received")
 
     def done_cb(self, status, result):
@@ -144,6 +142,7 @@ class frontierAssign:
 
         if status == 3:
             rospy.loginfo("Goal pose reached")
+            self.lastSearchTime = rospy.Time.now()
 
         if status == 4:
             rospy.loginfo("Goal pose was aborted by the Action Server")
@@ -173,13 +172,7 @@ class frontierAssign:
         goal.target_pose.pose.position.z = 0
         goal.target_pose.pose.orientation.w = 1
 
-        client.send_goal(goal, self.done_cb, self.active_cb, self.feedback_cb) 
-        """ wait = client.wait_for_result()
-        if not wait:
-            rospy.logerr('Action server not available!')
-            rospy.signal_shutdown('Action server not available')
-        else:
-            return client.get_result() """
+        client.send_goal(goal, self.done_cb, self.active_cb, self.feedback_cb)
 
     # minPos approximation by assigning rank based on distance between goal and robot locations
     def rank_matrix(self, matrix):
@@ -216,12 +209,10 @@ if __name__ == '__main__':
         chosen_method_id = 1
     elif(chosen_method == 'combined'):
         chosen_method_id = 2
-    else:
-        chosen_method_id = 3
-
-    if(chosen_method_id == 2):
         visibility_weighting = rospy.get_param('visibility_weighting', 1)
         speed_weighting = rospy.get_param('speed_weighting', 1)
+    else:
+        chosen_method_id = 3
 
     rate = rospy.Rate(param_rate)
     
