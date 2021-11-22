@@ -30,8 +30,12 @@ class frontierAssign:
         self.speed_modifier()
         self.visibility_params()
         self.lastSearchTime = rospy.Time.now()
+        self.goals = np.empty(self.numberRobots, dtype=Point)
 
     # Getters for various parameters
+
+    def set_goals(self, number, value):
+        self.goals[number] = value
     
     def get_numberRobots(self):
         return self.numberRobots
@@ -53,6 +57,9 @@ class frontierAssign:
 
     def get_frontiers(self):
         return self.frontiers
+
+    def get_goals(self):
+        return self.goals
 
     # Callbacks for the frontiers and position data from the ros topics
 
@@ -136,7 +143,9 @@ class frontierAssign:
         rospy.loginfo("Feedback for goal pose received")
 
     def done_cb(self, status, result):
-    # Reference for terminal status values: http://docs.ros.org/diamondback/api/actionlib_msgs/html/msg/GoalStatus.html
+    # Reference for terminal status values: http://docs.ros.org/diamondback/api/actcombinedionlib_msgs/html/msg/GoalStatus.html
+        rospy.logwarn("move_base exited with status: " + str(status))
+        
         if status == 2:
             rospy.loginfo("Goal pose received a cancel request after it started executing, completed execution!")
 
@@ -160,6 +169,7 @@ class frontierAssign:
 
     # Method to allow the parsing of move_base actions 
     def movebase_client(self, topic, position):
+
         client = actionlib.SimpleActionClient(topic, MoveBaseAction)
 
         client.wait_for_server()
@@ -172,6 +182,7 @@ class frontierAssign:
         goal.target_pose.pose.position.z = 0
         goal.target_pose.pose.orientation.w = 1
 
+        client.cancel_all_goals()
         client.send_goal(goal, self.done_cb, self.active_cb, self.feedback_cb)
 
     # minPos approximation by assigning rank based on distance between goal and robot locations
@@ -184,7 +195,7 @@ if __name__ == '__main__':
     
     rospy.init_node('frontier_assign')
 
-    param_rate = rospy.get_param('frontier_rate', 0.5)
+    param_rate = rospy.get_param('frontier_rate', 0.25)
 
     data = rospy.wait_for_message('/tme_frontier_search/frontierArray', frontierArray)
 
@@ -207,12 +218,12 @@ if __name__ == '__main__':
         chosen_method_id = 0
     elif(chosen_method == 'greedy'):
         chosen_method_id = 1
-    elif(chosen_method == 'combined'):
+    elif(chosen_method == 'minPos'):
         chosen_method_id = 2
-        visibility_weighting = rospy.get_param('visibility_weighting', 1)
-        speed_weighting = rospy.get_param('speed_weighting', 1)
     else:
         chosen_method_id = 3
+        visibility_weighting = rospy.get_param('visibility_weighting', 1)
+        speed_weighting = rospy.get_param('speed_weighting', 1)
 
     rate = rospy.Rate(param_rate)
     
@@ -230,14 +241,15 @@ if __name__ == '__main__':
                 cost_matrix = fInstance.get_frontierVisibilityModifier()
             
             elif(chosen_method_id == 2):
+                #TODO
+                cost_matrix = fInstance.rank_matrix()
+                
+            else:
                 fInstance.frontier_visibility_modifier()
                 fInstance.frontier_distance()
                 fInstance.frontier_distance_modifier()
                 cost_matrix = speed_weighting * fInstance.get_frontierDistanceModifier() + visibility_weighting * fInstance.get_frontierVisibilityModifier()
                 
-            else:
-                #TODO
-                cost_matrix = fInstance.rank_matrix()
             
             assignment = linear_sum_assignment(cost_matrix)
 
@@ -246,7 +258,10 @@ if __name__ == '__main__':
                 topic = '/robot' + str(j) + '/move_base'
                 temp_frontiers = fInstance.get_frontiers()
                 temp_assignment = temp_frontiers.frontiers[assignment[0][i]]
-                fInstance.movebase_client(topic=topic, position=temp_assignment.centroid)
+                goals = fInstance.get_goals()
+                if(temp_assignment.centroid != goals[i]):
+                    fInstance.set_goals(i, temp_assignment.centroid)
+                    fInstance.movebase_client(topic=topic, position=temp_assignment.centroid)
 
         else:
             rospy.logwarn("frontiers is empty")

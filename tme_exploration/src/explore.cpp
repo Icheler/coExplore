@@ -164,7 +164,6 @@ void Explore::visualizeFrontiers(
   m.action = visualization_msgs::Marker::DELETE;
   for (; id < last_markers_count_; ++id) {
     m.id = int(id);
-    ROS_WARN("print id: %i, %lu", m.id, last_markers_count_);
     markers.push_back(m);
   }
   last_markers_count_ = current_markers_count;
