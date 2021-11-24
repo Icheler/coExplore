@@ -70,7 +70,6 @@ void Explore::Exploration(){
   auto costmap_msg = ros::topic::waitForMessage<nav_msgs::OccupancyGrid>("map", relative_nh_);
   costmap_client_.updateFullMap(costmap_msg);
   std::vector<Frontier> frontiers = search_.searchFrom(position);
-  ROS_WARN("We found %lu frontiers", frontiers.size());
 
   visualizeFrontiers(frontiers);
   frontiers_pub.publish(Explore::msgConversion(frontiers));
@@ -109,7 +108,6 @@ void Explore::visualizeFrontiers(
   green.b = 0;
   green.a = 1.0;
 
-  ROS_WARN("visualising %lu frontiers", frontiers.size());
   visualization_msgs::MarkerArray markers_msg;
   std::vector<visualization_msgs::Marker>& markers = markers_msg.markers;
   visualization_msgs::Marker m;

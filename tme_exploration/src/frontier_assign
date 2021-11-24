@@ -37,6 +37,9 @@ class frontierAssign:
     def set_goals(self, number, value):
         self.goals[number] = value
     
+    def get_lastSearchTime(self):
+        return self.lastSearchTime
+
     def get_numberRobots(self):
         return self.numberRobots
 
@@ -166,7 +169,6 @@ class frontierAssign:
         if status == 8:
             rospy.loginfo("Goal pose received a cancel request before it started executing, successfully cancelled!")
 
-
     # Method to allow the parsing of move_base actions 
     def movebase_client(self, topic, position):
 
@@ -195,7 +197,7 @@ if __name__ == '__main__':
     
     rospy.init_node('frontier_assign')
 
-    param_rate = rospy.get_param('frontier_rate', 0.25)
+    param_rate = rospy.get_param('frontier_rate', 2)
 
     data = rospy.wait_for_message('/tme_frontier_search/frontierArray', frontierArray)
 
@@ -259,9 +261,13 @@ if __name__ == '__main__':
                 temp_frontiers = fInstance.get_frontiers()
                 temp_assignment = temp_frontiers.frontiers[assignment[0][i]]
                 goals = fInstance.get_goals()
-                if(temp_assignment.centroid != goals[i]):
-                    fInstance.set_goals(i, temp_assignment.centroid)
-                    fInstance.movebase_client(topic=topic, position=temp_assignment.centroid)
+                if(fInstance.get_lastSearchTime() + rospy.Duration(secs=5)< rospy.Time.now()):
+                    if(temp_assignment.centroid != goals[i]):
+                        fInstance.set_goals(i, temp_assignment.centroid)
+                        fInstance.movebase_client(topic=topic, position=temp_assignment.centroid)
+                    if(fInstance.get_lastSearchTime() + rospy.Duration(secs=30)< rospy.Time.now()):
+                        fInstance.set_goals(i, temp_assignment.centroid)
+                        fInstance.movebase_client(topic=topic, position=temp_assignment.centroid)
 
         else:
             rospy.logwarn("frontiers is empty")
