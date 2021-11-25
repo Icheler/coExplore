@@ -5,10 +5,10 @@ New repository for research @TUM looking into Multi-Robot Exploration by using v
 ## Some known bugs for basic bug tracking
 
 overall:  
-weird scan issue where part of the scans are ignored or something else for unknown reason  
+fixed weird scan issue where part of the scans are ignored or something else for unknown reason  (hector_mapping ignores scans with too long range)
 
 search:  
-costmap doesn't update on map/map_update refresh (temp fix by killing the tme_search node every time)  
+fixed costmap doesn't update on map/map_update refresh (temp fix by killing the tme_search node every time)  
 fixed visualizeFrontiers breaks/ is broken  
 
 assign:  
@@ -19,10 +19,10 @@ robots don't search for next goal after arriving/ mission success
 robots start randomly spinning and are not looking for new goals  
 
 solutions:  
-delete recovery procedures  
-change move_base frequency  
+~~delete recovery procedures~~  
+~~change move_base frequency~~  
 ~~xacro files fix~~  
-turtlebot3 change robots  
+~~turtlebot3 change robots~~  
 change move_base  
 change from proactive to reactive code  
 
