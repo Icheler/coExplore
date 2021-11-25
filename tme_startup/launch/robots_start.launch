@@ -1,5 +1,6 @@
 <launch>
     <arg name="robot" default="$(optenv tme_ROBOT rto-1)" doc="Robot type [rto-1]"/>
+    <arg name="model" default="$(env TURTLEBOT3_MODEL)" doc="model type [burger, waffle, waffle_pi]"/>
     <arg name="robot_blind" default="$(optenv tme_ROBOT_BLIND rto-blind)" doc="Robot type [rto-1-blind]"/>
     <arg name="robot_env" default="$(optenv tme_ROBOT_ENV simple_corridor)" doc="Simulation world [maze, maze_simple, simple_corridor]"/>
     <include file="$(find gazebo_ros)/launch/empty_world.launch">
@@ -12,8 +13,8 @@
     </include>
 
     <param name="robot_description" command="$(find xacro)/xacro --inorder $(find tme_models)/urdf/robots/$(arg robot).urdf.xacro"/>
+    <!-- <param name="robot_description" command="$(find xacro)/xacro -1-inorder $(find turtlebot3_description)/urdf/turtlebot3_$(arg model).urdf.xacro" /> -->
     <param name="robot_blind_description" command="$(find xacro)/xacro --inorder $(find tme_models)/urdf/robots/$(arg robot_blind).urdf.xacro"/>
-
 
     <group ns="robot1">
         <param name="tf_prefix" value="robot1"/>
