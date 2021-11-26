@@ -29,8 +29,14 @@ class frontierAssign:
         self.assign_robot_speed()
         self.speed_modifier()
         self.visibility_params()
-        self.lastSearchTime = rospy.Time.now()
+        self.lastSearchTime = rospy.Time.now() - rospy.Duration(30)
         self.goals = np.empty(self.numberRobots, dtype=Point)
+        self.publisher_position = []
+
+        for i in range(self.numberRobots):
+            j = i+1
+            topic = '/' + self.robotPrefix + str(j) + '/point_relay'
+            self.publisher_position.append(rospy.Publisher(topic, Point, queue_size=10))
 
     # Getters for various parameters
 
@@ -185,7 +191,11 @@ class frontierAssign:
         goal.target_pose.pose.orientation.w = 1
 
         client.cancel_all_goals()
+        client.wait_for_result()
         client.send_goal(goal, self.done_cb, self.active_cb, self.feedback_cb)
+
+    def movebase_spoof(self, number, position):
+        self.publisher_position[number].publish(position)
 
     # minPos approximation by assigning rank based on distance between goal and robot locations
     def rank_matrix(self, matrix):
@@ -261,13 +271,18 @@ if __name__ == '__main__':
                 temp_frontiers = fInstance.get_frontiers()
                 temp_assignment = temp_frontiers.frontiers[assignment[0][i]]
                 goals = fInstance.get_goals()
+                fInstance.set_goals(i, temp_assignment.centroid)
+                #fInstance.movebase_spoof(topic=topic, position=temp_assignment.centroid)
+                #fInstance.movebase_spoof(number=i, position=temp_assignment.centroid)
                 if(fInstance.get_lastSearchTime() + rospy.Duration(secs=5)< rospy.Time.now()):
                     if(temp_assignment.centroid != goals[i]):
                         fInstance.set_goals(i, temp_assignment.centroid)
-                        fInstance.movebase_client(topic=topic, position=temp_assignment.centroid)
+                        #fInstance.movebase_client(topic=topic, position=temp_assignment.centroid)
+                        fInstance.movebase_spoof(number=i, position=temp_assignment.centroid)
                     if(fInstance.get_lastSearchTime() + rospy.Duration(secs=30)< rospy.Time.now()):
                         fInstance.set_goals(i, temp_assignment.centroid)
-                        fInstance.movebase_client(topic=topic, position=temp_assignment.centroid)
+                        #fInstance.movebase_client(topic=topic, position=temp_assignment.centroid)
+                        fInstance.movebase_spoof(number=i, position=temp_assignment.centroid)
 
         else:
             rospy.logwarn("frontiers is empty")
