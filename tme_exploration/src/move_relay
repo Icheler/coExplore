@@ -11,6 +11,7 @@ class moveRelay:
         self.relative_name = rospy.get_namespace()
         self.topic = self.relative_name + str('move_base')
         self.position = None
+        self.timer = rospy.Time.now()
         self.waiting = None
 
     def get_position(self):
@@ -19,43 +20,46 @@ class moveRelay:
     def get_wait(self):
         return self.waiting
 
+    def get_timer(self):
+        return self.timer
+
     def movebase_client(self):
         
         client = actionlib.SimpleActionClient(self.topic, MoveBaseAction)
 
         client.wait_for_server()
+        self.timer = rospy.Time.now()
 
         goal = MoveBaseGoal()
         goal.target_pose.header.frame_id = 'map'
         goal.target_pose.header.stamp = rospy.Time.now()
         goal.target_pose.pose.position = self.position
         goal.target_pose.pose.orientation.w = 1
-        rospy.logwarn(str("This is") + self.relative_name + str(self.position))
+        rospy.logwarn(str("This is") + self.relative_name + str("\n") + str(self.position))
 
         client.send_goal(goal)
 
-        rospy.logwarn(str("goal has been sent"))
-
-
-        wait = client.wait_for_result()
-
-        rospy.logwarn(str("we waiting boy: ") + str(wait))
-
     def callback_position(self, data):
+        self.timer = rospy.Time.now()
         self.position = data
 
 if __name__ == '__main__':
 
     rospy.init_node('move_relay')
 
-    rate = rospy.Rate(5)
+    rate = rospy.Rate(2)
 
     instance = moveRelay()
 
     rospy.Subscriber('point_relay', Point, instance.callback_position)
 
+    while (not instance.get_position()):
+        rospy.logwarn("waiting for position data")
+        rate.sleep()
+
     while not rospy.is_shutdown():
-        if(instance.get_position()):
+        rospy.logwarn("running, running")
+        if(instance.get_timer() + rospy.Duration(5) < rospy.Time.now()):
             instance.movebase_client()
         rate.sleep()
 

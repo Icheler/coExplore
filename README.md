@@ -25,8 +25,9 @@ solutions:
 ~~turtlebot3 change robots~~  
 change move_base  
 change from proactive to reactive code  
-X add node between assign and move_base of robots  
+~~add node between assign and move_base of robots~~  
 blacklist goals somehow
+change search time to be array
 
 improvements:  
 better distribution

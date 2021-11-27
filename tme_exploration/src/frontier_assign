@@ -190,11 +190,12 @@ class frontierAssign:
         goal.target_pose.pose.position.z = 0
         goal.target_pose.pose.orientation.w = 1
 
-        client.cancel_all_goals()
-        client.wait_for_result()
+        self.lastSearchTime = rospy.Time.now()
+
         client.send_goal(goal, self.done_cb, self.active_cb, self.feedback_cb)
 
     def movebase_spoof(self, number, position):
+        self.lastSearchTime = rospy.Time.now()
         self.publisher_position[number].publish(position)
 
     # minPos approximation by assigning rank based on distance between goal and robot locations
@@ -207,7 +208,7 @@ if __name__ == '__main__':
     
     rospy.init_node('frontier_assign')
 
-    param_rate = rospy.get_param('frontier_rate', 2)
+    param_rate = rospy.get_param('frontier_rate', 5)
 
     data = rospy.wait_for_message('/tme_frontier_search/frontierArray', frontierArray)
 
@@ -240,6 +241,7 @@ if __name__ == '__main__':
     rate = rospy.Rate(param_rate)
     
     while not rospy.is_shutdown():
+        rate.sleep()
 
         cost_matrix = None
         
@@ -277,14 +279,14 @@ if __name__ == '__main__':
                 if(fInstance.get_lastSearchTime() + rospy.Duration(secs=5)< rospy.Time.now()):
                     if(temp_assignment.centroid != goals[i]):
                         fInstance.set_goals(i, temp_assignment.centroid)
-                        #fInstance.movebase_client(topic=topic, position=temp_assignment.centroid)
-                        fInstance.movebase_spoof(number=i, position=temp_assignment.initial)
+                        rospy.logwarn("does this work")
+                        fInstance.movebase_client(topic=topic, position=temp_assignment.centroid)
+                        #fInstance.movebase_spoof(number=i, position=temp_assignment.centroid)
                     if(fInstance.get_lastSearchTime() + rospy.Duration(secs=30)< rospy.Time.now()):
+                        rospy.logwarn("Beep Boop this works sometimes")
                         fInstance.set_goals(i, temp_assignment.centroid)
-                        #fInstance.movebase_client(topic=topic, position=temp_assignment.centroid)
-                        fInstance.movebase_spoof(number=i, position=temp_assignment.initial)
+                        fInstance.movebase_client(topic=topic, position=temp_assignment.centroid)
+                        #fInstance.movebase_spoof(number=i, position=temp_assignment.centroid)
 
         else:
             rospy.logwarn("frontiers is empty")
-
-        rate.sleep()
