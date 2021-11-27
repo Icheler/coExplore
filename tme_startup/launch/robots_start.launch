@@ -6,7 +6,7 @@
         <arg name="world_name" value="$(find tme_models)/worlds/$(arg robot_env).world"/>
         <arg name="paused" value="false"/>
         <arg name="use_sim_time" value="true"/>
-        <arg name="gui" value="true"/>
+        <arg name="gui" value="false"/>
         <arg name="headless" value="true"/>
         <arg name="debug" value="false"/>
     </include>

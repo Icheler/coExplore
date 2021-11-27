@@ -29,11 +29,12 @@ class frontierAssign:
         self.assign_robot_speed()
         self.speed_modifier()
         self.visibility_params()
-        self.lastSearchTime = rospy.Time.now() - rospy.Duration(30)
+        self.lastSearchTime = np.empty(self.numberRobots, dtype=rospy.Time)
         self.goals = np.empty(self.numberRobots, dtype=Point)
         self.publisher_position = []
 
         for i in range(self.numberRobots):
+            self.lastSearchTime[i] = rospy.Time.now() - rospy.Duration(30)
             j = i+1
             topic = '/' + self.robotPrefix + str(j) + '/point_relay'
             self.publisher_position.append(rospy.Publisher(topic, Point, queue_size=10))
@@ -43,8 +44,8 @@ class frontierAssign:
     def set_goals(self, number, value):
         self.goals[number] = value
     
-    def get_lastSearchTime(self):
-        return self.lastSearchTime
+    def get_lastSearchTime(self, number):
+        return self.lastSearchTime[number]
 
     def get_numberRobots(self):
         return self.numberRobots
@@ -142,6 +143,8 @@ class frontierAssign:
                 for j in range(self.numberRobots):
                     self.frontierVisibilityModifier[i][j] = self.visibilityModifier[j] * self.frontiers.frontiers[i].size
             self.frontierVisibilityModifier = self.frontierVisibilityModifier / np.max(self.frontierVisibilityModifier)
+            self.frontierVisibilityModifier = 1 - self.frontierVisibilityModifier
+
         except ValueError:
             pass
 
@@ -176,7 +179,7 @@ class frontierAssign:
             rospy.loginfo("Goal pose received a cancel request before it started executing, successfully cancelled!")
 
     # Method to allow the parsing of move_base actions 
-    def movebase_client(self, topic, position):
+    def movebase_client(self, topic, number, position, delete=False):
 
         client = actionlib.SimpleActionClient(topic, MoveBaseAction)
 
@@ -190,7 +193,10 @@ class frontierAssign:
         goal.target_pose.pose.position.z = 0
         goal.target_pose.pose.orientation.w = 1
 
-        self.lastSearchTime = rospy.Time.now()
+        self.lastSearchTime[number] = rospy.Time.now()
+
+        if(delete):
+            client.cancel_all_goals()
 
         client.send_goal(goal, self.done_cb, self.active_cb, self.feedback_cb)
 
@@ -270,22 +276,25 @@ if __name__ == '__main__':
             for i in range(fInstance.get_numberRobots()):
                 j = i+1
                 topic = '/robot' + str(j) + '/move_base'
-                temp_frontiers = fInstance.get_frontiers()
-                temp_assignment = temp_frontiers.frontiers[assignment[0][i]]
+                temp_frontiers = fInstance.frontiers.frontiers
+                if(len(temp_frontiers) <= fInstance.get_numberRobots()):
+                    if(j > len(temp_frontiers)):
+                        break
+                temp_assignment = temp_frontiers[assignment[0][i]]
                 goals = fInstance.get_goals()
-                fInstance.set_goals(i, temp_assignment.centroid)
+                #fInstance.set_goals(i, temp_assignment.centroid)
                 #fInstance.movebase_spoof(topic=topic, position=temp_assignment.centroid)
                 #fInstance.movebase_spoof(number=i, position=temp_assignment.centroid)
-                if(fInstance.get_lastSearchTime() + rospy.Duration(secs=5)< rospy.Time.now()):
+                if(fInstance.get_lastSearchTime(i) + rospy.Duration(secs=5)< rospy.Time.now()):
                     if(temp_assignment.centroid != goals[i]):
                         fInstance.set_goals(i, temp_assignment.centroid)
-                        rospy.logwarn("does this work")
-                        fInstance.movebase_client(topic=topic, position=temp_assignment.centroid)
+                        rospy.logwarn(temp_assignment.size)
+                        fInstance.movebase_client(topic=topic, number=i, position=temp_assignment.centroid)
                         #fInstance.movebase_spoof(number=i, position=temp_assignment.centroid)
-                    if(fInstance.get_lastSearchTime() + rospy.Duration(secs=30)< rospy.Time.now()):
-                        rospy.logwarn("Beep Boop this works sometimes")
+                    if(fInstance.get_lastSearchTime(i) + rospy.Duration(secs=30)< rospy.Time.now()):
+                        rospy.logwarn(temp_assignment.size)
                         fInstance.set_goals(i, temp_assignment.centroid)
-                        fInstance.movebase_client(topic=topic, position=temp_assignment.centroid)
+                        fInstance.movebase_client(topic=topic, number=i, position=temp_assignment.centroid, delete=True)
                         #fInstance.movebase_spoof(number=i, position=temp_assignment.centroid)
 
         else:

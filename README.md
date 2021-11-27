@@ -26,8 +26,14 @@ solutions:
 change move_base  
 change from proactive to reactive code  
 ~~add node between assign and move_base of robots~~  
-blacklist goals somehow
-change search time to be array
+blacklist goals somehow  
+~~change search time to be array~~  
+add visualization for better goal debugging  
+change goal point if unreachable as first try  
+blacklist afterwards  
+tuning of frontier sizes  
+check if big frontier size is better  
+assign gets issues when only one frontier remains
 
 improvements:  
 better distribution
