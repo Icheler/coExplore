@@ -23,17 +23,18 @@ solutions:
 ~~change move_base frequency~~  
 ~~xacro files fix~~  
 ~~turtlebot3 change robots~~  
-change move_base  
-change from proactive to reactive code  
+~~change move_base~~  
+~~change from proactive to reactive code~~  
 ~~add node between assign and move_base of robots~~  
-blacklist goals somehow  
+~~blacklist goals somehow~~  
 ~~change search time to be array~~  
-add visualization for better goal debugging  
+~~add visualization for better goal debugging~~  
 change goal point if unreachable as first try  
 blacklist afterwards  
-tuning of frontier sizes  
-check if big frontier size is better  
+~~tuning of frontier sizes~~  
+~~check if big frontier size is better~~  
 assign gets issues when only one frontier remains
+fix robot pose to correctly reflect robot pose in global map
 
 improvements:  
 better distribution

@@ -167,12 +167,10 @@ class frontierAssign:
 
         if status == 4:
             rospy.loginfo("Goal pose was aborted by the Action Server")
-            rospy.signal_shutdown("Goal pose aborted, shutting down!")
             return
 
         if status == 5:
             rospy.loginfo("Goal pose has been rejected by the Action Server")
-            rospy.signal_shutdown("Goal pose rejected, shutting down!")
             return
 
         if status == 8:
@@ -279,7 +277,7 @@ if __name__ == '__main__':
                 temp_frontiers = fInstance.frontiers.frontiers
                 if(len(temp_frontiers) <= fInstance.get_numberRobots()):
                     if(j > len(temp_frontiers)):
-                        break
+                        break 
                 temp_assignment = temp_frontiers[assignment[0][i]]
                 goals = fInstance.get_goals()
                 #fInstance.set_goals(i, temp_assignment.centroid)
@@ -288,11 +286,9 @@ if __name__ == '__main__':
                 if(fInstance.get_lastSearchTime(i) + rospy.Duration(secs=5)< rospy.Time.now()):
                     if(temp_assignment.centroid != goals[i]):
                         fInstance.set_goals(i, temp_assignment.centroid)
-                        rospy.logwarn(temp_assignment.size)
                         fInstance.movebase_client(topic=topic, number=i, position=temp_assignment.centroid)
                         #fInstance.movebase_spoof(number=i, position=temp_assignment.centroid)
                     if(fInstance.get_lastSearchTime(i) + rospy.Duration(secs=30)< rospy.Time.now()):
-                        rospy.logwarn(temp_assignment.size)
                         fInstance.set_goals(i, temp_assignment.centroid)
                         fInstance.movebase_client(topic=topic, number=i, position=temp_assignment.centroid, delete=True)
                         #fInstance.movebase_spoof(number=i, position=temp_assignment.centroid)
