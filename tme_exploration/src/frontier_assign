@@ -278,11 +278,11 @@ if __name__ == '__main__':
                     if(temp_assignment.centroid != goals[i]):
                         fInstance.set_goals(i, temp_assignment.centroid)
                         #fInstance.movebase_client(topic=topic, position=temp_assignment.centroid)
-                        fInstance.movebase_spoof(number=i, position=temp_assignment.centroid)
+                        fInstance.movebase_spoof(number=i, position=temp_assignment.initial)
                     if(fInstance.get_lastSearchTime() + rospy.Duration(secs=30)< rospy.Time.now()):
                         fInstance.set_goals(i, temp_assignment.centroid)
                         #fInstance.movebase_client(topic=topic, position=temp_assignment.centroid)
-                        fInstance.movebase_spoof(number=i, position=temp_assignment.centroid)
+                        fInstance.movebase_spoof(number=i, position=temp_assignment.initial)
 
         else:
             rospy.logwarn("frontiers is empty")

@@ -13,3 +13,6 @@ TrajectoryPlannerROS:
   oscillation_timeout: 10
 
   max_planning_retries: 15
+  
+  xy_goal_tolerance: 0.3
+  yaw_goal_tolerance: 6.3
