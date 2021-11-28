@@ -280,14 +280,6 @@ Visualization Manager:
         frontiers: true
       Queue Size: 100
       Value: true
-    - Class: rviz/MarkerArray
-      Enabled: false
-      Marker Topic: /robot2/tme_explorer/frontiers
-      Name: MarkerArray
-      Namespaces:
-        {}
-      Queue Size: 100
-      Value: false
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
@@ -414,7 +406,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: false
       Name: Map
-      Topic: /robot1/map
+      Topic: /robot1/move_base/global_costmap/costmap
       Unreliable: false
       Use Timestamp: false
       Value: false
@@ -424,7 +416,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: false
       Name: Map
-      Topic: /robot2/map
+      Topic: /robot2/move_base/global_costmap/costmap
       Unreliable: false
       Use Timestamp: false
       Value: false
@@ -534,6 +526,14 @@ Visualization Manager:
       Unreliable: false
       Use Timestamp: false
       Value: false
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /robotMarker
+      Name: Marker
+      Namespaces:
+        beep: true
+      Queue Size: 100
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -562,7 +562,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 28.840057373046875
+      Distance: 27.612018585205078
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -570,9 +570,9 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.8106384873390198
-        Y: -0.013969718478620052
-        Z: 5.02783727645874
+        X: -0.05526285618543625
+        Y: -0.1907733529806137
+        Z: 5.027658462524414
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false

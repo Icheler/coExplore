@@ -12,6 +12,7 @@ from tme_exploration.msg import frontier, frontierArray
 from geometry_msgs.msg import Point, Pose, PoseWithCovarianceStamped
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from sensor_msgs.msg import LaserScan
+from visualization_msgs.msg import Marker, MarkerArray
 
 
 class frontierAssign:
@@ -33,6 +34,8 @@ class frontierAssign:
         self.lastSearchTime = np.empty(self.numberRobots, dtype=rospy.Time)
         self.goals = np.empty(self.numberRobots, dtype=Point)
         self.publisher_position = []
+        self.robotMarker = Marker()
+        self.searchNow = False
 
         for i in range(self.numberRobots):
             self.lastSearchTime[i] = rospy.Time.now() - rospy.Duration(30)
@@ -40,10 +43,42 @@ class frontierAssign:
             topic = '/' + self.robotPrefix + str(j) + '/point_relay'
             self.publisher_position.append(rospy.Publisher(topic, Point, queue_size=10))
 
+        self.robotMarker.header.frame_id = "map"
+        #self.robotMarker.header.stamp    = rospy.get_rostime()
+        #self.robotMarker.ns = "robot"
+        self.robotMarker.id = 0
+        self.robotMarker.type = 2 # sphere
+        self.robotMarker.action = 0
+        #self.robotMarker.pose.position = self.state.point
+        self.robotMarker.pose.orientation.x = 0
+        self.robotMarker.pose.orientation.y = 0
+        self.robotMarker.pose.orientation.z = 0
+        self.robotMarker.pose.orientation.w = 1.0
+        self.robotMarker.scale.x = 1.0
+        self.robotMarker.scale.y = 1.0
+        self.robotMarker.scale.z = 1.0
+
+        #self.robotMarker.color.r = 0.0
+        #self.robotMarker.color.g = 1.0
+        #self.robotMarker.color.b = 0.0
+        self.robotMarker.color.a = 1.0
+
     # Getters for various parameters
 
     def set_goals(self, number, value):
         self.goals[number] = value
+
+    def set_searchNow_false(self):
+        self.searchNow = False
+
+    def get_searchNow(self):
+        return self.searchNow
+
+    def get_robotMarker(self):
+        return self.robotMarker
+
+    def get_robotPosition(self, number):
+        return self.robotPosition[number]
     
     def get_lastSearchTime(self, number):
         return self.lastSearchTime[number]
@@ -81,14 +116,13 @@ class frontierAssign:
         number = (int)((re.search(r'\d+', topic)).group(0)) - 1
         robot_location = data.pose.pose.position
         try:
-            base_link = '/robot' + str(number+1) + '/base_link'
-            (trans, rot) = listener.lookupTransform('/map', base_link, rospy.Time(0))
+            tf_topic = '/robot' + str(number+1) + '/map'
+            (trans, rot) = listener.lookupTransform('/map', tf_topic, rospy.Time(0))
 
             robot_location.x = robot_location.x + trans[0]
             robot_location.y = robot_location.y + trans[1]
         except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-            pass 
-
+            pass
         self.robotPosition[number] = robot_location
 
 
@@ -106,7 +140,7 @@ class frontierAssign:
             self.distances = np.empty((len(self.frontiers.frontiers), len(self.robotPosition)))
             for i in range(len(self.frontiers.frontiers)):
                 for j in range(len(self.robotPosition)):
-                    self.distances[i][j] = self.euclid_distance(self.frontiers.frontiers[i].initial, self.robotPosition[j])
+                    self.distances[i][j] = self.euclid_distance(self.frontiers.frontiers[i].centroid, self.robotPosition[j])
         except ValueError:
             pass
 
@@ -231,9 +265,11 @@ if __name__ == '__main__':
     fInstance = frontierAssign()
 
     listener = tf.TransformListener()
+
+    markerPub = rospy.Publisher('robotMarker', Marker, queue_size=10)
     
     # one of: nearest, greedy, combined, minPos
-    chosen_method = rospy.get_param('frontier_method', "combined")
+    chosen_method = rospy.get_param('frontier_method', "nearest")
 
     rospy.Subscriber("/tme_frontier_search/frontierArray", frontierArray, fInstance.callback_frontiers)
     subscriber_position = []
@@ -257,6 +293,7 @@ if __name__ == '__main__':
         speed_weighting = rospy.get_param('speed_weighting', 1)
 
     rate = rospy.Rate(param_rate)
+    id = 0
     
     while not rospy.is_shutdown():
         rate.sleep()
@@ -281,9 +318,9 @@ if __name__ == '__main__':
                 fInstance.frontier_distance()
                 fInstance.frontier_distance_modifier()
                 cost_matrix = speed_weighting * fInstance.get_frontierDistanceModifier() + visibility_weighting * fInstance.get_frontierVisibilityModifier()
-                
             
-            assignment = linear_sum_assignment(cost_matrix)
+            cost_matrix = np.transpose(cost_matrix)
+            row_ind, col_ind = linear_sum_assignment(cost_matrix)
 
             for i in range(fInstance.get_numberRobots()):
                 j = i+1
@@ -292,36 +329,78 @@ if __name__ == '__main__':
                 if(len(temp_frontiers) <= fInstance.get_numberRobots()):
                     if(j > len(temp_frontiers)):
                         break 
-
-                temp_assignment = temp_frontiers[assignment[0][i]]
+                
+                temp_assignment = temp_frontiers[col_ind[i]]
                 goal_location = temp_assignment.centroid
-
-                """ try:
-                    base_link = '/robot' + str(j) + '/base_link'
-                    (trans, rot) = listener.lookupTransform('/map', base_link, rospy.Time(0))
-
-                    rospy.logwarn(trans)
-                    rospy.logwarn(goal_location)
-                    goal_location.x = temp_assignment.centroid.x + trans[0]
-                    goal_location.y = temp_assignment.centroid.y + trans[1]
-                except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-                    continue """
 
                 goals = fInstance.get_goals()
                 #fInstance.set_goals(i, goal_location)
                 #fInstance.movebase_spoof(topic=topic, position=goal_location)
                 #fInstance.movebase_spoof(number=i, position=goal_location)
 
-
                 if(fInstance.get_lastSearchTime(i) + rospy.Duration(secs=5)< rospy.Time.now()):
                     if(goal_location != goals[i]):
                         fInstance.set_goals(i, goal_location)
                         fInstance.movebase_client(topic=topic, number=i, position=goal_location)
+                        marker = fInstance.get_robotMarker()
+                        marker.header.stamp = rospy.Time.now()
+                        marker.ns = 'beep'
+                        id += 1
+                        marker.id = id
+                        marker.pose.position = goal_location
+                        if(i == 0):
+                            marker.color.r = 0
+                            marker.color.g = 0
+                            marker.color.b = 0
+                        else:
+                            marker.color.r = 1
+                            marker.color.g = 1
+                            marker.color.b = 1
+                        marker.lifetime = rospy.Duration(5)
+
+                        markerPub.publish(marker)
                         #fInstance.movebase_spoof(number=i, position=goal_location)
-                    if(fInstance.get_lastSearchTime(i) + rospy.Duration(secs=30)< rospy.Time.now()):
+                    if(fInstance.get_lastSearchTime(i) + rospy.Duration(secs=10)< rospy.Time.now()):
                         fInstance.set_goals(i, goal_location)
                         fInstance.movebase_client(topic=topic, number=i, position=goal_location, delete=True)
+                        marker = fInstance.get_robotMarker()
+                        marker.header.stamp = rospy.Time.now()
+                        marker.ns = 'beep'
+                        id += 1
+                        marker.id = id
+                        marker.pose.position = goal_location
+                        if(i == 0):
+                            marker.color.r = 0
+                            marker.color.g = 0
+                            marker.color.b = 0
+                        else:
+                            marker.color.r = 1
+                            marker.color.g = 1
+                            marker.color.b = 1
+                        marker.lifetime = rospy.Duration(20)
+
+                        markerPub.publish(marker)
+
                         #fInstance.movebase_spoof(number=i, position=goal_location)
+                marker = fInstance.get_robotMarker()
+                marker.header.stamp = rospy.Time.now()
+                marker.ns = 'beep'
+                id += 1
+                marker.id = id
+                marker.pose.position = fInstance.get_robotPosition(i)
+                marker.lifetime = rospy.Duration(0.2)
+
+                if(i == 1):
+                    marker.color.r = 0
+                    marker.color.b = 1
+                else:
+                    marker.color.r = 1
+                    marker.color.g = 0
+                    marker.color.b = 0
+
+                markerPub.publish(marker)
 
         else:
             rospy.logwarn("frontiers is empty")
+
+

@@ -36,5 +36,10 @@ blacklist afterwards
 assign gets issues when only one frontier remains
 fix robot pose to correctly reflect robot pose in global map
 
+todo:  
+min-pos implementation  
+distance counter  
+map clear check  
+
 improvements:  
 better distribution

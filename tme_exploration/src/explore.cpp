@@ -51,7 +51,7 @@ Explore::Explore()
   double min_frontier_size;
   last_markers_count_ = 0;
   private_nh_.param("planner_frequency", planner_frequency_, 1.0);
-  private_nh_.param("min_frontier_size", min_frontier_size, 0.5);
+  private_nh_.param("min_frontier_size", min_frontier_size, 1.0);
   private_nh_.param("visualize", visualize_, true);
 
   frontiers_pub = private_nh_.advertise<tme_exploration::frontierArray>("frontierArray", 1000);
@@ -131,6 +131,12 @@ void Explore::visualizeFrontiers(
 
   m.action = visualization_msgs::Marker::ADD;
   size_t id = 0;
+  double maximum = 0.1;
+  for (auto& frontier : frontiers) {
+    if (maximum < frontier.size){
+      maximum = frontier.size;
+    }
+  }
   for (auto& frontier : frontiers) {
     m.type = visualization_msgs::Marker::POINTS;
     m.id = int(id);
@@ -144,8 +150,12 @@ void Explore::visualizeFrontiers(
     ++id;
     m.type = visualization_msgs::Marker::SPHERE;
     m.id = int(id);
-    m.pose.position = frontier.initial;
+    m.pose.position = frontier.centroid;
     m.pose.orientation.w = 1.0;
+    double scale = std::max((frontier.size / maximum), 0.1);
+    m.scale.x = scale;
+    m.scale.y = scale;
+    m.scale.z = scale;
     // scale frontier according to its cost (costier frontiers will be smaller)
     // double scale = std::min(std::abs(min_cost * 0.4 / frontier.cost), 0.5);
     /* m.scale.x = scale;
