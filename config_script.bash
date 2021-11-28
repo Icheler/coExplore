@@ -7,7 +7,7 @@ echo "tme_start_num: [2 - 5]"
 echo "-------------------------------------------------------------"
 if [ -z ${tme_ROBOT_ENV+x} ]
 then
-  world=maze_clutter
+  world=v1_maze
 else
   world=$tme_ROBOT_ENV
 fi

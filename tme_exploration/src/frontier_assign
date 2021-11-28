@@ -4,6 +4,7 @@ import numpy as np
 import rospy
 import re
 import actionlib
+import tf
 
 from scipy.optimize import linear_sum_assignment
 
@@ -78,7 +79,18 @@ class frontierAssign:
 
     def callback_position(self, data, topic):
         number = (int)((re.search(r'\d+', topic)).group(0)) - 1
-        self.robotPosition[number] = data.pose.pose.position #data.pose.pose.position
+        robot_location = data.pose.pose.position
+        try:
+            base_link = '/robot' + str(number+1) + '/base_link'
+            (trans, rot) = listener.lookupTransform('/map', base_link, rospy.Time(0))
+
+            robot_location.x = robot_location.x + trans[0]
+            robot_location.y = robot_location.y + trans[1]
+        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+            pass 
+
+        self.robotPosition[number] = robot_location
+
 
     # Get euclidean distance between two points
     def euclid_distance(self, a: Point, b: Point):
@@ -217,6 +229,8 @@ if __name__ == '__main__':
     data = rospy.wait_for_message('/tme_frontier_search/frontierArray', frontierArray)
 
     fInstance = frontierAssign()
+
+    listener = tf.TransformListener()
     
     # one of: nearest, greedy, combined, minPos
     chosen_method = rospy.get_param('frontier_method', "combined")
@@ -278,20 +292,36 @@ if __name__ == '__main__':
                 if(len(temp_frontiers) <= fInstance.get_numberRobots()):
                     if(j > len(temp_frontiers)):
                         break 
+
                 temp_assignment = temp_frontiers[assignment[0][i]]
+                goal_location = temp_assignment.centroid
+
+                """ try:
+                    base_link = '/robot' + str(j) + '/base_link'
+                    (trans, rot) = listener.lookupTransform('/map', base_link, rospy.Time(0))
+
+                    rospy.logwarn(trans)
+                    rospy.logwarn(goal_location)
+                    goal_location.x = temp_assignment.centroid.x + trans[0]
+                    goal_location.y = temp_assignment.centroid.y + trans[1]
+                except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+                    continue """
+
                 goals = fInstance.get_goals()
-                #fInstance.set_goals(i, temp_assignment.centroid)
-                #fInstance.movebase_spoof(topic=topic, position=temp_assignment.centroid)
-                #fInstance.movebase_spoof(number=i, position=temp_assignment.centroid)
+                #fInstance.set_goals(i, goal_location)
+                #fInstance.movebase_spoof(topic=topic, position=goal_location)
+                #fInstance.movebase_spoof(number=i, position=goal_location)
+
+
                 if(fInstance.get_lastSearchTime(i) + rospy.Duration(secs=5)< rospy.Time.now()):
-                    if(temp_assignment.centroid != goals[i]):
-                        fInstance.set_goals(i, temp_assignment.centroid)
-                        fInstance.movebase_client(topic=topic, number=i, position=temp_assignment.centroid)
-                        #fInstance.movebase_spoof(number=i, position=temp_assignment.centroid)
+                    if(goal_location != goals[i]):
+                        fInstance.set_goals(i, goal_location)
+                        fInstance.movebase_client(topic=topic, number=i, position=goal_location)
+                        #fInstance.movebase_spoof(number=i, position=goal_location)
                     if(fInstance.get_lastSearchTime(i) + rospy.Duration(secs=30)< rospy.Time.now()):
-                        fInstance.set_goals(i, temp_assignment.centroid)
-                        fInstance.movebase_client(topic=topic, number=i, position=temp_assignment.centroid, delete=True)
-                        #fInstance.movebase_spoof(number=i, position=temp_assignment.centroid)
+                        fInstance.set_goals(i, goal_location)
+                        fInstance.movebase_client(topic=topic, number=i, position=goal_location, delete=True)
+                        #fInstance.movebase_spoof(number=i, position=goal_location)
 
         else:
             rospy.logwarn("frontiers is empty")
