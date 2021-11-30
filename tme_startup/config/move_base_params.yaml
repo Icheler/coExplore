@@ -6,4 +6,4 @@
 #planner_frequency: 5.0
 #oscillation_timeout: 10.0
 #oscillation_distance: 0.2
-recovery_behavior_enabled: false
+recovery_behavior_enabled: true

@@ -8,7 +8,7 @@
         <param name="number_of_robots" value="2"/>
         <param name="robot_ns" value="robot"/>
         <param name="frontier_rate" value="5"/>
-        <param name="frontier_method" value="combined"/>
+        <!-- <param name="frontier_method" value="combined"/> -->
         <param name="visibility_weighting" value="1"/>
         <param name="speed_weighting" value="1"/>
     </node>

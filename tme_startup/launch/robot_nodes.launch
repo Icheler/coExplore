@@ -56,10 +56,9 @@
             <rosparam file="$(find tme_startup)/config/$(arg robot_name)/costmap_robot_params.yaml" command="load" />
             <rosparam file="$(find tme_startup)/config/dwa_local_planner_params.yaml" command="load" />
             <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS" /> 
-            <rosparam file="$(find tme_startup)/config/move_base_params.yaml" command="load" />
             <!-- <rosparam file="$(find tme_startup)/config/base_local_planner_params_normal.yaml" command="load" />
-            <param name="base_local_planner" value="base_local_planner/TrajectoryPlannerROS" /> 
-            <param name="controller_frequency" value="15.0" /> -->
+            <param name="base_local_planner" value="base_local_planner/TrajectoryPlannerROS" /> -->
+            <param name="recovery_behavior_enabled" value="true" /> 
         </node>
 
         <!-- <node pkg="tme_exploration" type="move_relay" name="move_relay" respawn="true"/> -->

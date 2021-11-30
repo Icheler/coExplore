@@ -5,8 +5,11 @@ import rospy
 import re
 import actionlib
 import tf
+import os
+import atexit
 
 from scipy.optimize import linear_sum_assignment
+from datetime import datetime
 
 from tme_exploration.msg import frontier, frontierArray
 from geometry_msgs.msg import Point, Pose, PoseWithCovarianceStamped
@@ -36,6 +39,10 @@ class frontierAssign:
         self.publisher_position = []
         self.robotMarker = Marker()
         self.searchNow = False
+        self.lastPos = np.empty(self.numberRobots, dtype=Point)
+        self.travelDistances = np.zeros(self.numberRobots)
+        self.chosenMethod = 'combined'
+        atexit.register(self.exit_handler)
 
         for i in range(self.numberRobots):
             self.lastSearchTime[i] = rospy.Time.now() - rospy.Duration(30)
@@ -63,6 +70,23 @@ class frontierAssign:
         #self.robotMarker.color.b = 0.0
         self.robotMarker.color.a = 1.0
 
+    def exit_handler(self):
+        travelDistances = self.get_travelDistances()
+
+        date_now = datetime.now()
+        date_string = date_now.strftime("%Y-%m-%d|%H:%M:%S")
+
+        file_location = 'catkin_ws/src/TU_Much_Exploration/tme_data/distances'
+        file_name = str(self.chosenMethod) + str("_") + date_string + ".txt"
+        file_name = os.path.join(os.path.expanduser('~'),file_location, file_name)
+
+        a_file = open(file_name, 'w+')
+        np.savetxt(a_file, travelDistances)
+
+        a_file.close()
+
+        rospy.logwarn('created file named: ' + file_name)
+
     # Getters for various parameters
 
     def set_goals(self, number, value):
@@ -70,6 +94,12 @@ class frontierAssign:
 
     def set_searchNow_false(self):
         self.searchNow = False
+
+    def set_chosenMethod(self, method):
+        self.chosenMethod = method
+
+    def get_travelDistances(self):
+        return self.travelDistances
 
     def get_searchNow(self):
         return self.searchNow
@@ -124,6 +154,13 @@ class frontierAssign:
         except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
             pass
         self.robotPosition[number] = robot_location
+        self.distance_tracker(number, robot_location)
+
+    def distance_tracker(self, number, robot_location):
+        if(self.lastPos[number]):
+            self.travelDistances[number] += self.euclid_distance(self.lastPos[number], robot_location)
+        else:
+            self.lastPos[number] = robot_location
 
 
     # Get euclidean distance between two points
@@ -270,6 +307,8 @@ if __name__ == '__main__':
     
     # one of: nearest, greedy, combined, minPos
     chosen_method = rospy.get_param('frontier_method', "nearest")
+    rospy.logwarn("Method is set to find {} goal".format(chosen_method))
+    fInstance.set_chosenMethod(chosen_method)
 
     rospy.Subscriber("/tme_frontier_search/frontierArray", frontierArray, fInstance.callback_frontiers)
     subscriber_position = []
@@ -382,21 +421,6 @@ if __name__ == '__main__':
                         markerPub.publish(marker)
 
                         #fInstance.movebase_spoof(number=i, position=goal_location)
-                marker = fInstance.get_robotMarker()
-                marker.header.stamp = rospy.Time.now()
-                marker.ns = 'beep'
-                id += 1
-                marker.id = id
-                marker.pose.position = fInstance.get_robotPosition(i)
-                marker.lifetime = rospy.Duration(0.2)
-
-                if(i == 1):
-                    marker.color.r = 0
-                    marker.color.b = 1
-                else:
-                    marker.color.r = 1
-                    marker.color.g = 0
-                    marker.color.b = 0
 
                 markerPub.publish(marker)
 
