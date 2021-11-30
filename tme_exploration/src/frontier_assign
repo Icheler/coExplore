@@ -286,9 +286,12 @@ class frontierAssign:
         self.publisher_position[number].publish(position)
 
     # minPos approximation by assigning rank based on distance between goal and robot locations
-    def rank_matrix(self, matrix):
-        result = None
-        return result
+    def rank_matrix(self):
+        self.frontier_distance()
+        self.frontier_distance_modifier()
+        order = np.argsort(self.frontierDistanceModifier, axis=1)
+        ranks = np.argsort(order, axis=1)
+        return ranks + 0.01 * self.frontierDistanceModifier
 
 
 if __name__ == '__main__':
@@ -306,7 +309,7 @@ if __name__ == '__main__':
     markerPub = rospy.Publisher('robotMarker', Marker, queue_size=10)
     
     # one of: nearest, greedy, combined, minPos
-    chosen_method = rospy.get_param('frontier_method', "nearest")
+    chosen_method = rospy.get_param('frontier_method', "minPos")
     rospy.logwarn("Method is set to find {} goal".format(chosen_method))
     fInstance.set_chosenMethod(chosen_method)
 
@@ -351,7 +354,6 @@ if __name__ == '__main__':
             elif(chosen_method_id == 2):
                 #TODO
                 cost_matrix = fInstance.rank_matrix()
-                
             else:
                 fInstance.frontier_visibility_modifier()
                 fInstance.frontier_distance()
