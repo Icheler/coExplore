@@ -33,13 +33,14 @@ change goal point if unreachable as first try
 blacklist afterwards  
 ~~tuning of frontier sizes~~  
 ~~check if big frontier size is better~~  
-assign gets issues when only one frontier remains
-fix robot pose to correctly reflect robot pose in global map
+~~assign gets issues when only one frontier remains~~
+~~fix robot pose to correctly reflect robot pose in global map~~  
 
 todo:  
 min-pos implementation  
-distance counter  
+~~distance counter~~  
 map clear check  
+catch move_base abort message and blacklist goal by assigning high values  
 
 improvements:  
 better distribution

@@ -5,11 +5,11 @@ echo "-------------------------------------------------------------"
 echo "tme_ROBOT_ENV: [simple_corridor, maze, maze_clutter, maze_clutter_limited]"
 echo "tme_start_num: [2 - 5]"
 echo "-------------------------------------------------------------"
-if [ -z ${tme_ROBOT_ENV+x} ]
+if [ -z ${ROBOT_ENV+x} ]
 then
-  world=v1_maze
+  world=v2_maze
 else
-  world=$tme_ROBOT_ENV
+  world=$ROBOT_ENV
 fi
 
 if [[ $tme_start_num ]]

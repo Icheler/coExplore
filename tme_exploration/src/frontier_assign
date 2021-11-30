@@ -246,7 +246,7 @@ class frontierAssign:
 
         if status == 3:
             rospy.loginfo("Goal pose reached")
-            self.lastSearchTime = rospy.Time.now()
+            #self.lastSearchTime = rospy.Time.now()
 
         if status == 4:
             rospy.loginfo("Goal pose was aborted by the Action Server")

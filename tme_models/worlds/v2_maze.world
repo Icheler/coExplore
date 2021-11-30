@@ -1982,10 +1982,10 @@
       <static>1</static>
     </model>
     <state world_name='default'>
-      <sim_time>1678 581000000</sim_time>
-      <real_time>53 183021855</real_time>
-      <wall_time>1638238602 642800011</wall_time>
-      <iterations>51809</iterations>
+      <sim_time>1662 369000000</sim_time>
+      <real_time>35 708858768</real_time>
+      <wall_time>1638281363 16466280</wall_time>
+      <iterations>35597</iterations>
       <model name='Maze_2'>
         <pose>-0.3438 -0.781152 0 0 -0 0</pose>
         <scale>1 1 1</scale>
@@ -2252,44 +2252,44 @@
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
-      <model name='robot1'>
-        <pose>-3.30418 -0.394775 -1e-05 0 -0 0.55841</pose>
-        <scale>1 1 1</scale>
-        <link name='base_link'>
-          <pose>-3.30418 -0.394775 -1e-05 0 -0 0.55841</pose>
-          <velocity>0.434644 0.153582 -0.0098 0 -0 0.067475</velocity>
-          <acceleration>0 0 -9.8 0 -0 0</acceleration>
-          <wrench>0 0 -196.226 0 -0 0</wrench>
-        </link>
-      </model>
-      <model name='robot2'>
-        <pose>-1.18638 -8.6154 -1e-05 0 -0 0.975975</pose>
-        <scale>1 1 1</scale>
-        <link name='base_link'>
-          <pose>-1.18638 -8.6154 -1e-05 0 -0 0.975975</pose>
-          <velocity>-0.026543 0.13884 -0.0098 0 -0 1</velocity>
-          <acceleration>0 0 -9.8 -0.000134 6e-05 0</acceleration>
-          <wrench>0 0 -196.226 0 -0 0</wrench>
-        </link>
-      </model>
       <model name='unit_box'>
-        <pose>9.62932 -8.4272 0.499995 -1e-05 -0 -0.020497</pose>
+        <pose>9.62913 -8.527 0.499995 -1e-05 -0 -0.011795</pose>
         <scale>1 1 1</scale>
         <link name='link'>
-          <pose>9.62932 -8.4272 0.499995 -1e-05 -0 -0.020497</pose>
+          <pose>9.62913 -8.527 0.499995 -1e-05 -0 -0.011795</pose>
           <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>-0.004727 0.01114 -9.7816 -0.022277 -0.009449 -1e-06</acceleration>
-          <wrench>-0.004727 0.01114 -9.7816 0 -0 0</wrench>
+          <acceleration>0.004689 0.010986 -9.7816 -0.021968 0.009374 1e-06</acceleration>
+          <wrench>0.004689 0.010986 -9.7816 0 -0 0</wrench>
         </link>
       </model>
       <model name='unit_box_0'>
-        <pose>10.6295 -8.43326 0.5 -0 -0 -0.020454</pose>
+        <pose>10.6325 -8.52077 0.499995 -1e-05 -0 -0.005156</pose>
         <scale>1 1 1</scale>
         <link name='link'>
-          <pose>10.6295 -8.43326 0.5 -0 -0 -0.020454</pose>
+          <pose>10.6325 -8.52077 0.499995 -1e-05 -0 -0.005156</pose>
           <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>9.7801 -0.193972 9.78245 0.387866 0.710625 7.8e-05</acceleration>
-          <wrench>9.7801 -0.193972 9.78245 0 -0 0</wrench>
+          <acceleration>0.004701 0.011027 -9.78158 -0.02205 0.009398 1e-06</acceleration>
+          <wrench>0.004701 0.011027 -9.78158 0 -0 0</wrench>
+        </link>
+      </model>
+      <model name='unit_box_1'>
+        <pose>-9.79473 0.285067 0.499999 5e-06 4e-06 0.007657</pose>
+        <scale>1 1 1</scale>
+        <link name='link'>
+          <pose>-9.79473 0.285067 0.499999 5e-06 4e-06 0.007657</pose>
+          <velocity>0 0 0 0 -0 0</velocity>
+          <acceleration>-2.63203 -2.6726 -5.37903 -0.936936 1.0183 0.000116</acceleration>
+          <wrench>-2.63203 -2.6726 -5.37903 0 -0 0</wrench>
+        </link>
+      </model>
+      <model name='unit_box_2'>
+        <pose>-10.7852 -0.542565 0.5 0 -0 0.017857</pose>
+        <scale>1 1 1</scale>
+        <link name='link'>
+          <pose>-10.7852 -0.542565 0.5 0 -0 0.017857</pose>
+          <velocity>0 0 0 0 -0 0</velocity>
+          <acceleration>-6.80528 0.075895 6.63039 -0.117213 -1.01064 0.034457</acceleration>
+          <wrench>-6.80528 0.075895 6.63039 0 -0 0</wrench>
         </link>
       </model>
       <light name='sun'>
@@ -2298,627 +2298,13 @@
     </state>
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose>3.49876 -3.02709 30.6533 2e-06 1.5058 1.52548</pose>
+        <pose>3.43014 -1.48833 35.7436 2e-06 1.5698 1.56948</pose>
         <view_controller>orbit</view_controller>
         <projection_type>perspective</projection_type>
       </camera>
     </gui>
-    <model name='robot1'>
-      <link name='base_link'>
-        <inertial>
-          <pose>0.000115 2e-05 0.000326 0 -0 0</pose>
-          <mass>20.0231</mass>
-          <inertia>
-            <ixx>9.00416</ixx>
-            <ixy>-3.98541e-05</ixy>
-            <ixz>-0.000650661</ixz>
-            <iyy>9.00437</iyy>
-            <iyz>-0.000112787</iyz>
-            <izz>9.00255</izz>
-          </inertia>
-        </inertial>
-        <collision name='base_link_collision'>
-          <pose>0 0 0.025 0 -0 0</pose>
-          <geometry>
-            <cylinder>
-              <length>0.05</length>
-              <radius>0.18</radius>
-            </cylinder>
-          </geometry>
-          <surface>
-            <contact>
-              <ode/>
-            </contact>
-            <friction>
-              <ode/>
-              <torsional>
-                <ode/>
-              </torsional>
-            </friction>
-            <bounce/>
-          </surface>
-          <max_contacts>10</max_contacts>
-        </collision>
-        <collision name='base_link_fixed_joint_lump__camera_link_collision_1'>
-          <pose>0.1 -0.008 0.283 0 -0 0</pose>
-          <geometry>
-            <box>
-              <size>0.073 0.276 0.072</size>
-            </box>
-          </geometry>
-          <surface>
-            <contact>
-              <ode/>
-            </contact>
-            <friction>
-              <ode/>
-              <torsional>
-                <ode/>
-              </torsional>
-            </friction>
-            <bounce/>
-          </surface>
-          <max_contacts>10</max_contacts>
-        </collision>
-        <collision name='base_link_fixed_joint_lump__command_bridge_link_collision_2'>
-          <pose>-0.05 0 0.13 0 -0 1.57079</pose>
-          <geometry>
-            <box>
-              <size>0.25 0.11 0.16</size>
-            </box>
-          </geometry>
-          <max_contacts>10</max_contacts>
-          <surface>
-            <contact>
-              <ode/>
-            </contact>
-            <bounce/>
-            <friction>
-              <torsional>
-                <ode/>
-              </torsional>
-              <ode/>
-            </friction>
-          </surface>
-        </collision>
-        <collision name='base_link_fixed_joint_lump__hokuyo_link_collision_3'>
-          <pose>0.08 0 0.2365 0 -0 0</pose>
-          <geometry>
-            <cylinder>
-              <length>0.07</length>
-              <radius>0.02</radius>
-            </cylinder>
-          </geometry>
-          <surface>
-            <contact>
-              <ode/>
-            </contact>
-            <friction>
-              <ode/>
-              <torsional>
-                <ode/>
-              </torsional>
-            </friction>
-            <bounce/>
-          </surface>
-          <max_contacts>10</max_contacts>
-        </collision>
-        <visual name='base_link_visual'>
-          <pose>0.01 0 0 0 -0 1.57079</pose>
-          <geometry>
-            <mesh>
-              <scale>0.01 0.01 0.01</scale>
-              <uri>/home/ingo/catkin_ws/src/TU_Much_Exploration/tme_models/meshes/parts/rto_base.dae</uri>
-            </mesh>
-          </geometry>
-        </visual>
-        <visual name='base_link_fixed_joint_lump__bracket_camera_link_visual_1'>
-          <pose>0.084 0 0.271 -3.14159 0.001593 -1.57159</pose>
-          <geometry>
-            <mesh>
-              <scale>0.001 0.000667 0.000667</scale>
-              <uri>/home/ingo/catkin_ws/src/TU_Much_Exploration/tme_models/meshes/parts/bracket.dae</uri>
-            </mesh>
-          </geometry>
-          <material>
-            <script>
-              <name>Gazebo/DarkGrey</name>
-              <uri>file://media/materials/scripts/gazebo.material</uri>
-            </script>
-          </material>
-        </visual>
-        <visual name='base_link_fixed_joint_lump__bracket_hokuyo_link_visual_2'>
-          <pose>0.101 0 0.15 0 -0 1.57</pose>
-          <geometry>
-            <mesh>
-              <scale>0.001 0.001 0.001</scale>
-              <uri>/home/ingo/catkin_ws/src/TU_Much_Exploration/tme_models/meshes/parts/bracket.dae</uri>
-            </mesh>
-          </geometry>
-          <material>
-            <script>
-              <name>Gazebo/DarkGrey</name>
-              <uri>file://media/materials/scripts/gazebo.material</uri>
-            </script>
-          </material>
-        </visual>
-        <visual name='base_link_fixed_joint_lump__camera_link_visual_3'>
-          <pose>0.09 -0.008 0.283 1.5708 -3e-06 1.5708</pose>
-          <geometry>
-            <mesh>
-              <scale>0.001 0.001 0.001</scale>
-              <uri>/home/ingo/catkin_ws/src/TU_Much_Exploration/tme_models/meshes/sensors/asus_xtion_pro_live.dae</uri>
-            </mesh>
-          </geometry>
-        </visual>
-        <visual name='base_link_fixed_joint_lump__hokuyo_link_visual_4'>
-          <pose>0.08 0 0.1515 0 -0 1.57079</pose>
-          <geometry>
-            <mesh>
-              <scale>0.01 0.01 0.01</scale>
-              <uri>/home/ingo/catkin_ws/src/TU_Much_Exploration/tme_models/meshes/sensors/hokuyo.dae</uri>
-            </mesh>
-          </geometry>
-        </visual>
-        <visual name='base_link_fixed_joint_lump__plate_link_visual_5'>
-          <pose>0.05 0 0.19 0 -0 0</pose>
-          <geometry>
-            <box>
-              <size>0.002 0.06 0.24</size>
-            </box>
-          </geometry>
-          <material>
-            <script>
-              <name>Gazebo/Grey</name>
-              <uri>file://media/materials/scripts/gazebo.material</uri>
-            </script>
-          </material>
-        </visual>
-        <visual name='base_link_fixed_joint_lump__wheel0_link_visual_6'>
-          <pose>0.065 0.11 0.04 0 -0 1.0472</pose>
-          <geometry>
-            <mesh>
-              <scale>0.01 0.01 0.01</scale>
-              <uri>/home/ingo/catkin_ws/src/TU_Much_Exploration/tme_models/meshes/parts/rto_wheel.dae</uri>
-            </mesh>
-          </geometry>
-          <material>
-            <script>
-              <name>Gazebo/Grey</name>
-              <uri>file://media/materials/scripts/gazebo.material</uri>
-            </script>
-          </material>
-        </visual>
-        <visual name='base_link_fixed_joint_lump__wheel1_link_visual_7'>
-          <pose>-0.13 0 0.04 0 -0 0</pose>
-          <geometry>
-            <mesh>
-              <scale>0.01 0.01 0.01</scale>
-              <uri>/home/ingo/catkin_ws/src/TU_Much_Exploration/tme_models/meshes/parts/rto_wheel.dae</uri>
-            </mesh>
-          </geometry>
-          <material>
-            <script>
-              <name>Gazebo/Grey</name>
-              <uri>file://media/materials/scripts/gazebo.material</uri>
-            </script>
-          </material>
-        </visual>
-        <visual name='base_link_fixed_joint_lump__wheel2_link_visual_8'>
-          <pose>0.065 -0.11 0.04 0 0 -1.0472</pose>
-          <geometry>
-            <mesh>
-              <scale>0.01 0.01 0.01</scale>
-              <uri>/home/ingo/catkin_ws/src/TU_Much_Exploration/tme_models/meshes/parts/rto_wheel.dae</uri>
-            </mesh>
-          </geometry>
-          <material>
-            <script>
-              <name>Gazebo/Grey</name>
-              <uri>file://media/materials/scripts/gazebo.material</uri>
-            </script>
-          </material>
-        </visual>
-        <sensor name='camera' type='depth'>
-          <always_on>1</always_on>
-          <update_rate>20</update_rate>
-          <camera>
-            <horizontal_fov>1.0472</horizontal_fov>
-            <image>
-              <format>R8G8B8</format>
-              <width>640</width>
-              <height>480</height>
-            </image>
-            <clip>
-              <near>0.05</near>
-              <far>8</far>
-            </clip>
-          </camera>
-          <plugin name='kinect_camera_controller' filename='libgazebo_ros_openni_kinect.so'>
-            <cameraName>camera</cameraName>
-            <alwaysOn>1</alwaysOn>
-            <updateRate>10</updateRate>
-            <imageTopicName>rgb/image_raw</imageTopicName>
-            <depthImageTopicName>depth/image_raw</depthImageTopicName>
-            <pointCloudTopicName>depth/points</pointCloudTopicName>
-            <cameraInfoTopicName>rgb/camera_info</cameraInfoTopicName>
-            <depthImageCameraInfoTopicName>depth/camera_info</depthImageCameraInfoTopicName>
-            <frameName>camera_depth_optical_frame</frameName>
-            <baseline>0.1</baseline>
-            <distortion_k1>0.0</distortion_k1>
-            <distortion_k2>0.0</distortion_k2>
-            <distortion_k3>0.0</distortion_k3>
-            <distortion_t1>0.0</distortion_t1>
-            <distortion_t2>0.0</distortion_t2>
-            <pointCloudCutoff>0.4</pointCloudCutoff>
-            <robotNamespace>/robot1/</robotNamespace>
-          </plugin>
-          <pose>0.1 -0.008 0.283 0 -0 0</pose>
-        </sensor>
-        <sensor name='hokuyo' type='gpu_ray'>
-          <update_rate>40</update_rate>
-          <visualize>0</visualize>
-          <ray>
-            <scan>
-              <horizontal>
-                <samples>683</samples>
-                <resolution>0.36</resolution>
-                <min_angle>-2</min_angle>
-                <max_angle>2</max_angle>
-              </horizontal>
-              <vertical>
-                <samples>1</samples>
-                <min_angle>0</min_angle>
-                <max_angle>0</max_angle>
-              </vertical>
-            </scan>
-            <range>
-              <min>0.03</min>
-              <max>10.6</max>
-              <resolution>0.01</resolution>
-            </range>
-            <noise>
-              <type>gaussian</type>
-              <mean>0</mean>
-              <stddev>0.005</stddev>
-            </noise>
-          </ray>
-          <plugin name='gazebo_ros_hokuyo_controller' filename='libgazebo_ros_gpu_laser.so'>
-            <topicName>scan</topicName>
-            <frameName>hokuyo_link</frameName>
-            <robotNamespace>/robot1/</robotNamespace>
-          </plugin>
-          <pose>0.08 0 0.2015 0 -0 0</pose>
-        </sensor>
-        <gravity>1</gravity>
-        <self_collide>0</self_collide>
-        <enable_wind>0</enable_wind>
-        <kinematic>0</kinematic>
-      </link>
-      <static>0</static>
-      <plugin name='object_controller' filename='libgazebo_ros_planar_move.so'>
-        <commandTopic>cmd_vel</commandTopic>
-        <odometryTopic>odom</odometryTopic>
-        <odometryFrame>odom</odometryFrame>
-        <odometryRate>20</odometryRate>
-        <robotBaseFrame>base_link</robotBaseFrame>
-        <publishTF>1</publishTF>
-        <robotNamespace>/robot1/</robotNamespace>
-      </plugin>
-      <plugin name='gazebo_ros_control' filename='libgazebo_ros_control.so'>
-        <robotNamespace>/robot1/</robotNamespace>
-      </plugin>
-      <pose>1 0 0 0 -0 0</pose>
-    </model>
-    <model name='robot2'>
-      <link name='base_link'>
-        <inertial>
-          <pose>0.000115 2e-05 0.000326 0 -0 0</pose>
-          <mass>20.0231</mass>
-          <inertia>
-            <ixx>9.00416</ixx>
-            <ixy>-3.98541e-05</ixy>
-            <ixz>-0.000650661</ixz>
-            <iyy>9.00437</iyy>
-            <iyz>-0.000112787</iyz>
-            <izz>9.00255</izz>
-          </inertia>
-        </inertial>
-        <collision name='base_link_collision'>
-          <pose>0 0 0.025 0 -0 0</pose>
-          <geometry>
-            <cylinder>
-              <length>0.05</length>
-              <radius>0.18</radius>
-            </cylinder>
-          </geometry>
-          <surface>
-            <contact>
-              <ode/>
-            </contact>
-            <friction>
-              <ode/>
-              <torsional>
-                <ode/>
-              </torsional>
-            </friction>
-            <bounce/>
-          </surface>
-          <max_contacts>10</max_contacts>
-        </collision>
-        <collision name='base_link_fixed_joint_lump__camera_link_collision_1'>
-          <pose>0.1 -0.008 0.283 0 -0 0</pose>
-          <geometry>
-            <box>
-              <size>0.073 0.276 0.072</size>
-            </box>
-          </geometry>
-          <surface>
-            <contact>
-              <ode/>
-            </contact>
-            <friction>
-              <ode/>
-              <torsional>
-                <ode/>
-              </torsional>
-            </friction>
-            <bounce/>
-          </surface>
-          <max_contacts>10</max_contacts>
-        </collision>
-        <collision name='base_link_fixed_joint_lump__command_bridge_link_collision_2'>
-          <pose>-0.05 0 0.13 0 -0 1.57079</pose>
-          <geometry>
-            <box>
-              <size>0.25 0.11 0.16</size>
-            </box>
-          </geometry>
-          <max_contacts>10</max_contacts>
-          <surface>
-            <contact>
-              <ode/>
-            </contact>
-            <bounce/>
-            <friction>
-              <torsional>
-                <ode/>
-              </torsional>
-              <ode/>
-            </friction>
-          </surface>
-        </collision>
-        <collision name='base_link_fixed_joint_lump__hokuyo_link_collision_3'>
-          <pose>0.08 0 0.2365 0 -0 0</pose>
-          <geometry>
-            <cylinder>
-              <length>0.07</length>
-              <radius>0.02</radius>
-            </cylinder>
-          </geometry>
-          <surface>
-            <contact>
-              <ode/>
-            </contact>
-            <friction>
-              <ode/>
-              <torsional>
-                <ode/>
-              </torsional>
-            </friction>
-            <bounce/>
-          </surface>
-          <max_contacts>10</max_contacts>
-        </collision>
-        <visual name='base_link_visual'>
-          <pose>0.01 0 0 0 -0 1.57079</pose>
-          <geometry>
-            <mesh>
-              <scale>0.01 0.01 0.01</scale>
-              <uri>/home/ingo/catkin_ws/src/TU_Much_Exploration/tme_models/meshes/parts/rto_base.dae</uri>
-            </mesh>
-          </geometry>
-        </visual>
-        <visual name='base_link_fixed_joint_lump__bracket_camera_link_visual_1'>
-          <pose>0.084 0 0.271 -3.14159 0.001593 -1.57159</pose>
-          <geometry>
-            <mesh>
-              <scale>0.001 0.000667 0.000667</scale>
-              <uri>/home/ingo/catkin_ws/src/TU_Much_Exploration/tme_models/meshes/parts/bracket.dae</uri>
-            </mesh>
-          </geometry>
-          <material>
-            <script>
-              <name>Gazebo/DarkGrey</name>
-              <uri>file://media/materials/scripts/gazebo.material</uri>
-            </script>
-          </material>
-        </visual>
-        <visual name='base_link_fixed_joint_lump__bracket_hokuyo_link_visual_2'>
-          <pose>0.101 0 0.15 0 -0 1.57</pose>
-          <geometry>
-            <mesh>
-              <scale>0.001 0.001 0.001</scale>
-              <uri>/home/ingo/catkin_ws/src/TU_Much_Exploration/tme_models/meshes/parts/bracket.dae</uri>
-            </mesh>
-          </geometry>
-          <material>
-            <script>
-              <name>Gazebo/DarkGrey</name>
-              <uri>file://media/materials/scripts/gazebo.material</uri>
-            </script>
-          </material>
-        </visual>
-        <visual name='base_link_fixed_joint_lump__camera_link_visual_3'>
-          <pose>0.09 -0.008 0.283 1.5708 -3e-06 1.5708</pose>
-          <geometry>
-            <mesh>
-              <scale>0.001 0.001 0.001</scale>
-              <uri>/home/ingo/catkin_ws/src/TU_Much_Exploration/tme_models/meshes/sensors/asus_xtion_pro_live.dae</uri>
-            </mesh>
-          </geometry>
-        </visual>
-        <visual name='base_link_fixed_joint_lump__hokuyo_link_visual_4'>
-          <pose>0.08 0 0.1515 0 -0 1.57079</pose>
-          <geometry>
-            <mesh>
-              <scale>0.01 0.01 0.01</scale>
-              <uri>/home/ingo/catkin_ws/src/TU_Much_Exploration/tme_models/meshes/sensors/hokuyo.dae</uri>
-            </mesh>
-          </geometry>
-        </visual>
-        <visual name='base_link_fixed_joint_lump__plate_link_visual_5'>
-          <pose>0.05 0 0.19 0 -0 0</pose>
-          <geometry>
-            <box>
-              <size>0.002 0.06 0.24</size>
-            </box>
-          </geometry>
-          <material>
-            <script>
-              <name>Gazebo/Grey</name>
-              <uri>file://media/materials/scripts/gazebo.material</uri>
-            </script>
-          </material>
-        </visual>
-        <visual name='base_link_fixed_joint_lump__wheel0_link_visual_6'>
-          <pose>0.065 0.11 0.04 0 -0 1.0472</pose>
-          <geometry>
-            <mesh>
-              <scale>0.01 0.01 0.01</scale>
-              <uri>/home/ingo/catkin_ws/src/TU_Much_Exploration/tme_models/meshes/parts/rto_wheel.dae</uri>
-            </mesh>
-          </geometry>
-          <material>
-            <script>
-              <name>Gazebo/Grey</name>
-              <uri>file://media/materials/scripts/gazebo.material</uri>
-            </script>
-          </material>
-        </visual>
-        <visual name='base_link_fixed_joint_lump__wheel1_link_visual_7'>
-          <pose>-0.13 0 0.04 0 -0 0</pose>
-          <geometry>
-            <mesh>
-              <scale>0.01 0.01 0.01</scale>
-              <uri>/home/ingo/catkin_ws/src/TU_Much_Exploration/tme_models/meshes/parts/rto_wheel.dae</uri>
-            </mesh>
-          </geometry>
-          <material>
-            <script>
-              <name>Gazebo/Grey</name>
-              <uri>file://media/materials/scripts/gazebo.material</uri>
-            </script>
-          </material>
-        </visual>
-        <visual name='base_link_fixed_joint_lump__wheel2_link_visual_8'>
-          <pose>0.065 -0.11 0.04 0 0 -1.0472</pose>
-          <geometry>
-            <mesh>
-              <scale>0.01 0.01 0.01</scale>
-              <uri>/home/ingo/catkin_ws/src/TU_Much_Exploration/tme_models/meshes/parts/rto_wheel.dae</uri>
-            </mesh>
-          </geometry>
-          <material>
-            <script>
-              <name>Gazebo/Grey</name>
-              <uri>file://media/materials/scripts/gazebo.material</uri>
-            </script>
-          </material>
-        </visual>
-        <sensor name='camera' type='depth'>
-          <always_on>1</always_on>
-          <update_rate>20</update_rate>
-          <camera>
-            <horizontal_fov>1.0472</horizontal_fov>
-            <image>
-              <format>R8G8B8</format>
-              <width>640</width>
-              <height>480</height>
-            </image>
-            <clip>
-              <near>0.05</near>
-              <far>8</far>
-            </clip>
-          </camera>
-          <plugin name='kinect_camera_controller' filename='libgazebo_ros_openni_kinect.so'>
-            <cameraName>camera</cameraName>
-            <alwaysOn>1</alwaysOn>
-            <updateRate>10</updateRate>
-            <imageTopicName>rgb/image_raw</imageTopicName>
-            <depthImageTopicName>depth/image_raw</depthImageTopicName>
-            <pointCloudTopicName>depth/points</pointCloudTopicName>
-            <cameraInfoTopicName>rgb/camera_info</cameraInfoTopicName>
-            <depthImageCameraInfoTopicName>depth/camera_info</depthImageCameraInfoTopicName>
-            <frameName>camera_depth_optical_frame</frameName>
-            <baseline>0.1</baseline>
-            <distortion_k1>0.0</distortion_k1>
-            <distortion_k2>0.0</distortion_k2>
-            <distortion_k3>0.0</distortion_k3>
-            <distortion_t1>0.0</distortion_t1>
-            <distortion_t2>0.0</distortion_t2>
-            <pointCloudCutoff>0.4</pointCloudCutoff>
-            <robotNamespace>/robot2/</robotNamespace>
-          </plugin>
-          <pose>0.1 -0.008 0.283 0 -0 0</pose>
-        </sensor>
-        <sensor name='hokuyo' type='gpu_ray'>
-          <update_rate>40</update_rate>
-          <visualize>0</visualize>
-          <ray>
-            <scan>
-              <horizontal>
-                <samples>683</samples>
-                <resolution>0.36</resolution>
-                <min_angle>-2</min_angle>
-                <max_angle>2</max_angle>
-              </horizontal>
-              <vertical>
-                <samples>1</samples>
-                <min_angle>0</min_angle>
-                <max_angle>0</max_angle>
-              </vertical>
-            </scan>
-            <range>
-              <min>0.03</min>
-              <max>10.6</max>
-              <resolution>0.01</resolution>
-            </range>
-            <noise>
-              <type>gaussian</type>
-              <mean>0</mean>
-              <stddev>0.005</stddev>
-            </noise>
-          </ray>
-          <plugin name='gazebo_ros_hokuyo_controller' filename='libgazebo_ros_gpu_laser.so'>
-            <topicName>scan</topicName>
-            <frameName>hokuyo_link</frameName>
-            <robotNamespace>/robot2/</robotNamespace>
-          </plugin>
-          <pose>0.08 0 0.2015 0 -0 0</pose>
-        </sensor>
-        <gravity>1</gravity>
-        <self_collide>0</self_collide>
-        <enable_wind>0</enable_wind>
-        <kinematic>0</kinematic>
-      </link>
-      <static>0</static>
-      <plugin name='object_controller' filename='libgazebo_ros_planar_move.so'>
-        <commandTopic>cmd_vel</commandTopic>
-        <odometryTopic>odom</odometryTopic>
-        <odometryFrame>odom</odometryFrame>
-        <odometryRate>20</odometryRate>
-        <robotBaseFrame>base_link</robotBaseFrame>
-        <publishTF>1</publishTF>
-        <robotNamespace>/robot2/</robotNamespace>
-      </plugin>
-      <plugin name='gazebo_ros_control' filename='libgazebo_ros_control.so'>
-        <robotNamespace>/robot2/</robotNamespace>
-      </plugin>
-      <pose>-1 0 0 0 -0 0</pose>
-    </model>
     <model name='unit_box'>
-      <pose>9.49189 -8.41316 0.5 0 -0 0</pose>
+      <pose>9.59765 -8.51992 0.5 0 -0 0</pose>
       <link name='link'>
         <inertial>
           <mass>1</mass>
@@ -2971,7 +2357,113 @@
       </link>
     </model>
     <model name='unit_box_0'>
-      <pose>10.5893 -8.43157 0.5 0 -0 0</pose>
+      <pose>10.6304 -8.52124 0.5 0 -0 0</pose>
+      <link name='link'>
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.166667</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.166667</iyy>
+            <iyz>0</iyz>
+            <izz>0.166667</izz>
+          </inertia>
+          <pose>0 0 0 0 -0 0</pose>
+        </inertial>
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <name>Gazebo/Grey</name>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+            </script>
+          </material>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+    </model>
+    <model name='unit_box_1'>
+      <pose>-9.80691 0.348857 0.5 0 -0 0</pose>
+      <link name='link'>
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.166667</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.166667</iyy>
+            <iyz>0</iyz>
+            <izz>0.166667</izz>
+          </inertia>
+          <pose>0 0 0 0 -0 0</pose>
+        </inertial>
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <name>Gazebo/Grey</name>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+            </script>
+          </material>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+    </model>
+    <model name='unit_box_2'>
+      <pose>-10.7652 -0.532589 0.5 0 -0 0</pose>
       <link name='link'>
         <inertial>
           <mass>1</mass>

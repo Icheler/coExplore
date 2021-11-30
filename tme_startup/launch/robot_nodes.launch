@@ -58,7 +58,7 @@
             <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS" /> 
             <!-- <rosparam file="$(find tme_startup)/config/base_local_planner_params_normal.yaml" command="load" />
             <param name="base_local_planner" value="base_local_planner/TrajectoryPlannerROS" /> -->
-            <param name="recovery_behavior_enabled" value="true" /> 
+            <param name="recovery_behavior_enabled" value="false" /> 
         </node>
 
         <!-- <node pkg="tme_exploration" type="move_relay" name="move_relay" respawn="true"/> -->
