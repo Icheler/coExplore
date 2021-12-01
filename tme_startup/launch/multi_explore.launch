@@ -12,4 +12,5 @@
         <param name="visibility_weighting" value="1"/>
         <param name="speed_weighting" value="1"/>
     </node>
+    <node pkg='tme_exploration' type='map_compare' name='tme_map_compare' respawn='True'/>
 </launch>

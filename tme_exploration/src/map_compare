@@ -12,25 +12,40 @@ from datetime import datetime
 from nav_msgs.msg import OccupancyGrid
 
 class mapCompare:
-    def __init__(self):
+    def __init__(self, mode):
         atexit.register(self.exit_handler)
         self.map = None
+        self.mode = mode
 
-def exit_handler():
-    date_now = datetime.now()
-    date_string = date_now.strftime("%Y-%m-%d|%H:%M:%S")
+    def exit_handler(self):
+        date_now = datetime.now()
+        date_string = date_now.strftime("%Y-%m-%d|%H:%M:%S")
 
-    file_name = date_string + '.txt'
-    file_location = 'catkin_ws/src/TU_Much_Exploration/tme_data/coverage'
-    file_location = os.path.join(os.path.expanduser('~'), file_location, file_name)
+        file_name = date_string + '.txt'
+        file_location = 'catkin_ws/src/TU_Much_Exploration/tme_data/coverage'
+        file_location = os.path.join(os.path.expanduser('~'), file_location)
+        file_complete = os.path.join(os.path.expanduser('~'), file_location, file_name)
 
-    #add image to verify validity
+        if(not self.mode):
+            a_file = open(file_complete, 'w+')
+            np.savetxt(a_file, self.map)
+            a_file.close()
+            rospy.logwarn('created file named: ' + file_complete)
+        
+        #add image to verify validity
+        os.system('rosrun map_server map_saver -f ' + str(file_location))
 
-def compareImages(self):
-    pass
+    def get_map(self):
+        return self.map
 
-def callbackMap(self, data):
-    self.map = data
+    def get_mode(self):
+        return self.mode
+
+    def compare_images(self):
+        pass
+
+    def callback_map(self, data):
+        self.map = data.data
 
 if __name__ == '__main__':
 
@@ -38,21 +53,18 @@ if __name__ == '__main__':
     
     rate = rospy.Rate(0.2)
 
-    classy = mapCompare()
-
     #0 is log array, 1 is compare and log
-    mode = 0 
+    classy = mapCompare(mode=0)
+    mode = classy.mode
 
-    rospy.Subscriber('/map', OccupancyGrid, callback=classy.callbackMap)
+
+    rospy.Subscriber('/map', OccupancyGrid, callback=classy.callback_map)
 
     while not rospy.is_shutdown():
         rate.sleep()
 
         if(mode):
             pass
-        else:
-            pass
-
         pass
 
     """ 
