@@ -1,0 +1,68 @@
+#!/usr/bin/env python3
+
+import rospy
+import cv2
+import numpy as np
+import os
+import atexit
+
+from skimage.metrics import structural_similarity
+from datetime import datetime
+
+from nav_msgs.msg import OccupancyGrid
+
+class mapCompare:
+    def __init__(self):
+        atexit.register(self.exit_handler)
+        self.map = None
+
+def exit_handler():
+    date_now = datetime.now()
+    date_string = date_now.strftime("%Y-%m-%d|%H:%M:%S")
+
+    file_name = date_string + '.txt'
+    file_location = 'catkin_ws/src/TU_Much_Exploration/tme_data/coverage'
+    file_location = os.path.join(os.path.expanduser('~'), file_location, file_name)
+
+    #add image to verify validity
+
+def compareImages(self):
+    pass
+
+def callbackMap(self, data):
+    self.map = data
+
+if __name__ == '__main__':
+
+    rospy.init_node('map_compare')
+    
+    rate = rospy.Rate(0.2)
+
+    classy = mapCompare()
+
+    #0 is log array, 1 is compare and log
+    mode = 0 
+
+    rospy.Subscriber('/map', OccupancyGrid, callback=classy.callbackMap)
+
+    while not rospy.is_shutdown():
+        rate.sleep()
+
+        if(mode):
+            pass
+        else:
+            pass
+
+        pass
+
+    """ 
+    0:
+        add map read
+        add map write
+        
+    1:
+        add map read from file 
+        subscribe to map topic
+        compare both maps every x secs
+        on exit save array with timestamp, coverage and image to directory with timestamp
+    """
