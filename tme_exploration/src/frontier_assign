@@ -16,6 +16,7 @@ from geometry_msgs.msg import Point, Pose, PoseWithCovarianceStamped
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from sensor_msgs.msg import LaserScan
 from visualization_msgs.msg import Marker, MarkerArray
+from actionlib_msgs.msg import GoalStatusArray
 
 
 class frontierAssign:
@@ -42,6 +43,10 @@ class frontierAssign:
         self.lastPos = np.empty(self.numberRobots, dtype=Point)
         self.travelDistances = np.zeros(self.numberRobots)
         self.chosenMethod = 'combined'
+        self.goalStatus = np.empty(self.numberRobots)
+        self.subStatus = []
+        self.blacklist = []
+
         atexit.register(self.exit_handler)
 
         for i in range(self.numberRobots):
@@ -49,6 +54,9 @@ class frontierAssign:
             j = i+1
             topic = '/' + self.robotPrefix + str(j) + '/point_relay'
             self.publisher_position.append(rospy.Publisher(topic, Point, queue_size=10))
+
+            topic = '/' + self.robotPrefix + str(j) + '/move_base/status'
+            self.subStatus.append(rospy.Subscriber(topic, GoalStatusArray, queue_size=10, callback_args = topic))
 
         self.robotMarker.header.frame_id = "map"
         #self.robotMarker.header.stamp    = rospy.get_rostime()
@@ -155,6 +163,25 @@ class frontierAssign:
             pass
         self.robotPosition[number] = robot_location
         self.distance_tracker(number, robot_location)
+
+    def callback_status(self, data, topic):
+        number = (int)((re.search(r'\d+', topic)).group(0)) - 1
+        status_list = data.status_list
+
+        for i in range(len(status_list)):
+            if(status_list[i].status == 4):
+                np.append(self.blacklist, self.goals[number])
+
+    def blacklist_check(self, frontiers):
+        result = np.zeros((len(frontiers.frontiers), self.numberRobots))
+        valueToAdd = np.zeros(len(frontiers.frontiers))
+        for i in range(len(frontiers.frontiers)):
+            for j in range(len(self.blacklist)):
+                if (frontiers[i].centroid == self.blacklist[j]):
+                    valueToAdd[i] = 100
+        result = result + valueToAdd
+        rospy.logwarn(result)
+        return result
 
     def distance_tracker(self, number, robot_location):
         if(self.lastPos[number]):
@@ -291,7 +318,7 @@ class frontierAssign:
         self.frontier_distance_modifier()
         order = np.argsort(self.frontierDistanceModifier, axis=1)
         ranks = np.argsort(order, axis=1)
-        return ranks + 0.01 * self.frontierDistanceModifier
+        return ranks #+ 0.01 * self.frontierDistanceModifier
 
 
 if __name__ == '__main__':
@@ -360,6 +387,7 @@ if __name__ == '__main__':
                 fInstance.frontier_distance_modifier()
                 cost_matrix = speed_weighting * fInstance.get_frontierDistanceModifier() + visibility_weighting * fInstance.get_frontierVisibilityModifier()
             
+            cost_matrix = cost_matrix + fInstance.blacklist_check()
             cost_matrix = np.transpose(cost_matrix)
             row_ind, col_ind = linear_sum_assignment(cost_matrix)
 

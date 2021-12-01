@@ -44,3 +44,9 @@ catch move_base abort message and blacklist goal by assigning high values
 
 improvements:  
 better distribution
+
+metrics:  
+distance per frontier  
+efficiency  
+time spent on frontiers vs running around  
+number of frontiers per robot  

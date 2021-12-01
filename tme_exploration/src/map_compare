@@ -33,7 +33,6 @@ class mapCompare:
             rospy.logwarn('created file named: ' + file_complete)
         
         #add image to verify validity
-        os.system('rosrun map_server map_saver -f ' + str(file_location))
 
     def get_map(self):
         return self.map
