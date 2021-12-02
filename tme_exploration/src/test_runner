@@ -1,0 +1,47 @@
+#!/usr/bin/env python3
+
+import numpy as np
+import os
+import roslaunch
+
+def runner(numRobots = 2, world = 'v2_maze', method = 'combined', tries = 10):
+    temp = 'export tme_start_num = ' + str(numRobots)
+    os.system(temp)
+    temp = 'export tme_expl_method = ' + str(method)
+    os.system(temp)
+    temp = 'export tme_ROBOT_ENV = ' + str(world)
+    os.system(temp)
+    file_location = 'catkin_ws/src/TU_Much_Exploration/'
+    file_name = "config_script.bash"
+    file_name = os.path.join(os.path.expanduser('~'),file_location, file_name)
+    os.system('source ' + str(file_name))
+    file_location = 'catkin_ws/src/TU_Much_Exploration/tme_startup/launch'
+    file_name = "complete_launch.launch"
+    file_name = os.path.join(os.path.expanduser('~'),file_location, file_name)
+    
+    for i in range(tries):
+        roslaunch.main('file_name')
+
+def runAll(numRobots = 2, world = 'v2_maze', methods = ['combined'], tries = 10):
+    for i in range(len(methods)):
+        runner(numRobots, world, methods[i], tries)
+
+if __name__ == '__main__':
+    file_location = 'catkin_ws/devel/setup.bash'
+    file_name = os.path.join(os.path.expanduser('~'),file_location)
+    print(file_name)
+    exec(file_name)
+
+    file_location = 'opt/ros/noetic/setup.bash'
+    file_name = os.path.join(os.path.expanduser('~'),file_location)
+    print(file_name)
+    exec(open(file_name))
+
+
+    numRobots = [2]
+    world = 'v2_maze'
+    method = ['nearest', 'greedy', 'minPos', 'combined']
+    tries = 1
+
+    for i in range(len(numRobots)):
+        runAll(numRobots[i], world, method, tries)

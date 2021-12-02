@@ -16,6 +16,7 @@ class mapCompare:
         self.mode = mode
         self.date_string = datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
         self.differenceArray = []
+        self.stopTime = rospy.get_param('stop_time', '500')
 
     def exit_handler(self):
         date_string = self.date_string
@@ -50,6 +51,9 @@ class mapCompare:
 
     def get_differenceArrray(self):
         return self.differenceArray
+    
+    def get_stopTime(self):
+        return self.stopTime
 
     def set_differenceArray(self, data):
         self.differenceArray = data
@@ -87,6 +91,8 @@ if __name__ == '__main__':
     base_difference = np.full((1042, 1040), -1)
     base_metric = np.mean(baseLine != base_difference)
 
+    stopTime = classy.get_stopTime()
+
     while not rospy.is_shutdown():
 
         rate.sleep()
@@ -103,5 +109,5 @@ if __name__ == '__main__':
             time_estimate += 5
             localArray.append(test)
 
-        if(time_estimate == 500):
-            os.system('rosnode kill /tme_map_compare')
+        if(time_estimate == stopTime):
+            os.system('rosnode kill /' + str(stopTime))

@@ -12,5 +12,7 @@
         <param name="visibility_weighting" value="1"/>
         <param name="speed_weighting" value="1"/>
     </node>
-    <node pkg='tme_exploration' type='map_compare' name='tme_map_compare' respawn='False' required='True'/>
+    <node pkg='tme_exploration' type='map_compare' name='tme_map_compare' respawn='False' required='True'>
+        <param name="stop_time" value="$(env tme_stop_time)"/>
+    </node>
 </launch>

@@ -5,6 +5,7 @@ echo "-------------------------------------------------------------"
 echo "tme_ROBOT_ENV: [simple_corridor, maze, maze_clutter, maze_clutter_limited]"
 echo "tme_start_num: [2 - 5]"
 echo "tme_expl_method: [nearest, greedy, minPos, combined]"
+echo "tme_stop_time: number in seconds the simluation should run"
 echo "-------------------------------------------------------------"
 if [ -z ${ROBOT_ENV+x} ]
 then
@@ -19,6 +20,21 @@ then
 else
   expl_method=$tme_expl_method
 fi
+
+if [ -z ${tme_stop_time+x} ]
+then
+  stop_time=500
+else
+  stop_time=$tme_stop_time
+fi
+
+if [ -z ${tme_start_num+x} ]
+then
+  start_num=5
+else
+  start_num=$tme_start_num
+fi
+
 if [[ $tme_start_num ]]
 then
   start_two=True
@@ -56,10 +72,13 @@ export tme_start_three=$start_three
 export tme_start_four=$start_four
 export tme_start_five=$start_five
 export tme_expl_method=$expl_method
+export tme_stop_time=$stop_time
+export tme_start_num=$start_num
 
 echo "selected world is: $world"
 echo "starting num of robots $tme_start_num: [2: $start_two, 3: $start_three, 4: $start_four, 5: $start_five] "
-echo "chosen method ist: $tme_expl_method"
+echo "chosen method is: $tme_expl_method"
+echo "chosen stop time is: $stop_time"
 echo "-------------------------------------------------------------"
 
 if [ $world="simple_corridor" ]
