@@ -4,6 +4,7 @@ echo "TU Many Bots configuration"
 echo "-------------------------------------------------------------"
 echo "tme_ROBOT_ENV: [simple_corridor, maze, maze_clutter, maze_clutter_limited]"
 echo "tme_start_num: [2 - 5]"
+echo "tme_expl_method: [nearest, greedy, minPos, combined]"
 echo "-------------------------------------------------------------"
 if [ -z ${ROBOT_ENV+x} ]
 then
@@ -12,6 +13,12 @@ else
   world=$ROBOT_ENV
 fi
 
+if [ -z ${tme_expl_method+x} ]
+then
+  expl_method=combined
+else
+  expl_method=$tme_expl_method
+fi
 if [[ $tme_start_num ]]
 then
   start_two=True
@@ -48,9 +55,11 @@ export tme_start_two=$start_two
 export tme_start_three=$start_three
 export tme_start_four=$start_four
 export tme_start_five=$start_five
+export tme_expl_method=$expl_method
 
 echo "selected world is: $world"
 echo "starting num of robots $tme_start_num: [2: $start_two, 3: $start_three, 4: $start_four, 5: $start_five] "
+echo "chosen method ist: $tme_expl_method"
 echo "-------------------------------------------------------------"
 
 if [ $world="simple_corridor" ]

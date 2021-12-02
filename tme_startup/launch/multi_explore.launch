@@ -5,10 +5,10 @@
         <param name="map_updates_topic" value="map_updates"/>
     </node>
     <node pkg="tme_exploration" type="frontier_assign" name="tme_frontier_assign" respawn="True" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' ">
-        <param name="number_of_robots" value="2"/>
+        <param name="number_of_robots" value="$(env tme_start_num)"/>
         <param name="robot_ns" value="robot"/>
         <param name="frontier_rate" value="5"/>
-        <!-- <param name="frontier_method" value="combined"/> -->
+        <param name="frontier_method" value="$(env tme_expl_method)"/>
         <param name="visibility_weighting" value="1"/>
         <param name="speed_weighting" value="1"/>
     </node>
