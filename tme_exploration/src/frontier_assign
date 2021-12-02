@@ -46,6 +46,7 @@ class frontierAssign:
         self.goalStatus = np.empty(self.numberRobots)
         self.subStatus = []
         self.blacklist = []
+        self.date_string = datetime.now().strftime("%Y-%m-%d|%H:%M:%S")
 
         atexit.register(self.exit_handler)
 
@@ -81,8 +82,7 @@ class frontierAssign:
     def exit_handler(self):
         travelDistances = self.get_travelDistances()
 
-        date_now = datetime.now()
-        date_string = date_now.strftime("%Y-%m-%d|%H:%M:%S")
+        date_string = self.date_string
 
         file_location = 'catkin_ws/src/TU_Much_Exploration/tme_data/distances'
         file_name = str(self.chosenMethod) + str("_") + date_string + ".txt"
@@ -172,15 +172,19 @@ class frontierAssign:
             if(status_list[i].status == 4):
                 np.append(self.blacklist, self.goals[number])
 
-    def blacklist_check(self, frontiers):
-        result = np.zeros((len(frontiers.frontiers), self.numberRobots))
-        valueToAdd = np.zeros(len(frontiers.frontiers))
-        for i in range(len(frontiers.frontiers)):
+    def blacklist_check(self):
+        foundSth = False
+        localFrontiers = self.frontiers.frontiers
+        result = np.zeros((len(localFrontiers), self.numberRobots))
+        valueToAdd = np.zeros(len(localFrontiers))
+        for i in range(len(localFrontiers)):
             for j in range(len(self.blacklist)):
-                if (frontiers[i].centroid == self.blacklist[j]):
+                if (localFrontiers[i].centroid == self.blacklist[j]):
                     valueToAdd[i] = 100
-        result = result + valueToAdd
-        rospy.logwarn(result)
+                    foundSth = True
+        result = result + valueToAdd[:,np.newaxis]
+        if(foundSth):
+            rospy.logwarn(result)
         return result
 
     def distance_tracker(self, number, robot_location):
@@ -336,7 +340,7 @@ if __name__ == '__main__':
     markerPub = rospy.Publisher('robotMarker', Marker, queue_size=10)
     
     # one of: nearest, greedy, combined, minPos
-    chosen_method = rospy.get_param('frontier_method', "minPos")
+    chosen_method = rospy.get_param('frontier_method', "greedy")
     rospy.logwarn("Method is set to find {} goal".format(chosen_method))
     fInstance.set_chosenMethod(chosen_method)
 

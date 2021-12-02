@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 
 import rospy
-import cv2
 import numpy as np
 import os
 import atexit
 
-from skimage.metrics import structural_similarity
 from datetime import datetime
 
 from nav_msgs.msg import OccupancyGrid
@@ -16,10 +14,11 @@ class mapCompare:
         atexit.register(self.exit_handler)
         self.map = None
         self.mode = mode
+        self.date_string = datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
+        self.differenceArray = []
 
     def exit_handler(self):
-        date_now = datetime.now()
-        date_string = date_now.strftime("%Y-%m-%d|%H:%M:%S")
+        date_string = self.date_string
 
         file_name = date_string + '.txt'
         file_location = 'catkin_ws/src/TU_Much_Exploration/tme_data/coverage'
@@ -31,6 +30,12 @@ class mapCompare:
             np.savetxt(a_file, self.map)
             a_file.close()
             rospy.logwarn('created file named: ' + file_complete)
+        else:
+            a_file = open(file_complete, 'w+')
+            np.savetxt(a_file, self.differenceArray)
+            a_file.close()
+            rospy.logwarn('created file named: ' + file_complete)
+
         
         #add image to verify validity
 
@@ -39,6 +44,15 @@ class mapCompare:
 
     def get_mode(self):
         return self.mode
+
+    def get_date_string(self):
+        return self.date_string
+
+    def get_differenceArrray(self):
+        return self.differenceArray
+
+    def set_differenceArray(self, data):
+        self.differenceArray = data
 
     def compare_images(self):
         pass
@@ -56,24 +70,38 @@ if __name__ == '__main__':
     classy = mapCompare(mode=0)
     mode = classy.mode
 
+    file_name = classy.get_date_string()
+    file_location = 'catkin_ws/src/TU_Much_Exploration/tme_data/coverage/measurements'
+    file_location = os.path.join(os.path.expanduser('~'), file_location)
+    file_complete = os.path.join(os.path.expanduser('~'), file_location, file_name)
+
+    map_file_name = 'maze_map.txt'
+    map_file_location = 'catkin_ws/src/TU_Much_Exploration/tme_data/coverage/base_line'
+    base_file = os.path.join(os.path.expanduser('~'), map_file_location, map_file_name)
+    baseLine = np.loadtxt(base_file)
 
     rospy.Subscriber('/map', OccupancyGrid, callback=classy.callback_map)
 
+    time_estimate = 0
+
+    base_difference = np.full((1042, 1040), -1)
+    base_metric = np.mean(baseLine != base_difference)
+
     while not rospy.is_shutdown():
+
         rate.sleep()
 
         if(mode):
-            pass
-        pass
+            os.system('rosrun map_server map_saver -f ' + str(file_complete))
 
-    """ 
-    0:
-        add map read
-        add map write
-        
-    1:
-        add map read from file 
-        subscribe to map topic
-        compare both maps every x secs
-        on exit save array with timestamp, coverage and image to directory with timestamp
-    """
+            localMap = classy.get_map()
+            difference = np.mean(baseLine != localMap)
+
+            localArray = classy.get_differenceArrray()
+            temp_time = time_estimate
+            test = [temp_time, difference]
+            time_estimate += 5
+            localArray.append(test)
+
+        if(time_estimate == 500):
+            os.system('rosnode kill /tme_map_compare')
