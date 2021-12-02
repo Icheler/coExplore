@@ -37,16 +37,19 @@ blacklist afterwards
 ~~fix robot pose to correctly reflect robot pose in global map~~  
 
 todo:  
-min-pos implementation  
+~~min-pos implementation~~  
 ~~distance counter~~  
-map clear check  
 catch move_base abort message and blacklist goal by assigning high values  
+implement new metrics  
+make minor changes to algorithm implementation  
+create automatic script to launch multiple simulations sequentially  
+
 
 improvements:  
 better distribution
 
 metrics:  
 distance per frontier  
-efficiency  
-time spent on frontiers vs running around  
+efficiency (can be obtained by looking at the travel_distance and map_coverage over time with the same intervals)  
+time spent on frontiers vs running around same as efficiency  
 number of frontiers per robot  
