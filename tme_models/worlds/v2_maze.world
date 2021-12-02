@@ -1982,10 +1982,10 @@
       <static>1</static>
     </model>
     <state world_name='default'>
-      <sim_time>1662 369000000</sim_time>
-      <real_time>35 708858768</real_time>
-      <wall_time>1638281363 16466280</wall_time>
-      <iterations>35597</iterations>
+      <sim_time>1738 256000000</sim_time>
+      <real_time>76 100742342</real_time>
+      <wall_time>1638465322 25357438</wall_time>
+      <iterations>75887</iterations>
       <model name='Maze_2'>
         <pose>-0.3438 -0.781152 0 0 -0 0</pose>
         <scale>1 1 1</scale>
@@ -2253,43 +2253,43 @@
         </link>
       </model>
       <model name='unit_box'>
-        <pose>9.62913 -8.527 0.499995 -1e-05 -0 -0.011795</pose>
+        <pose>9.62913 -8.52701 0.499995 0 -1e-05 -0.011795</pose>
         <scale>1 1 1</scale>
         <link name='link'>
-          <pose>9.62913 -8.527 0.499995 -1e-05 -0 -0.011795</pose>
+          <pose>9.62913 -8.52701 0.499995 0 -1e-05 -0.011795</pose>
           <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>0.004689 0.010986 -9.7816 -0.021968 0.009374 1e-06</acceleration>
-          <wrench>0.004689 0.010986 -9.7816 0 -0 0</wrench>
+          <acceleration>-0.010771 -0.006284 -9.78218 0.012639 -0.021535 -3.2e-05</acceleration>
+          <wrench>-0.010771 -0.006284 -9.78218 0 -0 0</wrench>
         </link>
       </model>
       <model name='unit_box_0'>
-        <pose>10.6325 -8.52077 0.499995 -1e-05 -0 -0.005156</pose>
+        <pose>10.6325 -8.52078 0.499995 0 1e-05 -0.005156</pose>
         <scale>1 1 1</scale>
         <link name='link'>
-          <pose>10.6325 -8.52077 0.499995 -1e-05 -0 -0.005156</pose>
+          <pose>10.6325 -8.52078 0.499995 0 1e-05 -0.005156</pose>
           <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>0.004701 0.011027 -9.78158 -0.02205 0.009398 1e-06</acceleration>
-          <wrench>0.004701 0.011027 -9.78158 0 -0 0</wrench>
+          <acceleration>0.010634 -0.006257 -9.78222 0.01255 0.021264 1.6e-05</acceleration>
+          <wrench>0.010634 -0.006257 -9.78222 0 -0 0</wrench>
         </link>
       </model>
       <model name='unit_box_1'>
-        <pose>-9.79473 0.285067 0.499999 5e-06 4e-06 0.007657</pose>
+        <pose>-9.80676 0.28857 0.5 0 -0 0.000311</pose>
         <scale>1 1 1</scale>
         <link name='link'>
-          <pose>-9.79473 0.285067 0.499999 5e-06 4e-06 0.007657</pose>
+          <pose>-9.80676 0.28857 0.5 0 -0 0.000311</pose>
           <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>-2.63203 -2.6726 -5.37903 -0.936936 1.0183 0.000116</acceleration>
-          <wrench>-2.63203 -2.6726 -5.37903 0 -0 0</wrench>
+          <acceleration>0.007755 -9.78112 9.78157 0.712673 0.015507 4.3e-05</acceleration>
+          <wrench>0.007755 -9.78112 9.78157 0 -0 0</wrench>
         </link>
       </model>
-      <model name='unit_box_2'>
-        <pose>-10.7852 -0.542565 0.5 0 -0 0.017857</pose>
+      <model name='unit_box_3'>
+        <pose>-9.28055 -0.713813 0.5 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='link'>
-          <pose>-10.7852 -0.542565 0.5 0 -0 0.017857</pose>
+          <pose>-9.28055 -0.713813 0.5 0 -0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>-6.80528 0.075895 6.63039 -0.117213 -1.01064 0.034457</acceleration>
-          <wrench>-6.80528 0.075895 6.63039 0 -0 0</wrench>
+          <acceleration>0 0 0 0 -0 0</acceleration>
+          <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <light name='sun'>
@@ -2298,7 +2298,7 @@
     </state>
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose>3.43014 -1.48833 35.7436 2e-06 1.5698 1.56948</pose>
+        <pose>-8.56994 -0.500489 8.19769 4.2e-05 1.5698 1.53618</pose>
         <view_controller>orbit</view_controller>
         <projection_type>perspective</projection_type>
       </camera>
@@ -2410,7 +2410,7 @@
       </link>
     </model>
     <model name='unit_box_1'>
-      <pose>-9.80691 0.348857 0.5 0 -0 0</pose>
+      <pose>-9.93227 -0.693606 0.5 0 -0 0</pose>
       <link name='link'>
         <inertial>
           <mass>1</mass>
@@ -2462,8 +2462,8 @@
         <kinematic>0</kinematic>
       </link>
     </model>
-    <model name='unit_box_2'>
-      <pose>-10.7652 -0.532589 0.5 0 -0 0</pose>
+    <model name='unit_box_3'>
+      <pose>-9.28055 -0.713813 0.5 0 -0 0</pose>
       <link name='link'>
         <inertial>
           <mass>1</mass>

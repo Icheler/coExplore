@@ -173,19 +173,17 @@ class frontierAssign:
                 np.append(self.blacklist, self.goals[number])
 
     def blacklist_check(self):
-        foundSth = False
+        foundSth = 0
         localFrontiers = self.frontiers.frontiers
-        result = np.zeros((len(localFrontiers), self.numberRobots))
-        valueToAdd = np.zeros(len(localFrontiers))
-        for i in range(len(localFrontiers)):
-            for j in range(len(self.blacklist)):
-                if (localFrontiers[i].centroid == self.blacklist[j]):
-                    valueToAdd[i] = 100
-                    foundSth = True
-        result = result + valueToAdd[:,np.newaxis]
-        if(foundSth):
-            rospy.logwarn(result)
-        return result
+        if(len(localFrontiers) == 0):
+            for i in range(len(localFrontiers)):
+                foundSth = 0
+                x = i - foundSth
+                for j in range(len(self.blacklist)):
+                    if (localFrontiers[x].centroid == self.blacklist[j]):
+                        foundSth += 1
+                        localFrontiers.pop(x)
+            self.frontiers.frontiers = localFrontiers
 
     def distance_tracker(self, number, robot_location):
         if(self.lastPos[number]):
@@ -307,9 +305,6 @@ class frontierAssign:
 
         self.lastSearchTime[number] = rospy.Time.now()
 
-        if(delete):
-            client.cancel_all_goals()
-
         client.send_goal(goal, self.done_cb, self.active_cb, self.feedback_cb)
 
     def movebase_spoof(self, number, position):
@@ -340,7 +335,7 @@ if __name__ == '__main__':
     markerPub = rospy.Publisher('robotMarker', Marker, queue_size=10)
     
     # one of: nearest, greedy, combined, minPos
-    chosen_method = rospy.get_param('frontier_method', "greedy")
+    chosen_method = rospy.get_param('frontier_method', "combined")
     rospy.logwarn("Method is set to find {} goal".format(chosen_method))
     fInstance.set_chosenMethod(chosen_method)
 
@@ -374,13 +369,15 @@ if __name__ == '__main__':
         cost_matrix = None
         
         if(fInstance.frontiers):
+            fInstance.blacklist_check()
             if(chosen_method_id == 0):
                 fInstance.frontier_distance()
                 cost_matrix = fInstance.get_frontierDistance()
             
             elif(chosen_method_id == 1):
                 fInstance.frontier_visibility_modifier()
-                cost_matrix = fInstance.get_frontierVisibilityModifier()
+                fInstance.frontiers_distance()
+                cost_matrix = fInstance.get_frontierVisibilityModifier() + fInstance.get_frontierDistance() * 0.1
             
             elif(chosen_method_id == 2):
                 #TODO
@@ -391,7 +388,6 @@ if __name__ == '__main__':
                 fInstance.frontier_distance_modifier()
                 cost_matrix = speed_weighting * fInstance.get_frontierDistanceModifier() + visibility_weighting * fInstance.get_frontierVisibilityModifier()
             
-            cost_matrix = cost_matrix + fInstance.blacklist_check()
             cost_matrix = np.transpose(cost_matrix)
             row_ind, col_ind = linear_sum_assignment(cost_matrix)
 
