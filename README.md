@@ -41,12 +41,14 @@ todo:
 ~~distance counter~~  
 catch move_base abort message and blacklist goal by assigning high values  
 implement new metrics  
-make minor changes to algorithm implementation  
-create automatic script to launch multiple simulations sequentially  
+make minor changes to algorithm implementation (rank and distribution)  
+~~create automatic script to launch multiple simulations sequentially~~  
 
 
 improvements:  
-better distribution
+better distribution  
+implement early abort if map is sufficiently explored with 30 sec delay  
+if less frontiers then number of robots, just assign robots to first frontiers for simplicity  
 
 metrics:  
 distance per frontier  
