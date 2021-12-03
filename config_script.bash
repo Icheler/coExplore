@@ -30,7 +30,7 @@ fi
 
 if [ -z ${tme_start_num+x} ]
 then
-  start_num=5
+  start_num=3
 else
   start_num=$tme_start_num
 fi
@@ -76,8 +76,8 @@ export tme_stop_time=$stop_time
 export tme_start_num=$start_num
 
 echo "selected world is: $world"
-echo "starting num of robots $tme_start_num: [2: $start_two, 3: $start_three, 4: $start_four, 5: $start_five] "
-echo "chosen method is: $tme_expl_method"
+echo "starting num of robots $start_num: [2: $start_two, 3: $start_three, 4: $start_four, 5: $start_five] "
+echo "chosen method is: $expl_method"
 echo "chosen stop time is: $stop_time"
 echo "-------------------------------------------------------------"
 

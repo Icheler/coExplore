@@ -16,7 +16,7 @@ class mapCompare:
         self.mode = mode
         self.date_string = datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
         self.differenceArray = []
-        self.stopTime = rospy.get_param('stop_time', '500')
+        self.stopTime = int(rospy.get_param('~stop_time', '500'))
 
     def exit_handler(self):
         date_string = self.date_string
@@ -71,7 +71,7 @@ if __name__ == '__main__':
     rate = rospy.Rate(0.2)
 
     #0 is log array, 1 is compare and log
-    classy = mapCompare(mode=0)
+    classy = mapCompare(mode=1)
     mode = classy.mode
 
     file_name = classy.get_date_string()
@@ -95,8 +95,6 @@ if __name__ == '__main__':
 
     while not rospy.is_shutdown():
 
-        rate.sleep()
-
         if(mode):
             os.system('rosrun map_server map_saver -f ' + str(file_complete))
 
@@ -109,5 +107,7 @@ if __name__ == '__main__':
             time_estimate += 5
             localArray.append(test)
 
-        if(time_estimate == stopTime):
-            os.system('rosnode kill /' + str(stopTime))
+        if(time_estimate >= stopTime):
+            os.system('rosnode kill -a')
+
+        rate.sleep()

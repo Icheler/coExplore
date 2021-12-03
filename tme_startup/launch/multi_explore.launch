@@ -12,7 +12,7 @@
         <param name="visibility_weighting" value="1"/>
         <param name="speed_weighting" value="1"/>
     </node>
-    <node pkg='tme_exploration' type='map_compare' name='tme_map_compare' respawn='False' required='True'>
+    <node pkg='tme_exploration' type='map_compare' name='tme_map_compare' required='True' launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' ">
         <param name="stop_time" value="$(env tme_stop_time)"/>
     </node>
 </launch>

@@ -5,38 +5,42 @@ import os
 import roslaunch
 
 def runner(numRobots = 2, world = 'v2_maze', method = 'combined', tries = 10):
-    temp = 'export tme_start_num = ' + str(numRobots)
-    os.system(temp)
-    temp = 'export tme_expl_method = ' + str(method)
-    os.system(temp)
-    temp = 'export tme_ROBOT_ENV = ' + str(world)
-    os.system(temp)
-    file_location = 'catkin_ws/src/TU_Much_Exploration/'
-    file_name = "config_script.bash"
-    file_name = os.path.join(os.path.expanduser('~'),file_location, file_name)
-    os.system('source ' + str(file_name))
+    os.environ["tme_start_num"] = str(numRobots)
+    os.environ["tme_expl_method"] = str(method)
+    os.environ["tme_ROBOT_ENV"] = str(world)
+    os.environ["tme_ROBOT"] = 'rto-1'
+
+    start_two = False
+    start_three = False
+    start_four = False
+    start_five = False
+
+    if (numRobots >= 2):
+        start_two = True
+        if (numRobots >= 3):
+            start_three = True
+            if (numRobots >= 4):
+                start_four = True
+                if (numRobots >= 5):
+                    start_five = True
+
+    os.environ["tme_start_two"] = str(start_two)
+    os.environ["tme_start_three"] = str(start_three)
+    os.environ["tme_start_four"] = str(start_four)
+    os.environ["tme_start_five"] = str(start_five)
+
     file_location = 'catkin_ws/src/TU_Much_Exploration/tme_startup/launch'
     file_name = "complete_launch.launch"
-    file_name = os.path.join(os.path.expanduser('~'),file_location, file_name)
+    file_name = os.path.join(os.path.expanduser('~'), file_location, file_name)
     
     for i in range(tries):
-        roslaunch.main('file_name')
+        os.system('roslaunch tme_startup complete_launch.launch')
 
 def runAll(numRobots = 2, world = 'v2_maze', methods = ['combined'], tries = 10):
     for i in range(len(methods)):
         runner(numRobots, world, methods[i], tries)
 
 if __name__ == '__main__':
-    file_location = 'catkin_ws/devel/setup.bash'
-    file_name = os.path.join(os.path.expanduser('~'),file_location)
-    print(file_name)
-    exec(file_name)
-
-    file_location = 'opt/ros/noetic/setup.bash'
-    file_name = os.path.join(os.path.expanduser('~'),file_location)
-    print(file_name)
-    exec(open(file_name))
-
 
     numRobots = [2]
     world = 'v2_maze'

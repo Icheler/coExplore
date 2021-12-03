@@ -23,8 +23,9 @@ class frontierAssign:
     def __init__(self):
         self.frontiers = []
         self.distances = []
-        self.numberRobots = rospy.get_param('number_of_robots', 2)
-        self.robotPrefix = rospy.get_param('robot_ns', 'robot')
+        self.numberRobots = rospy.get_param('~number_of_robots')
+        rospy.logwarn(self.numberRobots)
+        self.robotPrefix = rospy.get_param('~robot_ns')
         self.robotPosition = np.empty(self.numberRobots, dtype=Point)
         self.robotSpeeds = np.empty(self.numberRobots)
         self.maxSpeed = None
@@ -324,7 +325,7 @@ if __name__ == '__main__':
     
     rospy.init_node('frontier_assign')
 
-    param_rate = rospy.get_param('frontier_rate', 5)
+    param_rate = rospy.get_param('~frontier_rate', 5)
 
     data = rospy.wait_for_message('/tme_frontier_search/frontierArray', frontierArray)
 
@@ -335,7 +336,7 @@ if __name__ == '__main__':
     markerPub = rospy.Publisher('robotMarker', Marker, queue_size=10)
     
     # one of: nearest, greedy, combined, minPos
-    chosen_method = rospy.get_param('frontier_method', "combined")
+    chosen_method = rospy.get_param('~frontier_method')
     rospy.logwarn("Method is set to find {} goal".format(chosen_method))
     fInstance.set_chosenMethod(chosen_method)
 
@@ -357,8 +358,8 @@ if __name__ == '__main__':
         chosen_method_id = 2
     else:
         chosen_method_id = 3
-        visibility_weighting = rospy.get_param('visibility_weighting', 1)
-        speed_weighting = rospy.get_param('speed_weighting', 1)
+        visibility_weighting = rospy.get_param('~visibility_weighting', 1)
+        speed_weighting = rospy.get_param('~speed_weighting', 1)
 
     rate = rospy.Rate(param_rate)
     id = 0
@@ -376,8 +377,8 @@ if __name__ == '__main__':
             
             elif(chosen_method_id == 1):
                 fInstance.frontier_visibility_modifier()
-                fInstance.frontiers_distance()
-                cost_matrix = fInstance.get_frontierVisibilityModifier() + fInstance.get_frontierDistance() * 0.1
+                fInstance.frontier_distance()
+                cost_matrix = fInstance.get_frontierVisibilityModifier() + fInstance.get_frontierDistance() * 0.01
             
             elif(chosen_method_id == 2):
                 #TODO
