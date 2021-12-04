@@ -401,11 +401,11 @@ if __name__ == '__main__':
             elif(chosen_method_id == 1):
                 fInstance.frontier_visibility_modifier()
                 fInstance.frontier_distance()
-                cost_matrix = fInstance.get_frontierVisibilityModifier() + fInstance.get_frontierDistance() * 0.01
+                cost_matrix = fInstance.get_frontierVisibilityModifier()
             
             elif(chosen_method_id == 2):
                 #TODO
-                cost_matrix = fInstance.rank_matrix()
+                cost_matrix = fInstance.rank_matrix() + fInstance.get_frontierDistance() * 0.01
             else:
                 fInstance.frontier_visibility_modifier()
                 fInstance.frontier_distance()
@@ -455,8 +455,8 @@ if __name__ == '__main__':
                         #fInstance.movebase_spoof(number=i, position=goal_location)
                         fInstance.increment_frontiers(i)
                     elif(fInstance.get_lastSearchTime(i) + rospy.Duration(secs=10)< rospy.Time.now()):
-                        goal_location.x += random.uniform(-0.2, 0.2)
-                        goal_location.y += random.uniform(-0.2, 0.2)
+                        goal_location.x += random.uniform(-0.5, 0.5)
+                        goal_location.y += random.uniform(-0.5, 0.5)
                         fInstance.set_goals(i, goal_location)
                         fInstance.movebase_client(topic=topic, number=i, position=goal_location, delete=True)
                         marker = fInstance.get_robotMarker()

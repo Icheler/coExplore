@@ -49,5 +49,6 @@ if __name__ == '__main__':
     stopTime = 400
     tries = 10
 
-    for i in range(len(numRobots)):
-        runAll(numRobots[i], world, method, stopTime, tries)
+    for j in range(500):
+        for i in range(len(numRobots)):
+            runAll(numRobots[i], world, method, stopTime, tries)
