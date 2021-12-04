@@ -45,7 +45,7 @@ if __name__ == '__main__':
     numRobots = [2]
     world = 'v2_maze'
     method = ['nearest', 'greedy', 'minPos', 'combined']
-    tries = 1
+    tries = 10
 
     for i in range(len(numRobots)):
         runAll(numRobots[i], world, method, tries)

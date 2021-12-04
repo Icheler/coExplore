@@ -43,6 +43,7 @@ class frontierAssign:
         self.searchNow = False
         self.lastPos = np.empty(self.numberRobots, dtype=Point)
         self.travelDistances = []
+        self.travelDistancesTotal = np.zeros(self.numberRobots)
         self.chosenMethod = rospy.get_param('~frontier_method')
         self.goalStatus = np.empty(self.numberRobots)
         self.subStatus = []
@@ -194,12 +195,11 @@ class frontierAssign:
 
     def distance_tracker(self, time_estimate):
         temp_array = [time_estimate]
-        temp_distance = 0
         not_first = True
         for i in range(self.numberRobots):
             if(self.lastPos[i]):
-                temp_distance += self.euclid_distance(self.lastPos[i], self.robotPosition[i])
-                temp_array.append(temp_distance)
+                self.travelDistancesTotal[i] += self.euclid_distance(self.lastPos[i], self.robotPosition[i])
+                temp_array.append(self.travelDistancesTotal[i])
                 self.lastPos[i] = self.robotPosition[i]
             else:
                 not_first = True
