@@ -27,8 +27,8 @@
             <!-- 
             <param name="map_pub_period" value="5"/>
             -->
-            <param name="map_update_distance_thresh" value="0.2"/>
-            <param name="map_update_angle_thresh" value="0.4"/>
+            <!-- <param name="map_update_distance_thresh" value="0.2"/>
+            <param name="map_update_angle_thresh" value="0.4"/> -->
             
             <param name="use_tf_pose_start_estimate" value="True"/>
             <param name="use_tf_scan_transformation" value="False"/>
