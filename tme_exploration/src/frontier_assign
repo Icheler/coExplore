@@ -7,6 +7,7 @@ import actionlib
 import tf
 import os
 import atexit
+import random
 
 from scipy.optimize import linear_sum_assignment
 from datetime import datetime
@@ -454,6 +455,8 @@ if __name__ == '__main__':
                         #fInstance.movebase_spoof(number=i, position=goal_location)
                         fInstance.increment_frontiers(i)
                     elif(fInstance.get_lastSearchTime(i) + rospy.Duration(secs=10)< rospy.Time.now()):
+                        goal_location.x += random.uniform(-0.2, 0.2)
+                        goal_location.y += random.uniform(-0.2, 0.2)
                         fInstance.set_goals(i, goal_location)
                         fInstance.movebase_client(topic=topic, number=i, position=goal_location, delete=True)
                         marker = fInstance.get_robotMarker()

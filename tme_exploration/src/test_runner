@@ -4,8 +4,9 @@ import numpy as np
 import os
 import roslaunch
 
-def runner(numRobots = 2, world = 'v2_maze', method = 'combined', tries = 10):
+def runner(numRobots = 2, world = 'v2_maze', method = 'combined', stopTime = 400, tries = 10):
     os.environ["tme_start_num"] = str(numRobots)
+    os.environ["tme_stop_time"] = str(stopTime)
     os.environ["tme_expl_method"] = str(method)
     os.environ["tme_ROBOT_ENV"] = str(world)
     os.environ["tme_ROBOT"] = 'rto-1'
@@ -45,7 +46,8 @@ if __name__ == '__main__':
     numRobots = [2]
     world = 'v2_maze'
     method = ['nearest', 'greedy', 'minPos', 'combined']
+    stopTime = 400
     tries = 10
 
     for i in range(len(numRobots)):
-        runAll(numRobots[i], world, method, tries)
+        runAll(numRobots[i], world, method, stopTime, tries)

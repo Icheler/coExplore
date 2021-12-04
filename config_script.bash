@@ -23,7 +23,7 @@ fi
 
 if [ -z ${tme_stop_time+x} ]
 then
-  stop_time=500
+  stop_time=400
 else
   stop_time=$tme_stop_time
 fi

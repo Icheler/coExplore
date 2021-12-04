@@ -101,6 +101,7 @@ if __name__ == '__main__':
     time_estimate = 0
 
     stopTime = classy.get_stopTime()
+    temp_difference = 0
 
     while not rospy.is_shutdown():
 
@@ -114,11 +115,14 @@ if __name__ == '__main__':
 
             localArray = classy.get_differenceArrray()
             temp_time = time_estimate
-            test = [temp_time, difference]
+            test = [temp_time, temp_difference]
             time_estimate += 5
             localArray.append(test)
 
-        if(time_estimate >= stopTime):
-            os.system('rosnode kill -a')        
+            if(time_estimate >= stopTime):
+                os.system('rosnode kill -a')
+
+            if(temp_difference > 0.97):
+                os.system('rosnode kill -a')
 
         rate.sleep()
