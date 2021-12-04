@@ -72,24 +72,26 @@ if __name__ == '__main__':
 
     #0 is log array, 1 is compare and log
     classy = mapCompare(mode=1)
-    mode = classy.mode
+    mode = classy.get_mode()
 
-    file_name = classy.get_date_string()
-    file_location = 'catkin_ws/src/TU_Much_Exploration/tme_data/coverage/measurements'
-    file_location = os.path.join(os.path.expanduser('~'), file_location)
-    file_complete = os.path.join(os.path.expanduser('~'), file_location, file_name)
+    if(mode):
+        file_name = classy.get_date_string()
+        file_location = 'catkin_ws/src/TU_Much_Exploration/tme_data/coverage/measurements'
+        file_location = os.path.join(os.path.expanduser('~'), file_location)
+        file_complete = os.path.join(os.path.expanduser('~'), file_location, file_name)
+    
+        map_file_name = 'v2_maze.txt'
+        map_file_location = 'catkin_ws/src/TU_Much_Exploration/tme_data/coverage/base_line'
+        base_file = os.path.join(os.path.expanduser('~'), map_file_location, map_file_name)
+        baseLine = np.loadtxt(base_file)
 
-    map_file_name = 'maze_map.txt'
-    map_file_location = 'catkin_ws/src/TU_Much_Exploration/tme_data/coverage/base_line'
-    base_file = os.path.join(os.path.expanduser('~'), map_file_location, map_file_name)
-    baseLine = np.loadtxt(base_file)
+        base_difference = np.full((1042, 1040), -1)
+        base_metric = np.mean(baseLine != base_difference)
+        rospy.logwarn(base_metric)
 
     rospy.Subscriber('/map', OccupancyGrid, callback=classy.callback_map)
 
     time_estimate = 0
-
-    base_difference = np.full((1042, 1040), -1)
-    base_metric = np.mean(baseLine != base_difference)
 
     stopTime = classy.get_stopTime()
 
@@ -108,6 +110,6 @@ if __name__ == '__main__':
             localArray.append(test)
 
         if(time_estimate >= stopTime):
-            os.system('rosnode kill -a')
+            os.system('rosnode kill -a')        
 
         rate.sleep()

@@ -24,7 +24,6 @@ class frontierAssign:
         self.frontiers = []
         self.distances = []
         self.numberRobots = rospy.get_param('~number_of_robots')
-        rospy.logwarn(self.numberRobots)
         self.robotPrefix = rospy.get_param('~robot_ns')
         self.robotPosition = np.empty(self.numberRobots, dtype=Point)
         self.robotSpeeds = np.empty(self.numberRobots)
@@ -42,12 +41,13 @@ class frontierAssign:
         self.robotMarker = Marker()
         self.searchNow = False
         self.lastPos = np.empty(self.numberRobots, dtype=Point)
-        self.travelDistances = np.zeros(self.numberRobots)
+        self.travelDistances = []
         self.chosenMethod = 'combined'
         self.goalStatus = np.empty(self.numberRobots)
         self.subStatus = []
         self.blacklist = []
         self.date_string = datetime.now().strftime("%Y-%m-%d|%H:%M:%S")
+        self.explored_frontiers = np.empty(self.numberRobots)
 
         atexit.register(self.exit_handler)
 
@@ -81,7 +81,7 @@ class frontierAssign:
         self.robotMarker.color.a = 1.0
 
     def exit_handler(self):
-        travelDistances = self.get_travelDistances()
+        travelDistances = self.travelDistances
 
         date_string = self.date_string
 
@@ -146,6 +146,9 @@ class frontierAssign:
     def get_goals(self):
         return self.goals
 
+    def increment_frontiers(self, number):
+        self.explored_frontiers[number] += 1
+
     # Callbacks for the frontiers and position data from the ros topics
 
     def callback_frontiers(self, data):
@@ -163,7 +166,6 @@ class frontierAssign:
         except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
             pass
         self.robotPosition[number] = robot_location
-        self.distance_tracker(number, robot_location)
 
     def callback_status(self, data, topic):
         number = (int)((re.search(r'\d+', topic)).group(0)) - 1
@@ -186,12 +188,26 @@ class frontierAssign:
                         localFrontiers.pop(x)
             self.frontiers.frontiers = localFrontiers
 
-    def distance_tracker(self, number, robot_location):
-        if(self.lastPos[number]):
-            self.travelDistances[number] += self.euclid_distance(self.lastPos[number], robot_location)
-        else:
-            self.lastPos[number] = robot_location
+    def distance_tracker(self, time_estimate):
+        temp_array = [time_estimate]
+        temp_distance = 0
+        not_first = True
+        for i in range(self.numberRobots):
+            if(self.lastPos[i]):
+                temp_distance += self.euclid_distance(self.lastPos[i], self.robotPosition[i])
+                temp_array.append(temp_distance)
+                self.lastPos[i] = self.robotPosition[i]
+            else:
+                not_first = True
+                self.lastPos[i] = self.robotPosition[i]
+                temp_array.append(0)
+        for i in range(self.numberRobots):
+            if(not_first):
+                temp_array.append(self.explored_frontiers[i])
+            else:
+                temp_array.append(0)
 
+        self.travelDistances.append(temp_array)
 
     # Get euclidean distance between two points
     def euclid_distance(self, a: Point, b: Point):
@@ -363,9 +379,11 @@ if __name__ == '__main__':
 
     rate = rospy.Rate(param_rate)
     id = 0
+
+    time_estimate = 0
+    time_increment = 1 / param_rate
     
     while not rospy.is_shutdown():
-        rate.sleep()
 
         cost_matrix = None
         
@@ -430,7 +448,8 @@ if __name__ == '__main__':
 
                         markerPub.publish(marker)
                         #fInstance.movebase_spoof(number=i, position=goal_location)
-                    if(fInstance.get_lastSearchTime(i) + rospy.Duration(secs=10)< rospy.Time.now()):
+                        fInstance.increment_frontiers(i)
+                    elif(fInstance.get_lastSearchTime(i) + rospy.Duration(secs=10)< rospy.Time.now()):
                         fInstance.set_goals(i, goal_location)
                         fInstance.movebase_client(topic=topic, number=i, position=goal_location, delete=True)
                         marker = fInstance.get_robotMarker()
@@ -457,5 +476,14 @@ if __name__ == '__main__':
 
         else:
             rospy.logwarn("frontiers is empty")
+
+        rate.sleep()
+
+        if(abs(time_estimate % 5) < 0.01 or time_estimate == 0):
+            time_estimate = int(time_estimate)
+            fInstance.distance_tracker(time_estimate)
+
+        time_estimate += time_increment
+
 
 

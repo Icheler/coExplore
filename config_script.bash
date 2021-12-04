@@ -30,9 +30,11 @@ fi
 
 if [ -z ${tme_start_num+x} ]
 then
-  start_num=3
+  start_num=4
+  export tme_start_num=$start_num
 else
   start_num=$tme_start_num
+  export tme_start_num=$start_num
 fi
 
 if [[ $tme_start_num ]]
