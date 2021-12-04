@@ -111,7 +111,6 @@ if __name__ == '__main__':
             difference = np.mean(baseLine != localMap)
 
             temp_difference = (base_metric - difference) / base_metric
-            rospy.logwarn(temp_difference)
 
             localArray = classy.get_differenceArrray()
             temp_time = time_estimate

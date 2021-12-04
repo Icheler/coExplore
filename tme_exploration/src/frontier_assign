@@ -385,7 +385,7 @@ if __name__ == '__main__':
     id = 0
 
     time_estimate = 0
-    time_increment = 1 / param_rate
+    time_increment = 1
     
     while not rospy.is_shutdown():
 
@@ -483,9 +483,10 @@ if __name__ == '__main__':
 
         rate.sleep()
 
-        if(abs(time_estimate % 5) < 0.01 or time_estimate == 0):
+        if(time_estimate % 25 == 0 or time_estimate == 0):
             time_estimate = int(time_estimate)
-            fInstance.distance_tracker(time_estimate)
+            temp_estimate = int(time_estimate / 5)
+            fInstance.distance_tracker(temp_estimate)
 
         time_estimate += time_increment
 
