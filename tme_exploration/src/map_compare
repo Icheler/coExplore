@@ -11,18 +11,21 @@ from nav_msgs.msg import OccupancyGrid
 
 class mapCompare:
     def __init__(self, mode):
+        self.date_string = datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
         atexit.register(self.exit_handler)
         self.map = None
         self.mode = mode
-        self.date_string = datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
         self.differenceArray = []
         self.stopTime = int(rospy.get_param('~stop_time', '500'))
+        self.map_name = os.environ['tme_ROBOT_ENV']
+        self.expl_method = os.environ['tme_expl_method']
+        self.file_name = str(self.map_name) + '_' + str(self.expl_method) + '_' + self.date_string + '.txt'
 
     def exit_handler(self):
         date_string = self.date_string
 
-        file_name = date_string + '.txt'
-        file_location = 'catkin_ws/src/TU_Much_Exploration/tme_data/coverage'
+        file_name = str(self.map_name) + '_' + str(self.expl_method) + '_' + date_string + '.txt'
+        file_location = 'catkin_ws/src/TU_Much_Exploration/tme_data/coverage/measurements'
         file_location = os.path.join(os.path.expanduser('~'), file_location)
         file_complete = os.path.join(os.path.expanduser('~'), file_location, file_name)
 
@@ -55,6 +58,9 @@ class mapCompare:
     def get_stopTime(self):
         return self.stopTime
 
+    def get_file_name(self):
+        return self.file_name
+
     def set_differenceArray(self, data):
         self.differenceArray = data
 
@@ -75,7 +81,7 @@ if __name__ == '__main__':
     mode = classy.get_mode()
 
     if(mode):
-        file_name = classy.get_date_string()
+        file_name = classy.get_file_name()
         file_location = 'catkin_ws/src/TU_Much_Exploration/tme_data/coverage/measurements'
         file_location = os.path.join(os.path.expanduser('~'), file_location)
         file_complete = os.path.join(os.path.expanduser('~'), file_location, file_name)
@@ -87,7 +93,9 @@ if __name__ == '__main__':
 
         base_difference = np.full((1042, 1040), -1)
         base_metric = np.mean(baseLine != base_difference)
-        rospy.logwarn(base_metric)
+
+        rospy.logwarn(baseLine.shape)
+        rospy.logwarn(base_difference.shape)
 
     rospy.Subscriber('/map', OccupancyGrid, callback=classy.callback_map)
 

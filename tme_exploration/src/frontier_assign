@@ -21,6 +21,7 @@ from actionlib_msgs.msg import GoalStatusArray
 
 class frontierAssign:
     def __init__(self):
+        self.date_string = datetime.now().strftime("%Y-%m-%d|%H:%M:%S")
         self.frontiers = []
         self.distances = []
         self.numberRobots = rospy.get_param('~number_of_robots')
@@ -42,12 +43,12 @@ class frontierAssign:
         self.searchNow = False
         self.lastPos = np.empty(self.numberRobots, dtype=Point)
         self.travelDistances = []
-        self.chosenMethod = 'combined'
+        self.chosenMethod = rospy.get_param('~frontier_method')
         self.goalStatus = np.empty(self.numberRobots)
         self.subStatus = []
         self.blacklist = []
-        self.date_string = datetime.now().strftime("%Y-%m-%d|%H:%M:%S")
         self.explored_frontiers = np.empty(self.numberRobots)
+        self.map_name = os.environ['tme_ROBOT_ENV']
 
         atexit.register(self.exit_handler)
 
@@ -86,7 +87,7 @@ class frontierAssign:
         date_string = self.date_string
 
         file_location = 'catkin_ws/src/TU_Much_Exploration/tme_data/distances'
-        file_name = str(self.chosenMethod) + str("_") + date_string + ".txt"
+        file_name = str(self.map_name) + str("_") + str(self.chosenMethod) + str("_") + date_string + ".txt"
         file_name = os.path.join(os.path.expanduser('~'),file_location, file_name)
 
         a_file = open(file_name, 'w+')
@@ -145,6 +146,9 @@ class frontierAssign:
 
     def get_goals(self):
         return self.goals
+
+    def get_nap_name(self):
+        return self.map_name
 
     def increment_frontiers(self, number):
         self.explored_frontiers[number] += 1
