@@ -20,6 +20,7 @@ class mapCompare:
         self.map_name = os.environ['tme_ROBOT_ENV']
         self.expl_method = os.environ['tme_expl_method']
         self.file_name = str(self.map_name) + '_' + str(self.expl_method) + '_' + self.date_string + '.txt'
+        self.info = None
 
     def exit_handler(self):
         date_string = self.date_string
@@ -59,6 +60,9 @@ class mapCompare:
 
     def get_map_name(self):
         return self.map_name
+    
+    def get_map_info(self):
+        return self.info
 
     def get_file_name(self):
         return self.file_name
@@ -71,6 +75,7 @@ class mapCompare:
 
     def callback_map(self, data):
         self.map = data.data
+        self.info = data.info
 
 if __name__ == '__main__':
 
@@ -81,6 +86,7 @@ if __name__ == '__main__':
     #0 is log array, 1 is compare and log
     classy = mapCompare(mode=1)
     mode = classy.get_mode()
+    num_robots = os.environ['tme_start_num']
 
     if(mode):
         file_name = classy.get_file_name()
@@ -92,8 +98,9 @@ if __name__ == '__main__':
         map_file_location = 'catkin_ws/src/TU_Much_Exploration/tme_data/coverage/base_line'
         base_file = os.path.join(os.path.expanduser('~'), map_file_location, map_file_name)
         baseLine = np.loadtxt(base_file, ndmin=2).reshape(1042, 1040)
+        baseLine = np.delete(baseLine, (0, 1), axis=0)
 
-        base_difference = np.full((1042, 1040), -1)
+        base_difference = np.full((1040, 1040), -1)
         base_metric = np.mean(baseLine != base_difference)
 
     rospy.Subscriber('/map', OccupancyGrid, callback=classy.callback_map)
@@ -108,7 +115,16 @@ if __name__ == '__main__':
         if(mode):
             os.system('rosrun map_server map_saver -f ' + str(file_complete))
 
-            localMap = np.array(classy.get_map()).reshape(1042, 1040)
+            try:
+                localMap = np.array(classy.get_map()).reshape(1042, 1040)
+            except (AttributeError, ValueError):
+                local_info = classy.get_map_info()
+                localMap = np.array(classy.get_map()).reshape(local_info.height, local_info.width)
+                while(np.size(localMap, 1) > 1040):
+                    localMap = np.delete(localMap, (0), axis=1)
+                while(np.size(localMap, 0) > 1040):
+                    localMap = np.delete(localMap, (0), axis=0)
+
             difference = np.mean(baseLine != localMap)
 
             temp_difference = (base_metric - difference) / base_metric
@@ -122,7 +138,7 @@ if __name__ == '__main__':
             if(time_estimate >= stopTime):
                 os.system('rosnode kill -a')
 
-            if(temp_difference > 0.97):
+            if(temp_difference > 0.95):
                 os.system('rosnode kill -a')
 
         rate.sleep()
