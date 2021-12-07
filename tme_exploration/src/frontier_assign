@@ -55,7 +55,7 @@ class frontierAssign:
         atexit.register(self.exit_handler)
 
         for i in range(self.numberRobots):
-            self.lastSearchTime[i] = rospy.Time.now() - rospy.Duration(30)
+            self.lastSearchTime[i] = rospy.Time.now() - rospy.Duration(5)
             j = i+1
             topic = '/' + self.robotPrefix + str(j) + '/point_relay'
             self.publisher_position.append(rospy.Publisher(topic, Point, queue_size=10))
@@ -88,7 +88,7 @@ class frontierAssign:
 
         date_string = self.date_string
 
-        file_location = 'catkin_ws/src/TU_Much_Exploration/tme_data/distances'
+        file_location = 'catkin_ws/src/TU_Much_Exploration/tme_data/distances/' + str(self.numberRobots)
         file_name = str(self.map_name) + str("_") + str(self.chosenMethod) + str("_") + date_string + ".txt"
         file_name = os.path.join(os.path.expanduser('~'),file_location, file_name)
 
@@ -410,7 +410,8 @@ if __name__ == '__main__':
                 fInstance.frontier_visibility_modifier()
                 fInstance.frontier_distance()
                 fInstance.frontier_distance_modifier()
-                cost_matrix = speed_weighting * fInstance.get_frontierDistanceModifier() + visibility_weighting * fInstance.get_frontierVisibilityModifier()
+                cost_matrix = speed_weighting * fInstance.get_frontierDistanceModifier() 
+                cost_matrix = cost_matrix + visibility_weighting * fInstance.get_frontierVisibilityModifier()
             
             cost_matrix = np.transpose(cost_matrix)
             row_ind, col_ind = linear_sum_assignment(cost_matrix)
