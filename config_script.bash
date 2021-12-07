@@ -9,7 +9,7 @@ echo "tme_stop_time: number in seconds the simluation should run"
 echo "-------------------------------------------------------------"
 if [ -z ${ROBOT_ENV+x} ]
 then
-  world=v2_maze
+  world=map_3
 else
   world=$ROBOT_ENV
 fi
@@ -30,23 +30,23 @@ fi
 
 if [ -z ${tme_start_num+x} ]
 then
-  start_num=4
+  start_num=5
   export tme_start_num=$start_num
 else
   start_num=$tme_start_num
   export tme_start_num=$start_num
 fi
 
-if [[ $tme_start_num ]]
+if [[ $start_num ]]
 then
   start_two=True
-  if [ $tme_start_num -ge 3 ]
+  if [ $start_num -ge 3 ]
   then
     start_three=True
-    if [ $tme_start_num -ge 4 ]
+    if [ $start_num -ge 4 ]
     then
       start_four=True
-      if [ $tme_start_num -ge 5 ]
+      if [ $start_num -ge 5 ]
       then
         start_five=True
       fi
