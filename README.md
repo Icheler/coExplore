@@ -55,3 +55,11 @@ distance per frontier
 efficiency (can be obtained by looking at the travel_distance and map_coverage over time with the same intervals)  
 time spent on frontiers vs running around same as efficiency  
 number of frontiers per robot  
+
+paper To-Do:
+clean data
+graphs for marty map
+abstract
+new combined method with data and graphs
+sources
+insert graphs

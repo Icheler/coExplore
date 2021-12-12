@@ -44,9 +44,9 @@ def runAll(numRobots = 2, world = 'v2_maze', methods = ['combined'], stopTime=40
 if __name__ == '__main__':
 
     numRobots = [2, 3, 4, 5]
-    world = 'map_3' #v2_maze, map_3
+    world = 'marty' #v2_maze, map_3, marty
     method = ['nearest', 'greedy', 'minPos', 'combined']
-    stopTime = [300, 250, 200, 150]
+    stopTime = [400, 350, 300, 200]
     tries = 10
 
     for j in range(2):
