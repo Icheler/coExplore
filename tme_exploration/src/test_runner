@@ -43,12 +43,11 @@ def runAll(numRobots = 2, world = 'v2_maze', methods = ['combined'], stopTime=40
 
 if __name__ == '__main__':
 
-    numRobots = [2, 3, 4, 5]
-    world = 'marty' #v2_maze, map_3, marty
-    method = ['nearest', 'greedy', 'minPos', 'combined']
-    stopTime = [400, 350, 300, 200]
+    numRobots = [4, 5]
+    world = 'v2_maze' #v2_maze, map_3, marty
+    method = ['greedy']#['nearest', 'greedy', 'minPos', 'combined']
+    stopTime = [300, 200]
     tries = 10
 
-    for j in range(2):
-        for i in range(len(numRobots)):
-            runAll(numRobots[i], world, method, stopTime[i], tries)
+    for i in range(len(numRobots)):
+        runAll(numRobots[i], world, method, stopTime[i], tries)
