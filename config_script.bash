@@ -16,14 +16,14 @@ fi
 
 if [ -z ${tme_expl_method+x} ]
 then
-  expl_method=combined
+  expl_method=coExplore
 else
   expl_method=$tme_expl_method
 fi
 
 if [ -z ${tme_stop_time+x} ]
 then
-  stop_time=400
+  stop_time=300
 else
   stop_time=$tme_stop_time
 fi

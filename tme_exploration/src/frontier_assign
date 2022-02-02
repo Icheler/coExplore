@@ -334,6 +334,7 @@ class frontierAssign:
         self.publisher_position[number].publish(position)
 
     # minPos approximation by assigning rank based on distance between goal and robot locations
+    # this is done from frontiers perspective
     def rank_matrix(self):
         self.frontier_distance()
         self.frontier_distance_modifier()
@@ -341,6 +342,28 @@ class frontierAssign:
         ranks = np.argsort(order, axis=1)
         return ranks #+ 0.01 * self.frontierDistanceModifier
 
+    def rank_distance(self):
+        self.frontier_distance()
+        self.frontier_distance_modifier()
+        order = np.argsort(self.frontierDistanceModifier, axis=0)
+        ranks = np.argsort(order, axis=0)
+        maximum = np.max(ranks)
+        if maximum != 0 and maximum:
+            result = ranks / maximum
+        else:
+            result = ranks
+        return result
+
+    def rank_visibility(self):
+        self.frontier_visibility_modifier()
+        order = np.argsort(self.frontierVisibilityModifier, axis = 0)
+        ranks = np.argsort(order, axis = 0)
+        maximum = np.max(ranks)
+        if maximum:
+            result = ranks / maximum
+        else:
+            result = ranks
+        return result
 
 if __name__ == '__main__':
     
@@ -377,8 +400,12 @@ if __name__ == '__main__':
         chosen_method_id = 1
     elif(chosen_method == 'minPos'):
         chosen_method_id = 2
-    else:
+    elif(chosen_method == 'combined'):
         chosen_method_id = 3
+        visibility_weighting = rospy.get_param('~visibility_weighting', 1)
+        speed_weighting = rospy.get_param('~speed_weighting', 1)
+    else:
+        chosen_method_id = 4
         visibility_weighting = rospy.get_param('~visibility_weighting', 1)
         speed_weighting = rospy.get_param('~speed_weighting', 1)
 
@@ -404,14 +431,26 @@ if __name__ == '__main__':
                 cost_matrix = fInstance.get_frontierVisibilityModifier()
             
             elif(chosen_method_id == 2):
-                #TODO
                 cost_matrix = fInstance.rank_matrix() + fInstance.get_frontierDistance() * 0.01
-            else:
+
+            elif(chosen_method_id == 3):
                 fInstance.frontier_visibility_modifier()
                 fInstance.frontier_distance()
                 fInstance.frontier_distance_modifier()
                 cost_matrix = speed_weighting * fInstance.get_frontierDistanceModifier() 
                 cost_matrix = cost_matrix + visibility_weighting * fInstance.get_frontierVisibilityModifier()
+
+            else:
+                fInstance.frontier_visibility_modifier()
+                fInstance.frontier_distance()
+                fInstance.frontier_distance_modifier()
+                try:
+                    cost_matrix = fInstance.rank_distance()
+                    cost_matrix = cost_matrix + fInstance.rank_visibility()
+                except:
+                    cost_matrix = fInstance.rank_distance()
+                    cost_matrix = cost_matrix + fInstance.rank_visibility()
+
             
             cost_matrix = np.transpose(cost_matrix)
             row_ind, col_ind = linear_sum_assignment(cost_matrix)
