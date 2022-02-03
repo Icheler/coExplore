@@ -45,7 +45,7 @@ if __name__ == '__main__':
 
     numRobots = [5, 4, 3, 2]
     world = ['marty', 'map_3', 'v2_maze'] #v2_maze, map_3, marty
-    method = ['coExplore']#['nearest', 'greedy', 'minPos', 'combined', 'coExplore']
+    method = ['coExploration']#['nearest', 'greedy', 'minPos', 'combined', 'coExplore']
     stopTime = [250, 300, 350, 400]
     tries = [15]
     for x in range(len(tries)):
