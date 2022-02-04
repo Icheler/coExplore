@@ -342,7 +342,7 @@ class frontierAssign:
         ranks = np.argsort(order, axis=1)
         return ranks #+ 0.01 * self.frontierDistanceModifier
 
-    def rank_matrix(self):
+    def rank_matrix_norm(self):
             self.frontier_distance()
             self.frontier_distance_modifier()
             order = np.argsort(self.frontierDistanceModifier, axis=1)
@@ -453,17 +453,20 @@ if __name__ == '__main__':
                 cost_matrix = cost_matrix + visibility_weighting * fInstance.get_frontierVisibilityModifier()
 
             else:
-                fInstance.frontier_visibility_modifier()
-                fInstance.frontier_distance()
-                fInstance.frontier_distance_modifier()
                 try:
+                    fInstance.frontier_visibility_modifier()
+                    fInstance.frontier_distance()
+                    fInstance.frontier_distance_modifier()
                     cost_matrix = fInstance.rank_distance()
                     cost_matrix = cost_matrix + fInstance.get_frontierVisibilityModifier()
-                    cost_matrix = cost_matrix + fInstance.rank_matrix()
+                    cost_matrix = cost_matrix + fInstance.rank_matrix_norm()
                 except:
+                    fInstance.frontier_visibility_modifier()
+                    fInstance.frontier_distance()
+                    fInstance.frontier_distance_modifier()
                     cost_matrix = fInstance.rank_distance()
                     cost_matrix = cost_matrix + fInstance.get_frontierVisibilityModifier()
-                    cost_matrix = cost_matrix + fInstance.rank_matrix()
+                    cost_matrix = cost_matrix + 2 * fInstance.rank_matrix_norm()
 
             
             cost_matrix = np.transpose(cost_matrix)
