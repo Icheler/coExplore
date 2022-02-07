@@ -170,7 +170,7 @@ class frontierAssign:
             robot_location.x = robot_location.x + trans[0]
             robot_location.y = robot_location.y + trans[1]
         except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-            pass
+            rospy.logerr(f'TF error for {tf_topic}')
         self.robotPosition[number] = robot_location
 
     def callback_status(self, data, topic):
@@ -228,7 +228,10 @@ class frontierAssign:
             self.distances = np.empty((len(self.frontiers.frontiers), len(self.robotPosition)))
             for i in range(len(self.frontiers.frontiers)):
                 for j in range(len(self.robotPosition)):
-                    self.distances[i][j] = self.euclid_distance(self.frontiers.frontiers[i].centroid, self.robotPosition[j])
+                    try:
+                        self.distances[i][j] = self.euclid_distance(self.frontiers.frontiers[i].centroid, self.robotPosition[j])
+                    except: 
+                        self.distances[i][j] = 15000
         except ValueError:
             pass
 

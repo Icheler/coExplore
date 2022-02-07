@@ -22,5 +22,5 @@
     </include>
     <include file="$(find tme_startup)/launch/multi_map_merge.launch"/>
     <include file="$(find tme_startup)/launch/multi_explore.launch"/>
-    <!-- <node type="rviz" name="rviz" pkg="rviz" args="-d $(find tme_startup)/config/rviz_basic_setup.rviz"/> -->
+    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find tme_startup)/config/rviz_basic_setup.rviz"/>
 </launch>
