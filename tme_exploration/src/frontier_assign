@@ -8,7 +8,11 @@ import tf
 import os
 import atexit
 import random
+import time
+import math
+import copy
 
+from skimage import graph
 from scipy.optimize import linear_sum_assignment
 from datetime import datetime
 
@@ -18,6 +22,7 @@ from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from sensor_msgs.msg import LaserScan
 from visualization_msgs.msg import Marker, MarkerArray
 from actionlib_msgs.msg import GoalStatusArray
+from nav_msgs.msg import OccupancyGrid
 
 
 class frontierAssign:
@@ -51,6 +56,8 @@ class frontierAssign:
         self.blacklist = []
         self.explored_frontiers = np.empty(self.numberRobots)
         self.map_name = os.environ['tme_ROBOT_ENV']
+        self.map = None
+        self.clean_area = self.get_clean_area(25)
 
         atexit.register(self.exit_handler)
 
@@ -161,6 +168,7 @@ class frontierAssign:
         self.frontiers = data
 
     def callback_position(self, data, topic):
+        rospy.logerr(f'this is being called for {topic}')
         number = (int)((re.search(r'\d+', topic)).group(0)) - 1
         robot_location = data.pose.pose.position
         try:
@@ -180,6 +188,23 @@ class frontierAssign:
         for i in range(len(status_list)):
             if(status_list[i].status == 4):
                 np.append(self.blacklist, self.goals[number])
+
+    def callback_map(self, data):
+        self.map = np.asarray(data.data, dtype=np.int8).reshape(data.info.height, data.info.width)
+        self.map_res = data.info.resolution
+        self.map_origin = [data.info.origin.position.x, data.info.origin.position.y]
+        self.map_middle = int(data.info.height / 2)
+
+    def position_call_tf(self):
+        for i in range(self.numberRobots):
+            j = i+1
+            try:
+                tf_topic = f'/robot{j}/map'
+                (trans, rot) = listener.lookupTransform(f'/robot{j}/base_link', tf_topic, rospy.Time(0))
+                robot_location = Point(x=trans[0], y=trans[1])
+                self.robotPosition[i] = robot_location
+            except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
+                rospy.logerr(f'TF error for {tf_topic} with message {e}')
 
     def blacklist_check(self):
         foundSth = 0
@@ -262,15 +287,19 @@ class frontierAssign:
         self.visiblityModifier = self.visibilityModifier / maximum
     
     # Computes the modifier from robot speed and distance between robot and frontiers, Normalize again
-    def frontier_distance_modifier(self):
-        try:
+    def frontier_distance_modifier(self, estimate='euclid'):
+        if estimate == 'euclid':
+            try:
+                self.frontierDistanceModifier = np.ones((len(self.frontiers.frontiers), self.numberRobots))
+                for i in range(len(self.frontiers.frontiers)):
+                    for j in range(self.numberRobots):
+                        self.frontierDistanceModifier[i][j] = self.speedModifier[j] * self.distances[i][j]
+                self.frontierDistanceModifier = self.frontierDistanceModifier / np.max(self.frontierDistanceModifier)
+            except ValueError:
+                pass
+        else:
             self.frontierDistanceModifier = np.ones((len(self.frontiers.frontiers), self.numberRobots))
-            for i in range(len(self.frontiers.frontiers)):
-                for j in range(self.numberRobots):
-                    self.frontierDistanceModifier[i][j] = self.speedModifier[j] * self.distances[i][j]
-            self.frontierDistanceModifier = self.frontierDistanceModifier / np.max(self.frontierDistanceModifier)
-        except ValueError:
-            pass
+            self.frontierDistanceModifier = self.wavefront_robot_to_frontier()
 
     # Computes the modifier from robot visibility and size of frontiers, Normalize again
     def frontier_visibility_modifier(self):
@@ -336,6 +365,77 @@ class frontierAssign:
         self.lastSearchTime = rospy.Time.now()
         self.publisher_position[number].publish(position)
 
+    def get_clean_area(self, number):
+        size = number*2+1
+        result = []
+        for i in range(size):
+            x = i - number
+            for j in range(size):
+                y = j - number
+                result.append([x, y])
+        return result   
+
+    def clean_neighbors(self, array, indices, clean_area):
+        result = array
+        for x,y in indices:
+            result[x][y] = 1
+            for dx, dy in clean_area:
+                result[x+dx][y+dy] = 1
+        return result
+
+    def point_to_matrix(self, point):
+        return [point.x, point.y]
+
+    def centroid_to_matrix(self, centroid):
+        return [centroid.centroid.x, centroid.centroid.y]
+
+    def point_to_map_matrix(self, point_array):
+        result = np.empty_like(point_array, dtype = int)
+        result[0] = round((point_array[0] - self.map_origin[0]) / self.map_res)
+        result[1] = round((point_array[1] - self.map_origin[1]) / self.map_res)
+        return result
+
+    def map_to_point_matrix(self, point_array):
+        result = np.empty_like(point_array, dtype=float)
+        result[0] = point_array[0] * self.map_res + self.map_origin[0]        
+        result[1] = point_array[1] * self.map_res + self.map_origin[1]
+        return result
+
+    def wavefront_robot_to_frontier(self):
+        start = time.time()
+        robots = copy.deepcopy(self.robotPosition)
+        robot_len = len(robots)
+        goals = copy.deepcopy(self.frontiers.frontiers)
+        goals_len = len(goals)
+        map = copy.deepcopy(self.map)
+        map = np.where(map > 99, -1, map)
+        map = np.where(map == 0, 1, map)
+        for i in range(robot_len):
+            temp = self.point_to_matrix(robots[i])
+            robots[i] = self.point_to_map_matrix(temp)
+        for i in range(goals_len):
+            temp = self.centroid_to_matrix(goals[i])
+            goals[i] = self.point_to_map_matrix(temp)
+        map = self.clean_neighbors(map, robots, self.clean_area)
+        map = self.clean_neighbors(map, goals, self.clean_area)
+        l_graph = graph.MCP(costs=map, fully_connected=False)
+        frontierDistances = np.ones((goals_len, self.numberRobots))
+        for i in range(robot_len):
+            cost_array, tracebacks_array = l_graph.find_costs([robots[i]], goals, find_all_ends=True)
+            for j in range(len(goals)):
+                temp = goals[j]
+                testing = cost_array[temp[0]][temp[1]]
+                frontierDistances[j][i] = self.speedModifier[i] * testing
+        
+        end = time.time()
+        rospy.logwarn(f'For {robot_len} robots and {goals_len} goals this took {end - start}')
+        rospy.logwarn(robots)
+        rospy.logwarn(frontierDistances)
+
+        return frontierDistances
+
+    
+
     # minPos approximation by assigning rank based on distance between goal and robot locations
     # this is done from frontiers perspective
     def rank_matrix(self):
@@ -359,7 +459,7 @@ class frontierAssign:
 
     def rank_distance(self):
         self.frontier_distance()
-        self.frontier_distance_modifier()
+        self.frontier_distance_modifier('euclid')
         order = np.argsort(self.frontierDistanceModifier, axis=0)
         ranks = np.argsort(order, axis=0)
         maximum = np.max(ranks)
@@ -402,11 +502,14 @@ if __name__ == '__main__':
     rospy.Subscriber("/tme_frontier_search/frontierArray", frontierArray, fInstance.callback_frontiers)
     subscriber_position = []
 
-    for i in range(fInstance.get_numberRobots()):
-        j = i+1
-        topic = '/' + fInstance.get_robotPrefix() + str(j) + '/poseupdate'
-        subscriber_position.append(rospy.Subscriber(topic, PoseWithCovarianceStamped, callback=fInstance.callback_position, callback_args = topic))
+    rospy.Subscriber('map', OccupancyGrid, fInstance.callback_map)
 
+    #this was used in conjunction with hector_mapping, since switch to slam_toolbox this has become obsolete
+    #TODO cross-compatibility with slam_toolbox, gmapping, hector_mapping etc.    
+    #for i in range(fInstance.get_numberRobots()):
+    #    j = i+1
+    #   topic = '/' + fInstance.get_robotPrefix() + str(j) + '/poseupdate'
+    #    subscriber_position.append(rospy.Subscriber(topic, PoseWithCovarianceStamped, callback=fInstance.callback_position, callback_args = topic))
     chosen_method_id = 0
 
     if(chosen_method == 'nearest'):
@@ -433,8 +536,9 @@ if __name__ == '__main__':
     while not rospy.is_shutdown():
 
         cost_matrix = None
+        fInstance.position_call_tf()
         
-        if(fInstance.frontiers):
+        if(fInstance.frontiers and np.any(fInstance.robotPosition)):
             fInstance.blacklist_check()
             if(chosen_method_id == 0):
                 fInstance.frontier_distance()
@@ -458,15 +562,11 @@ if __name__ == '__main__':
             else:
                 try:
                     fInstance.frontier_visibility_modifier()
-                    fInstance.frontier_distance()
-                    fInstance.frontier_distance_modifier()
                     cost_matrix = fInstance.rank_distance()
                     cost_matrix = cost_matrix + fInstance.get_frontierVisibilityModifier()
-                    cost_matrix = cost_matrix + fInstance.rank_matrix_norm()
+                    cost_matrix = cost_matrix + 2 * fInstance.rank_matrix_norm()
                 except:
                     fInstance.frontier_visibility_modifier()
-                    fInstance.frontier_distance()
-                    fInstance.frontier_distance_modifier()
                     cost_matrix = fInstance.rank_distance()
                     cost_matrix = cost_matrix + fInstance.get_frontierVisibilityModifier()
                     cost_matrix = cost_matrix + 2 * fInstance.rank_matrix_norm()
@@ -500,18 +600,35 @@ if __name__ == '__main__':
                         marker.ns = 'beep'
                         id += 1
                         marker.id = id
-                        marker.pose.position = goal_location
-                        if(i == 0):
+                        marker.pose.position = fInstance.robotPosition[i]
+                        if i == 0:
                             marker.color.r = 0
                             marker.color.g = 0
                             marker.color.b = 0
-                        else:
+                        elif i == 1:
                             marker.color.r = 1
                             marker.color.g = 1
+                            marker.color.b = 1
+                        elif i == 2:
+                            marker.color.r = 0
+                            marker.color.g = 1
+                            marker.color.b = 1
+                        elif i == 3:
+                            marker.color.r = 1
+                            marker.color.g = 0
+                            marker.color.b = 1
+                        elif i == 4:
+                            marker.color.r = 1
+                            marker.color.g = 1
+                            marker.color.b = 0
+                        else:
+                            marker.color.r = 0
+                            marker.color.g = 0
                             marker.color.b = 1
                         marker.lifetime = rospy.Duration(5)
 
                         markerPub.publish(marker)
+
                         #fInstance.movebase_spoof(number=i, position=goal_location)
                         fInstance.increment_frontiers(i)
                     elif(fInstance.get_lastSearchTime(i) + rospy.Duration(secs=10)< rospy.Time.now()):
@@ -524,14 +641,30 @@ if __name__ == '__main__':
                         marker.ns = 'beep'
                         id += 1
                         marker.id = id
-                        marker.pose.position = goal_location
-                        if(i == 0):
+                        marker.pose.position = fInstance.robotPosition[i]
+                        if i == 0:
                             marker.color.r = 0
                             marker.color.g = 0
                             marker.color.b = 0
-                        else:
+                        elif i == 1:
                             marker.color.r = 1
                             marker.color.g = 1
+                            marker.color.b = 1
+                        elif i == 2:
+                            marker.color.r = 0
+                            marker.color.g = 1
+                            marker.color.b = 1
+                        elif i == 3:
+                            marker.color.r = 1
+                            marker.color.g = 0
+                            marker.color.b = 1
+                        elif i == 4:
+                            marker.color.r = 1
+                            marker.color.g = 1
+                            marker.color.b = 0
+                        else:
+                            marker.color.r = 0
+                            marker.color.g = 0
                             marker.color.b = 1
                         marker.lifetime = rospy.Duration(20)
 
@@ -542,7 +675,10 @@ if __name__ == '__main__':
                 markerPub.publish(marker)
 
         else:
-            rospy.logwarn("frontiers is empty")
+            if fInstance.frontiers:
+                rospy.logwarn("frontiers is empty")
+            if np.any(fInstance.robotPosition):
+                rospy.logwarn('positions are empty')
 
         rate.sleep()
 

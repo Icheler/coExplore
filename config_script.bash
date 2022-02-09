@@ -7,11 +7,11 @@ echo "tme_start_num: [2 - 5]"
 echo "tme_expl_method: [nearest, greedy, minPos, combined]"
 echo "tme_stop_time: number in seconds the simluation should run"
 echo "-------------------------------------------------------------"
-if [ -z ${ROBOT_ENV+x} ]
+if [ -z ${tme_ROBOT_ENV+x} ]
 then
   world=map_3
 else
-  world=$ROBOT_ENV
+  world=$tme_ROBOT_ENV
 fi
 
 if [ -z ${tme_expl_method+x} ]
@@ -83,34 +83,32 @@ echo "chosen method is: $expl_method"
 echo "chosen stop time is: $stop_time"
 echo "-------------------------------------------------------------"
 
-if [ $world="simple_corridor" ]
+if [ $world="map_3" ]
 then
   export tme_start_robot1_x="0.0"
   export tme_start_robot1_y="0.0"
   export tme_start_robot1_z="0.0"
-  export tme_start_robot1_yaw="0"
+  export tme_start_robot1_yaw="3.14159"
 
   export tme_start_robot2_x="1.0"
   export tme_start_robot2_y="0.0"
   export tme_start_robot2_z="0.0"
-  export tme_start_robot2_yaw="0"
+  export tme_start_robot2_yaw="3.14159"
 
   export tme_start_robot3_x="-1.0"
   export tme_start_robot3_y="1.0"
   export tme_start_robot3_z="0.0"
-  export tme_start_robot3_yaw="0.0"
+  export tme_start_robot3_yaw="1.5708"
 
   export tme_start_robot4_x="-1.0"
   export tme_start_robot4_y="-1.0"
   export tme_start_robot4_z="0.0"
-  export tme_start_robot4_yaw="0.0"
+  export tme_start_robot4_yaw="1.5708"
 
   export tme_start_robot5_x="1.0"
   export tme_start_robot5_y="1.0"
   export tme_start_robot5_z="0.0"
-  export tme_start_robot5_yaw="0.0"
-
-
+  export tme_start_robot5_yaw="1.5708"
 fi
 if [ $world="maze" ]
 then

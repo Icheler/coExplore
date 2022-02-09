@@ -48,8 +48,8 @@ int main(int argc, char * argv[])
       nav_msgs::OccupancyGrid new_map;
       new_map.header.frame_id = "new_map";
       new_map.info.resolution = 0.05;
-      new_map.info.origin.position.x = -(1000 * 0.025);
-      new_map.info.origin.position.y = -(1000 * 0.025);
+      new_map.info.origin.position.x = -(width_ * new_map.info.resolution * 0.5); //size * resolution * 0.5 for middle point
+      new_map.info.origin.position.y = -(height_ * new_map.info.resolution * 0.5);
       new_map.info.origin.position.z = 0.0;
       new_map.info.origin.orientation.w = 0.0;
 
