@@ -81,7 +81,7 @@ if __name__ == '__main__':
     rate = rospy.Rate(0.2)
 
     #0 is log array, 1 is compare and log
-    classy = mapCompare(mode=0)
+    classy = mapCompare(mode=1)
     mode = classy.get_mode()
     num_robots = os.environ['tme_start_num']
     MAP_SIZE = 1000
@@ -136,12 +136,16 @@ if __name__ == '__main__':
             test = [temp_time, temp_difference]
             time_estimate += 5
             localArray.append(test)
-            rospy.logwarn('Current coverage is :' + str(temp_difference))
+            rospy.logerr('Current coverage is :' + str(temp_difference))
+            rospy.logerr('Current coverage is :' + str(temp_difference))
+            rospy.logerr('Current coverage is :' + str(temp_difference))
+            rospy.logerr('Current coverage is :' + str(temp_difference))
+            rospy.logerr('Current coverage is :' + str(temp_difference))
 
             if(time_estimate >= stopTime):
                 os.system('rosnode kill -a')
 
-            if(temp_difference > 0.95):
+            if(temp_difference > 0.93):
                 os.system('rosnode kill -a')
 
         rate.sleep()

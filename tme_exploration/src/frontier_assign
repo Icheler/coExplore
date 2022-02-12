@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from cmath import inf
 import numpy as np
 import rospy
 import re
@@ -206,18 +207,20 @@ class frontierAssign:
             except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
                 rospy.logerr(f'TF error for {tf_topic} with message {e}')
 
-    def blacklist_check(self):
+        return self.robotPosition
+
+    def blacklist_check(self, frontiers):
         foundSth = 0
-        localFrontiers = self.frontiers.frontiers
-        if(len(localFrontiers) == 0):
-            for i in range(len(localFrontiers)):
+        localFrontiers = frontiers
+        if(len(localFrontiers.frontiers) == 0):
+            for i in range(len(localFrontiers.frontiers)):
                 foundSth = 0
                 x = i - foundSth
                 for j in range(len(self.blacklist)):
-                    if (localFrontiers[x].centroid == self.blacklist[j]):
+                    if (localFrontiers.frontiers[x].centroid == self.blacklist[j]):
                         foundSth += 1
-                        localFrontiers.pop(x)
-            self.frontiers.frontiers = localFrontiers
+                        localFrontiers.frontiers.pop(x)
+        return localFrontiers
 
     def distance_tracker(self, time_estimate):
         temp_array = [time_estimate]
@@ -248,17 +251,23 @@ class frontierAssign:
         return result
 
     # Instanciate the self.distances matrix with the distance for every robot to every frontier
-    def frontier_distance(self):
-        try:
-            self.distances = np.empty((len(self.frontiers.frontiers), len(self.robotPosition)))
-            for i in range(len(self.frontiers.frontiers)):
-                for j in range(len(self.robotPosition)):
+    def frontier_distance(self, frontiers, positions, map, estimate='xyz'):
+        local_frontiers = frontiers
+        l_positions = positions
+        r_distances = np.empty((len(local_frontiers.frontiers), len(l_positions)))
+        if estimate == 'euclid':
+            for i in range(len(local_frontiers.frontiers)):
+                for j in range(len(l_positions)):
                     try:
-                        self.distances[i][j] = self.euclid_distance(self.frontiers.frontiers[i].centroid, self.robotPosition[j])
+                        r_distances[i][j] = self.euclid_distance(local_frontiers.frontiers[i].centroid, l_positions[j])
                     except: 
-                        self.distances[i][j] = 15000
-        except ValueError:
-            pass
+                        r_distances[i][j] = 50
+        else:
+            r_distances = self.wavefront_robot_to_frontier(frontiers, positions, map)
+            r_distances = np.where(np.isinf(r_distances), 2000, r_distances)
+        r_distances = r_distances / np.max(r_distances)
+        return r_distances
+
 
     # Get speed for every robot from ros parameters and assign maxSpeed
     def assign_robot_speed(self):
@@ -287,32 +296,30 @@ class frontierAssign:
         self.visiblityModifier = self.visibilityModifier / maximum
     
     # Computes the modifier from robot speed and distance between robot and frontiers, Normalize again
-    def frontier_distance_modifier(self, estimate='euclid'):
-        if estimate == 'euclid':
-            try:
-                self.frontierDistanceModifier = np.ones((len(self.frontiers.frontiers), self.numberRobots))
-                for i in range(len(self.frontiers.frontiers)):
-                    for j in range(self.numberRobots):
-                        self.frontierDistanceModifier[i][j] = self.speedModifier[j] * self.distances[i][j]
-                self.frontierDistanceModifier = self.frontierDistanceModifier / np.max(self.frontierDistanceModifier)
-            except ValueError:
-                pass
-        else:
-            self.frontierDistanceModifier = np.ones((len(self.frontiers.frontiers), self.numberRobots))
-            self.frontierDistanceModifier = self.wavefront_robot_to_frontier()
+    def frontier_distance_modifier(self, frontiers, distances):
+        result = np.ones((len(frontiers.frontiers), self.numberRobots))
+        try:
+            for i in range(len(frontiers.frontiers)):
+                for j in range(self.numberRobots):
+                    result[i][j] = self.speedModifier[j] * distances[i][j]
+            result = result / np.max(result)
+        except ValueError:
+            pass
+        return result
 
     # Computes the modifier from robot visibility and size of frontiers, Normalize again
-    def frontier_visibility_modifier(self):
+    def frontier_visibility_modifier(self, frontiers):
+        result = np.ones((len(frontiers.frontiers), self.numberRobots))
         try:
-            self.frontierVisibilityModifier = np.ones((len(self.frontiers.frontiers), self.numberRobots))
-            for i in range(len(self.frontiers.frontiers)):
+            for i in range(len(frontiers.frontiers)):
                 for j in range(self.numberRobots):
-                    self.frontierVisibilityModifier[i][j] = self.visibilityModifier[j] * self.frontiers.frontiers[i].size
-            self.frontierVisibilityModifier = self.frontierVisibilityModifier / np.max(self.frontierVisibilityModifier)
-            self.frontierVisibilityModifier = 1 - self.frontierVisibilityModifier
+                    result[i][j] = self.visibilityModifier[j] * frontiers.frontiers[i].size
+            result = result / np.max(result)
+            result = 1 - result
 
         except ValueError:
             pass
+        return result
 
     def active_cb(self):
         rospy.loginfo("Goal pose is now being processed by the Action Server...")
@@ -386,10 +393,22 @@ class frontierAssign:
         return result
 
     def point_to_matrix(self, point):
-        return [point.x, point.y]
+        try:
+            if point.size != 0:
+                rospy.logwarn(point)
+                return point
+        except:
+            return [point.x, point.y]
 
     def centroid_to_matrix(self, centroid):
-        return [centroid.centroid.x, centroid.centroid.y]
+        try:
+            if type(centroid).__module__ == np.__name__:
+                rospy.logwarn(centroid)
+                return centroid
+            else:
+                return [centroid.centroid.x, centroid.centroid.y]
+        except:
+            return [centroid.centroid.x, centroid.centroid.y]
 
     def point_to_map_matrix(self, point_array):
         result = np.empty_like(point_array, dtype = int)
@@ -403,13 +422,12 @@ class frontierAssign:
         result[1] = point_array[1] * self.map_res + self.map_origin[1]
         return result
 
-    def wavefront_robot_to_frontier(self):
-        start = time.time()
-        robots = copy.deepcopy(self.robotPosition)
+    def wavefront_robot_to_frontier(self, frontiers, positions, maps):
+        robots = copy.deepcopy(positions)
         robot_len = len(robots)
-        goals = copy.deepcopy(self.frontiers.frontiers)
+        goals = copy.deepcopy(frontiers.frontiers)
         goals_len = len(goals)
-        map = copy.deepcopy(self.map)
+        map = copy.deepcopy(maps)
         map = np.where(map > 99, -1, map)
         map = np.where(map == 0, 1, map)
         for i in range(robot_len):
@@ -428,38 +446,30 @@ class frontierAssign:
                 temp = goals[j]
                 testing = cost_array[temp[0]][temp[1]]
                 frontierDistances[j][i] = self.speedModifier[i] * testing
-        
-        end = time.time()
-
         return frontierDistances
-
-    
 
     # minPos approximation by assigning rank based on distance between goal and robot locations
     # this is done from frontiers perspective
-    def rank_matrix(self):
-        self.frontier_distance()
-        self.frontier_distance_modifier()
-        order = np.argsort(self.frontierDistanceModifier, axis=1)
+    def rank_matrix(self, frontiers, positions, map):
+        frontier_distance = self.frontier_distance(frontiers, positions, map)
+        order = np.argsort(frontier_distance, axis=1)
         ranks = np.argsort(order, axis=1)
-        return ranks #+ 0.01 * self.frontierDistanceModifier
+        return ranks + 0.01 * frontier_distance
 
-    def rank_matrix_norm(self):
-            self.frontier_distance()
-            self.frontier_distance_modifier()
-            order = np.argsort(self.frontierDistanceModifier, axis=1)
-            ranks = np.argsort(order, axis=1)
-            maximum = np.max(ranks)
-            if maximum != 0 and maximum:
-                result = ranks / maximum
-            else:
-                result = ranks
-            return result
+    def rank_matrix_norm(self, frontiers, positions, map):
+        frontier_distance = self.frontier_distance(frontiers, positions, map)
+        order = np.argsort(frontier_distance, axis=1)
+        ranks = np.argsort(order, axis=1)
+        maximum = np.max(ranks)
+        if maximum != 0 and maximum:
+            result = ranks / maximum
+        else:
+            result = ranks
+        return result
 
-    def rank_distance(self):
-        self.frontier_distance()
-        self.frontier_distance_modifier('xyz')
-        order = np.argsort(self.frontierDistanceModifier, axis=0)
+    def rank_distance(self, frontiers, positions, map):
+        frontier_distance = self.frontier_distance(frontiers, positions, map)
+        order = np.argsort(frontier_distance, axis=0)
         ranks = np.argsort(order, axis=0)
         maximum = np.max(ranks)
         if maximum != 0 and maximum:
@@ -468,9 +478,9 @@ class frontierAssign:
             result = ranks
         return result
 
-    def rank_visibility(self):
-        self.frontier_visibility_modifier()
-        order = np.argsort(self.frontierVisibilityModifier, axis = 0)
+    def rank_visibility(self, frontiers):
+        frontier_vis = self.frontier_visibility_modifier(frontiers)
+        order = np.argsort(frontier_vis, axis = 0)
         ranks = np.argsort(order, axis = 0)
         maximum = np.max(ranks)
         if maximum:
@@ -537,59 +547,66 @@ if __name__ == '__main__':
         cost_matrix = None
         fInstance.position_call_tf()
         
-        if(fInstance.frontiers and np.all(fInstance.robotPosition) and time_estimate>10):
-            fInstance.blacklist_check()
+        if(fInstance.frontiers and np.all(fInstance.robotPosition)):
+            frontiers = copy.deepcopy(fInstance.frontiers)
+            frontiers = fInstance.blacklist_check(frontiers)
+            positions = copy.deepcopy(fInstance.robotPosition)
+            map = copy.deepcopy(fInstance.map)
+            distances = None
+            visibility = None
+            distance_method = 'xyz'
+            num_robots = copy.deepcopy(fInstance.numberRobots)
+            
             if(chosen_method_id == 0):
-                fInstance.frontier_distance()
-                cost_matrix = fInstance.get_frontierDistance()
+                distances = fInstance.frontier_distance(frontiers, positions, map)
+                cost_matrix = distances
             
             elif(chosen_method_id == 1):
-                fInstance.frontier_visibility_modifier()
-                fInstance.frontier_distance()
-                cost_matrix = fInstance.get_frontierVisibilityModifier()
+                visibility = fInstance.frontier_visibility_modifier(frontiers)
+                cost_matrix = visibility
             
             elif(chosen_method_id == 2):
-                cost_matrix = fInstance.rank_matrix() + fInstance.get_frontierDistance() * 0.01
+                ranks = fInstance.rank_matrix(frontiers, positions, map)
+                distances = fInstance.frontier_distance(frontiers, positions, map)
+                cost_matrix = ranks + 0.00001 * distances
 
             elif(chosen_method_id == 3):
-                fInstance.frontier_visibility_modifier()
-                fInstance.frontier_distance()
-                fInstance.frontier_distance_modifier()
-                cost_matrix = speed_weighting * fInstance.get_frontierDistanceModifier() 
-                cost_matrix = cost_matrix + visibility_weighting * fInstance.get_frontierVisibilityModifier()
+                visibility = fInstance.frontier_visibility_modifier(frontiers)
+                distances = fInstance.frontier_distance(frontiers, positions, map)
+                cost_matrix = distances
+                cost_matrix = cost_matrix + visibility
 
             else:
-                try:
-                    fInstance.frontier_visibility_modifier()
-                    cost_matrix = fInstance.rank_distance()
-                    cost_matrix = cost_matrix + fInstance.get_frontierVisibilityModifier()
-                    cost_matrix = cost_matrix + 2 * fInstance.rank_matrix_norm()
-                except:
-                    fInstance.frontier_visibility_modifier()
-                    cost_matrix = fInstance.rank_distance()
-                    cost_matrix = cost_matrix + fInstance.get_frontierVisibilityModifier()
-                    cost_matrix = cost_matrix + 2 * fInstance.rank_matrix_norm()
+                visibility = fInstance.frontier_visibility_modifier(frontiers)
+                rank_distance = fInstance.rank_distance(frontiers, positions, map)
+                rank_matrix_norm = fInstance.rank_matrix_norm(frontiers, positions, map)
+                cost_matrix = rank_distance
+                cost_matrix = cost_matrix + visibility
+                cost_matrix = cost_matrix + rank_matrix_norm
 
-            
             cost_matrix = np.transpose(cost_matrix)
             row_ind, col_ind = linear_sum_assignment(cost_matrix)
 
-            for i in range(fInstance.get_numberRobots()):
+
+            for i in range(num_robots):
                 j = i+1
                 last_valid = j
                 topic = '/robot' + str(j) + '/move_base'
-                temp_frontiers = fInstance.frontiers.frontiers
-                if(len(temp_frontiers) <= fInstance.get_numberRobots()):
+                temp_frontiers = frontiers.frontiers
+                tessting = []
+                if(len(temp_frontiers) <= num_robots):
                     if(j > len(temp_frontiers)):
-                        break 
-                
-                temp_assignment = temp_frontiers[col_ind[i]]
-                goal_location = temp_assignment.centroid
+                        tessting.append(i)
+                        temp_assignment = temp_frontiers[col_ind[len(temp_frontiers)-1]]
+                        goal_location = temp_assignment.centroid
+                    else:
+                        temp_assignment = temp_frontiers[col_ind[i]]
+                        goal_location = temp_assignment.centroid
+                else:
+                    temp_assignment = temp_frontiers[col_ind[i]]
+                    goal_location = temp_assignment.centroid
 
-                goals = fInstance.get_goals()
-                #fInstance.set_goals(i, goal_location)
-                #fInstance.movebase_spoof(topic=topic, position=goal_location)
-                #fInstance.movebase_spoof(number=i, position=goal_location)
+                goals = fInstance.goals
 
                 if(fInstance.get_lastSearchTime(i) + rospy.Duration(secs=5)< rospy.Time.now()):
                     if(goal_location != goals[i]):
@@ -675,17 +692,7 @@ if __name__ == '__main__':
         else:
             if fInstance.frontiers:
                 rospy.logwarn("frontiers is empty")
-            if np.all(fInstance.robotPosition):
-                if time_estimate <= 10:
-                    for i in range(fInstance.get_numberRobots()):
-                        j = i+1
-                        topic = '/robot' + str(j) + '/move_base'
-                        fInstance.position_call_tf()
-                        current_position = fInstance.robotPosition[i]
-                        current_position.x = current_position.x - 0.5
-                        current_position.y = current_position.y - 0.5
-                        fInstance.movebase_client(topic=topic, number=i, position=current_position, orientation=[0,0,1,0], delete=True)
-            else:
+            if not np.all(fInstance.robotPosition):
                 rospy.logwarn('positions are empty')
 
         rate.sleep()

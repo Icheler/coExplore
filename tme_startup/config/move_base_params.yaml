@@ -3,7 +3,7 @@ shutdown_costmaps: false
 #planner_patience: 3.0
 #controller_patience: 5.0
 #conservative_reset_dist: 3.0
-planner_frequency: 1.0
+planner_frequency: 5.0
 #oscillation_timeout: 5.0
 oscillation_distance: 0.5
 recovery_behavior_enabled: true

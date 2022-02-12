@@ -1,5 +1,5 @@
-obstacle_range: 4.5
-raytrace_range: 5.0
+obstacle_range: 10.6
+raytrace_range: 10.6
 robot_radius: 0.10
 #inflation_layer:
 inflation_radius: 0.7
