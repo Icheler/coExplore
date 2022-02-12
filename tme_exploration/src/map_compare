@@ -70,9 +70,6 @@ class mapCompare:
     def set_differenceArray(self, data):
         self.differenceArray = data
 
-    def compare_images(self):
-        pass
-
     def callback_map(self, data):
         self.map = data.data
         self.info = data.info
@@ -122,7 +119,6 @@ if __name__ == '__main__':
 
         if(mode):
             os.system('rosrun map_server map_saver -f ' + str(file_complete))
-
             local_info = classy.get_map_info()
             rospy.logwarn(f'{local_info.width} and height {local_info.height}')
             localMap = np.array(classy.get_map()).reshape(local_info.height, local_info.width)

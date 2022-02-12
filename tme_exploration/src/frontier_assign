@@ -329,7 +329,6 @@ class frontierAssign:
 
         if status == 3:
             rospy.loginfo("Goal pose reached")
-            #self.lastSearchTime = rospy.Time.now()
 
         if status == 4:
             rospy.loginfo("Goal pose was aborted by the Action Server")
@@ -343,7 +342,7 @@ class frontierAssign:
             rospy.loginfo("Goal pose received a cancel request before it started executing, successfully cancelled!")
 
     # Method to allow the parsing of move_base actions 
-    def movebase_client(self, topic, number, position, delete=False):
+    def movebase_client(self, topic, number, position, orientation=[0,0,0,1], delete=False):
 
         client = actionlib.SimpleActionClient(topic, MoveBaseAction)
 
@@ -355,7 +354,10 @@ class frontierAssign:
         goal.target_pose.pose.position.x = position.x
         goal.target_pose.pose.position.y = position.y
         goal.target_pose.pose.position.z = 0
-        goal.target_pose.pose.orientation.w = 1
+        goal.target_pose.pose.orientation.x = orientation[0]
+        goal.target_pose.pose.orientation.y = orientation[1]
+        goal.target_pose.pose.orientation.z = orientation[2]
+        goal.target_pose.pose.orientation.w = orientation[3]
 
         self.lastSearchTime[number] = rospy.Time.now()
 
@@ -535,7 +537,7 @@ if __name__ == '__main__':
         cost_matrix = None
         fInstance.position_call_tf()
         
-        if(fInstance.frontiers and np.any(fInstance.robotPosition)):
+        if(fInstance.frontiers and np.all(fInstance.robotPosition) and time_estimate>10):
             fInstance.blacklist_check()
             if(chosen_method_id == 0):
                 fInstance.frontier_distance()
@@ -574,6 +576,7 @@ if __name__ == '__main__':
 
             for i in range(fInstance.get_numberRobots()):
                 j = i+1
+                last_valid = j
                 topic = '/robot' + str(j) + '/move_base'
                 temp_frontiers = fInstance.frontiers.frontiers
                 if(len(temp_frontiers) <= fInstance.get_numberRobots()):
@@ -669,12 +672,20 @@ if __name__ == '__main__':
 
                         #fInstance.movebase_spoof(number=i, position=goal_location)
 
-                markerPub.publish(marker)
-
         else:
             if fInstance.frontiers:
                 rospy.logwarn("frontiers is empty")
-            if np.any(fInstance.robotPosition):
+            if np.all(fInstance.robotPosition):
+                if time_estimate <= 10:
+                    for i in range(fInstance.get_numberRobots()):
+                        j = i+1
+                        topic = '/robot' + str(j) + '/move_base'
+                        fInstance.position_call_tf()
+                        current_position = fInstance.robotPosition[i]
+                        current_position.x = current_position.x - 0.5
+                        current_position.y = current_position.y - 0.5
+                        fInstance.movebase_client(topic=topic, number=i, position=current_position, orientation=[0,0,1,0], delete=True)
+            else:
                 rospy.logwarn('positions are empty')
 
         rate.sleep()

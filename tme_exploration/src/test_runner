@@ -37,18 +37,19 @@ def runner(numRobots = 2, world = 'v2_maze', method = 'combined', stopTime = 400
     for i in range(tries):
         os.system('roslaunch tme_startup complete_launch.launch')
 
-def runAll(numRobots = 2, world = 'v2_maze', methods = ['combined'], stopTime=400, tries = 10):
+def runAll(numRobots = 2, world = 'v2_maze', methods = ['coExplore'], stopTime=400, tries = 10):
     for i in range(len(methods)):
         runner(numRobots, world, methods[i], stopTime, tries)
 
 if __name__ == '__main__':
 
     numRobots = [5, 4, 3, 2]
-    world = ['marty', 'map_3', 'v2_maze'] #v2_maze, map_3, marty
-    method = ['coExv3']#['nearest', 'greedy', 'minPos', 'combined', 'coExplore']
+    world = ['map_3', 'v2_maze'] #v2_maze, map_3, marty
+    method = ['coExplore']#['nearest', 'greedy', 'minPos', 'combined', 'coExplore']
     stopTime = [250, 300, 350, 500]
-    tries = [15, 30, 50]
+    tries = [10]
     for x in range(len(tries)):
         for j in range(len(numRobots)):
             for i in range(len(world)):
-                runAll(numRobots[j], world[i], method, stopTime[j], tries[x])
+                for y in range(len(method)):
+                    runAll(numRobots[j], world[i], method[y], stopTime[j], tries[x])

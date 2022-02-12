@@ -56,16 +56,13 @@
             <rosparam file="$(find tme_startup)/config/move_base_params.yaml" command="load" />
             <rosparam file="$(find tme_startup)/config/$(arg robot_name)/costmap_robot_params.yaml" command="load" />
             <rosparam file="$(find tme_startup)/config/dwa_local_planner_params.yaml" command="load" />
-            <rosparam file="$(find tme_startup)/config/Navfn.yaml" command="load" />
             <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS" /> 
             <!-- <rosparam file="$(find tme_startup)/config/base_local_planner_params_normal.yaml" command="load" />
             <param name="base_local_planner" value="base_local_planner/TrajectoryPlannerROS" /> -->
         </node>
 
         <node pkg="tme_exploration" type="map_extender" name="map_extender" respawn="true"/>
-        <!--
-        <node pkg="tme_support" type="travel_distance" name="tme_trav_dist" output="screen"/>
-        -->
+
         <node pkg="tf2_ros" type="static_transform_publisher" name="$(arg robot_name)_map_tf_broadcaster" args="0 0 0 0 0 0 /$(arg robot_name)/new_map /$(arg robot_name)/map"/>
     </group>
 </launch>
