@@ -88,27 +88,27 @@ then
   export tme_start_robot1_x="0.0"
   export tme_start_robot1_y="0.0"
   export tme_start_robot1_z="0.0"
-  export tme_start_robot1_yaw="3.14159"
+  export tme_start_robot1_yaw="0"
 
   export tme_start_robot2_x="1.0"
   export tme_start_robot2_y="0.0"
   export tme_start_robot2_z="0.0"
-  export tme_start_robot2_yaw="3.14159"
+  export tme_start_robot2_yaw="0"
 
   export tme_start_robot3_x="-1.0"
   export tme_start_robot3_y="1.0"
   export tme_start_robot3_z="0.0"
-  export tme_start_robot3_yaw="1.5708"
+  export tme_start_robot3_yaw="0"
 
   export tme_start_robot4_x="-1.0"
   export tme_start_robot4_y="-1.0"
   export tme_start_robot4_z="0.0"
-  export tme_start_robot4_yaw="1.5708"
+  export tme_start_robot4_yaw="0"
 
   export tme_start_robot5_x="1.0"
   export tme_start_robot5_y="1.0"
   export tme_start_robot5_z="0.0"
-  export tme_start_robot5_yaw="1.5708"
+  export tme_start_robot5_yaw="0"
 fi
 if [ $world="maze" ]
 then

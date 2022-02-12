@@ -4,3 +4,5 @@ robot_radius: 0.10
 #inflation_layer:
 inflation_radius: 0.7
 cost_scaling_factor: 1.00
+track_unknown_space: true
+map_topic: new_map

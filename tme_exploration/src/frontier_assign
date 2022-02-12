@@ -200,7 +200,7 @@ class frontierAssign:
             j = i+1
             try:
                 tf_topic = f'/robot{j}/map'
-                (trans, rot) = listener.lookupTransform(f'/robot{j}/base_link', tf_topic, rospy.Time(0))
+                (trans, rot) = listener.lookupTransform(tf_topic, f'/robot{j}/base_link', rospy.Time(0))
                 robot_location = Point(x=trans[0], y=trans[1])
                 self.robotPosition[i] = robot_location
             except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
@@ -428,9 +428,6 @@ class frontierAssign:
                 frontierDistances[j][i] = self.speedModifier[i] * testing
         
         end = time.time()
-        rospy.logwarn(f'For {robot_len} robots and {goals_len} goals this took {end - start}')
-        rospy.logwarn(robots)
-        rospy.logwarn(frontierDistances)
 
         return frontierDistances
 
@@ -459,7 +456,7 @@ class frontierAssign:
 
     def rank_distance(self):
         self.frontier_distance()
-        self.frontier_distance_modifier('euclid')
+        self.frontier_distance_modifier('xyz')
         order = np.argsort(self.frontierDistanceModifier, axis=0)
         ranks = np.argsort(order, axis=0)
         maximum = np.max(ranks)
@@ -600,7 +597,7 @@ if __name__ == '__main__':
                         marker.ns = 'beep'
                         id += 1
                         marker.id = id
-                        marker.pose.position = fInstance.robotPosition[i]
+                        marker.pose.position = goal_location
                         if i == 0:
                             marker.color.r = 0
                             marker.color.g = 0
@@ -641,7 +638,7 @@ if __name__ == '__main__':
                         marker.ns = 'beep'
                         id += 1
                         marker.id = id
-                        marker.pose.position = fInstance.robotPosition[i]
+                        marker.pose.position = goal_location
                         if i == 0:
                             marker.color.r = 0
                             marker.color.g = 0

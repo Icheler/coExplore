@@ -41,8 +41,10 @@ int main(int argc, char * argv[])
   {
     if ( (slam_map.data.size() != 0) || slam_map.info.origin.position.x !=0 )
     {
-      const size_t width_ = 1000;
-      const size_t height_ = 1000;
+      const size_t sizing_ = 1000;
+
+      const size_t width_ = sizing_;
+      const size_t height_ = sizing_;
 
       // Create the new larger maps for each robot
       nav_msgs::OccupancyGrid new_map;

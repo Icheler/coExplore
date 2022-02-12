@@ -711,7 +711,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: false
       Name: Map
-      Topic: /robot1/move_base/local_costmap/costmap
+      Topic: /robot1/move_base/global_costmap/costmap
       Unreliable: false
       Use Timestamp: false
       Value: false
@@ -721,7 +721,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: false
       Name: Map
-      Topic: /robot2/move_base/local_costmap/costmap
+      Topic: /robot2/move_base/global_costmap/costmap
       Unreliable: false
       Use Timestamp: false
       Value: false
@@ -761,7 +761,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 61.91177749633789
+      Distance: 58.42195129394531
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
