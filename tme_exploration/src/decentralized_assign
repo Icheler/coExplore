@@ -112,12 +112,6 @@ class frontierAssign:
     def set_goals(self, number, value):
         self.goals[number] = value
 
-    def set_searchNow_false(self):
-        self.searchNow = False
-
-    def set_chosenMethod(self, method):
-        self.chosenMethod = method
-
     def increment_frontiers(self, number):
         self.explored_frontiers[number] += 1
 
@@ -231,7 +225,6 @@ class frontierAssign:
     def assign_robot_speed(self):
         for i in range(0, self.numberRobots):
             temp_str = '/' + self.robotPrefix + str(i+1) + '/max_velocity'
-            #TODO
             self.robotSpeeds[i] = 1#rospy.get_param(temp_str)
         self.maxSpeed = np.max(self.robotSpeeds)
 
@@ -344,10 +337,15 @@ class frontierAssign:
 
     def clean_neighbors(self, array, indices, clean_area):
         result = array
+        shapes = result.shape
         for x,y in indices:
-            result[x][y] = 1
+            if x < shapes[0] and y < shapes[1] and x > -1 and y > -1:
+                result[x][y] = 1
             for dx, dy in clean_area:
-                result[x+dx][y+dy] = 1
+                x_test = x+dx
+                y_test = y+dy
+                if x_test < shapes[0] and y_test < shapes[1] and x_test > -1 and y_test > -1:
+                    result[x+dx][y+dy] = 1
         return result
 
     def point_to_matrix(self, point):
@@ -453,7 +451,10 @@ if __name__ == '__main__':
 
     param_rate = rospy.get_param('~frontier_rate', 5)
 
-    data = rospy.wait_for_message('/tme_frontier_search/frontierArray', frontierArray)
+    relative_name = rospy.get_name()
+    robot_number = int(list(filter(str.isdigit, relative_name))[0])
+
+    data = rospy.wait_for_message('tme_frontier_search/frontierArray', frontierArray)
 
     fInstance = frontierAssign()
 
@@ -464,19 +465,13 @@ if __name__ == '__main__':
     # one of: nearest, greedy, combined, minPos
     chosen_method = rospy.get_param('~frontier_method')
     rospy.logwarn("Method is set to find {} goal".format(chosen_method))
-    fInstance.set_chosenMethod(chosen_method)
+    fInstance.chosenMethod = chosen_method
 
-    rospy.Subscriber("/tme_frontier_search/frontierArray", frontierArray, fInstance.callback_frontiers)
+    rospy.Subscriber("tme_frontier_search/frontierArray", frontierArray, fInstance.callback_frontiers)
     subscriber_position = []
 
-    rospy.Subscriber('map', OccupancyGrid, fInstance.callback_map)
+    rospy.Subscriber('new_map', OccupancyGrid, fInstance.callback_map)
 
-    #this was used in conjunction with hector_mapping, since switch to slam_toolbox this has become obsolete
-    #TODO cross-compatibility with slam_toolbox, gmapping, hector_mapping etc.    
-    #for i in range(fInstance.get_numberRobots()):
-    #    j = i+1
-    #   topic = '/' + fInstance.get_robotPrefix() + str(j) + '/poseupdate'
-    #    subscriber_position.append(rospy.Subscriber(topic, PoseWithCovarianceStamped, callback=fInstance.callback_position, callback_args = topic))
     chosen_method_id = 0
 
     if(chosen_method == 'nearest'):
@@ -544,108 +539,98 @@ if __name__ == '__main__':
 
             cost_matrix = np.transpose(cost_matrix)
             row_ind, col_ind = linear_sum_assignment(cost_matrix)
+            
+            j = robot_number
+            i = j - 1
+            last_valid = j
+            topic = '/robot' + str(j) + '/move_base'
+            temp_frontiers = frontiers.frontiers
 
+            temp_assignment = temp_frontiers[col_ind[i]]
+            goal_location = temp_assignment.centroid
 
-            for i in range(num_robots):
-                j = i+1
-                last_valid = j
-                topic = '/robot' + str(j) + '/move_base'
-                temp_frontiers = frontiers.frontiers
-                tessting = []
-                if(len(temp_frontiers) <= num_robots):
-                    if(j > len(temp_frontiers)):
-                        tessting.append(i)
-                        temp_assignment = temp_frontiers[col_ind[len(temp_frontiers)-1]]
-                        goal_location = temp_assignment.centroid
+            goals = fInstance.goals
+
+            if(fInstance.lastSearchTime[i] + rospy.Duration(secs=5) < rospy.Time.now()):
+                if(goal_location != goals[i]):
+                    fInstance.set_goals(i, goal_location)
+                    fInstance.movebase_client(topic=topic, number=i, position=goal_location)
+                    marker = fInstance.robotMarker
+                    marker.header.stamp = rospy.Time.now()
+                    marker.ns = 'beep'
+                    id += 1
+                    marker.id = id
+                    marker.pose.position = goal_location
+                    if i == 0:
+                        marker.color.r = 0
+                        marker.color.g = 0
+                        marker.color.b = 0
+                    elif i == 1:
+                        marker.color.r = 1
+                        marker.color.g = 1
+                        marker.color.b = 1
+                    elif i == 2:
+                        marker.color.r = 0
+                        marker.color.g = 1
+                        marker.color.b = 1
+                    elif i == 3:
+                        marker.color.r = 1
+                        marker.color.g = 0
+                        marker.color.b = 1
+                    elif i == 4:
+                        marker.color.r = 1
+                        marker.color.g = 1
+                        marker.color.b = 0
                     else:
-                        temp_assignment = temp_frontiers[col_ind[i]]
-                        goal_location = temp_assignment.centroid
-                else:
-                    temp_assignment = temp_frontiers[col_ind[i]]
-                    goal_location = temp_assignment.centroid
+                        marker.color.r = 0
+                        marker.color.g = 0
+                        marker.color.b = 1
+                    marker.lifetime = rospy.Duration(5)
 
-                goals = fInstance.goals
+                    markerPub.publish(marker)
 
-                if(fInstance.get_lastSearchTime(i) + rospy.Duration(secs=5)< rospy.Time.now()):
-                    if(goal_location != goals[i]):
-                        fInstance.set_goals(i, goal_location)
-                        fInstance.movebase_client(topic=topic, number=i, position=goal_location)
-                        marker = fInstance.get_robotMarker()
-                        marker.header.stamp = rospy.Time.now()
-                        marker.ns = 'beep'
-                        id += 1
-                        marker.id = id
-                        marker.pose.position = goal_location
-                        if i == 0:
-                            marker.color.r = 0
-                            marker.color.g = 0
-                            marker.color.b = 0
-                        elif i == 1:
-                            marker.color.r = 1
-                            marker.color.g = 1
-                            marker.color.b = 1
-                        elif i == 2:
-                            marker.color.r = 0
-                            marker.color.g = 1
-                            marker.color.b = 1
-                        elif i == 3:
-                            marker.color.r = 1
-                            marker.color.g = 0
-                            marker.color.b = 1
-                        elif i == 4:
-                            marker.color.r = 1
-                            marker.color.g = 1
-                            marker.color.b = 0
-                        else:
-                            marker.color.r = 0
-                            marker.color.g = 0
-                            marker.color.b = 1
-                        marker.lifetime = rospy.Duration(5)
+                    #fInstance.movebase_spoof(number=i, position=goal_location)
+                    fInstance.increment_frontiers(i)
+                elif(fInstance.lastSearchTime[i] + rospy.Duration(secs=10)< rospy.Time.now()):
+                    goal_location.x += random.uniform(-0.5, 0.5)
+                    goal_location.y += random.uniform(-0.5, 0.5)
+                    fInstance.set_goals(i, goal_location)
+                    fInstance.movebase_client(topic=topic, number=i, position=goal_location, delete=True)
+                    marker = fInstance.robotMarker
+                    marker.header.stamp = rospy.Time.now()
+                    marker.ns = 'beep'
+                    id += 1
+                    marker.id = id
+                    marker.pose.position = goal_location
+                    if i == 0:
+                        marker.color.r = 0
+                        marker.color.g = 0
+                        marker.color.b = 0
+                    elif i == 1:
+                        marker.color.r = 1
+                        marker.color.g = 1
+                        marker.color.b = 1
+                    elif i == 2:
+                        marker.color.r = 0
+                        marker.color.g = 1
+                        marker.color.b = 1
+                    elif i == 3:
+                        marker.color.r = 1
+                        marker.color.g = 0
+                        marker.color.b = 1
+                    elif i == 4:
+                        marker.color.r = 1
+                        marker.color.g = 1
+                        marker.color.b = 0
+                    else:
+                        marker.color.r = 0
+                        marker.color.g = 0
+                        marker.color.b = 1
+                    marker.lifetime = rospy.Duration(20)
 
-                        markerPub.publish(marker)
+                    markerPub.publish(marker)
 
-                        #fInstance.movebase_spoof(number=i, position=goal_location)
-                        fInstance.increment_frontiers(i)
-                    elif(fInstance.get_lastSearchTime(i) + rospy.Duration(secs=10)< rospy.Time.now()):
-                        goal_location.x += random.uniform(-0.5, 0.5)
-                        goal_location.y += random.uniform(-0.5, 0.5)
-                        fInstance.set_goals(i, goal_location)
-                        fInstance.movebase_client(topic=topic, number=i, position=goal_location, delete=True)
-                        marker = fInstance.get_robotMarker()
-                        marker.header.stamp = rospy.Time.now()
-                        marker.ns = 'beep'
-                        id += 1
-                        marker.id = id
-                        marker.pose.position = goal_location
-                        if i == 0:
-                            marker.color.r = 0
-                            marker.color.g = 0
-                            marker.color.b = 0
-                        elif i == 1:
-                            marker.color.r = 1
-                            marker.color.g = 1
-                            marker.color.b = 1
-                        elif i == 2:
-                            marker.color.r = 0
-                            marker.color.g = 1
-                            marker.color.b = 1
-                        elif i == 3:
-                            marker.color.r = 1
-                            marker.color.g = 0
-                            marker.color.b = 1
-                        elif i == 4:
-                            marker.color.r = 1
-                            marker.color.g = 1
-                            marker.color.b = 0
-                        else:
-                            marker.color.r = 0
-                            marker.color.g = 0
-                            marker.color.b = 1
-                        marker.lifetime = rospy.Duration(20)
-
-                        markerPub.publish(marker)
-
-                        #fInstance.movebase_spoof(number=i, position=goal_location)
+                    #fInstance.movebase_spoof(number=i, position=goal_location)
 
         else:
             if fInstance.frontiers:
@@ -658,7 +643,7 @@ if __name__ == '__main__':
         if(time_estimate % 25 == 0 or time_estimate == 0):
             time_estimate = int(time_estimate)
             temp_estimate = int(time_estimate / 5)
-            fInstance.distance_tracker(temp_estimate)
+            #fInstance.distance_tracker(temp_estimate)
 
         time_estimate += time_increment
 

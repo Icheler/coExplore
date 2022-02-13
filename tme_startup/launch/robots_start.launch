@@ -86,20 +86,4 @@
           -Y $(env tme_start_robot5_yaw)
           -param /robot_description" />
     </group>
-    <!-- <group ns="robot_blind">
-        <param name="tf_prefix" value="robot_blind"/>
-            <arg name="name"  value="robot_blind"/>
-
-        <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen">
-            <param name="publish_frequency" type="double" value="20.0"/>
-        </node>
-
-        <node pkg="gazebo_ros" type="spawn_model" name="spawn_urdf"  args="-urdf -model $(arg name)
-          -x $(env tme_start_robot_blind_x)
-          -y $(env tme_start_robot_blind_y)
-          -z $(env tme_start_robot_blind_z)
-          -Y $(env tme_start_robot_blind_yaw)
-          -param /robot_blind_description" />
-    </group>
-    -->
 </launch>

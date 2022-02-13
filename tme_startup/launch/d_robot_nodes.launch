@@ -19,6 +19,19 @@
             <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS" />
         </node>
 
+        <node pkg="tme_exploration" type="frontier_search" name="tme_frontier_search" respawn="True" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' ">
+            <param name="map_topic" value="new_map"/>
+        </node>
+
+        <node pkg="tme_exploration" type="decentralized_assign" name="tme_frontier_assign" respawn="True" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' ">
+            <param name="number_of_robots" value="$(env tme_start_num)"/>
+            <param name="robot_ns" value="robot"/>
+            <param name="frontier_rate" value="5"/>
+            <param name="frontier_method" value="$(env tme_expl_method)"/>
+            <param name="visibility_weighting" value="1"/>
+            <param name="speed_weighting" value="1"/>
+        </node>
+
         <node pkg="tme_exploration" type="map_extender" name="map_extender" respawn="true"/>
 
         <node pkg="tf2_ros" type="static_transform_publisher" name="$(arg robot_name)_map_tf_broadcaster" args="0 0 0 0 0 0 /$(arg robot_name)/new_map /$(arg robot_name)/map"/>

@@ -44,7 +44,7 @@ def runAll(numRobots = 2, world = 'v2_maze', methods = ['coExplore'], stopTime=4
 if __name__ == '__main__':
 
     numRobots = [5, 4, 3, 2]
-    world = ['map_3', 'v2_maze'] #v2_maze, map_3, marty
+    world = ['marty', 'map_3', 'v2_maze'] #v2_maze, map_3, marty
     method = ['coExplore']#['nearest', 'greedy', 'minPos', 'combined', 'coExplore']
     stopTime = [250, 300, 350, 500]
     tries = [10]
