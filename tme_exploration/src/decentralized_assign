@@ -206,7 +206,7 @@ class frontierAssign:
     def frontier_distance(self, frontiers, positions, map, estimate='xyz'):
         local_frontiers = frontiers
         l_positions = positions
-        r_distances = np.empty((len(local_frontiers.frontiers), len(l_positions)))
+        r_distances = np.empty((len(local_frontiers.frontiers), 1))
         if estimate == 'euclid':
             for i in range(len(local_frontiers.frontiers)):
                 for j in range(len(l_positions)):
@@ -380,24 +380,23 @@ class frontierAssign:
 
     def wavefront_robot_to_frontier(self, frontiers, positions, maps):
         robots = copy.deepcopy(positions)
-        robot_len = len(robots)
+        robot_len = 1
         goals = copy.deepcopy(frontiers.frontiers)
         goals_len = len(goals)
         map = copy.deepcopy(maps)
         map = np.where(map > 99, -1, map)
         map = np.where(map == 0, 1, map)
-        for i in range(robot_len):
-            temp = self.point_to_matrix(robots[i])
-            robots[i] = self.point_to_map_matrix(temp)
+        temp = self.point_to_matrix(robots)
+        robots = self.point_to_map_matrix(temp)
         for i in range(goals_len):
             temp = self.centroid_to_matrix(goals[i])
             goals[i] = self.point_to_map_matrix(temp)
-        map = self.clean_neighbors(map, robots, self.clean_area)
+        map = self.clean_neighbors(map, [robots], self.clean_area)
         map = self.clean_neighbors(map, goals, self.clean_area)
         l_graph = graph.MCP(costs=map, fully_connected=False)
         frontierDistances = np.ones((goals_len, self.numberRobots))
         for i in range(robot_len):
-            cost_array, tracebacks_array = l_graph.find_costs([robots[i]], goals, find_all_ends=True)
+            cost_array, tracebacks_array = l_graph.find_costs([robots], goals, find_all_ends=True)
             for j in range(len(goals)):
                 temp = goals[j]
                 testing = cost_array[temp[0]][temp[1]]
@@ -509,9 +508,12 @@ if __name__ == '__main__':
             visibility = None
             distance_method = 'xyz'
             num_robots = copy.deepcopy(fInstance.numberRobots)
+
+            j = robot_number
+            i = j - 1
             
             if(chosen_method_id == 0):
-                distances = fInstance.frontier_distance(frontiers, positions, map)
+                distances = fInstance.frontier_distance(frontiers, positions[i], map)
                 cost_matrix = distances
             
             elif(chosen_method_id == 1):
@@ -519,20 +521,20 @@ if __name__ == '__main__':
                 cost_matrix = visibility
             
             elif(chosen_method_id == 2):
-                ranks = fInstance.rank_matrix(frontiers, positions, map)
-                distances = fInstance.frontier_distance(frontiers, positions, map)
+                ranks = fInstance.rank_matrix(frontiers, positions[i], map)
+                distances = fInstance.frontier_distance(frontiers, positions[i], map)
                 cost_matrix = ranks + 0.00001 * distances
 
             elif(chosen_method_id == 3):
                 visibility = fInstance.frontier_visibility_modifier(frontiers)
-                distances = fInstance.frontier_distance(frontiers, positions, map)
+                distances = fInstance.frontier_distance(frontiers, positions[i], map)
                 cost_matrix = distances
                 cost_matrix = cost_matrix + visibility
 
             else:
                 visibility = fInstance.frontier_visibility_modifier(frontiers)
-                rank_distance = fInstance.rank_distance(frontiers, positions, map)
-                rank_matrix_norm = fInstance.rank_matrix_norm(frontiers, positions, map)
+                rank_distance = fInstance.rank_distance(frontiers, positions[i], map)
+                rank_matrix_norm = fInstance.rank_matrix_norm(frontiers, positions[i], map)
                 cost_matrix = rank_distance
                 cost_matrix = cost_matrix + visibility
                 cost_matrix = cost_matrix + rank_matrix_norm
@@ -540,13 +542,12 @@ if __name__ == '__main__':
             cost_matrix = np.transpose(cost_matrix)
             row_ind, col_ind = linear_sum_assignment(cost_matrix)
             
-            j = robot_number
-            i = j - 1
             last_valid = j
             topic = '/robot' + str(j) + '/move_base'
             temp_frontiers = frontiers.frontiers
 
-            temp_assignment = temp_frontiers[col_ind[i]]
+            rospy.logerr(col_ind)
+            temp_assignment = temp_frontiers[col_ind[0]]
             goal_location = temp_assignment.centroid
 
             goals = fInstance.goals
