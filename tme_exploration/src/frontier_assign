@@ -223,7 +223,8 @@ class frontierAssign:
         else:
             r_distances = self.wavefront_robot_to_frontier(frontiers, positions, map)
             r_distances = np.where(np.isinf(r_distances), 2000, r_distances)
-        r_distances = r_distances / np.max(r_distances)
+        if np.max(r_distances):
+            r_distances = r_distances / np.max(r_distances)
         return r_distances
 
 
@@ -412,7 +413,7 @@ class frontierAssign:
         frontier_distance = self.frontier_distance(frontiers, positions, map)
         order = np.argsort(frontier_distance, axis=1)
         ranks = np.argsort(order, axis=1)
-        return ranks + 0.01 * frontier_distance
+        return ranks + 0.00001 * frontier_distance
 
     def rank_matrix_norm(self, frontiers, positions, map):
         frontier_distance = self.frontier_distance(frontiers, positions, map)
@@ -566,11 +567,11 @@ if __name__ == '__main__':
 
                 goals = fInstance.goals
 
-                if(fInstance.get_lastSearchTime(i) + rospy.Duration(secs=5)< rospy.Time.now()):
+                if(fInstance.lastSearchTime[i] + rospy.Duration(secs=5)< rospy.Time.now()):
                     if(goal_location != goals[i]):
                         fInstance.set_goals(i, goal_location)
                         fInstance.movebase_client(topic=topic, number=i, position=goal_location)
-                        marker = fInstance.get_robotMarker()
+                        marker = fInstance.robotMarker
                         marker.header.stamp = rospy.Time.now()
                         marker.ns = 'beep'
                         id += 1
@@ -606,12 +607,12 @@ if __name__ == '__main__':
 
                         #fInstance.movebase_spoof(number=i, position=goal_location)
                         fInstance.increment_frontiers(i)
-                    elif(fInstance.get_lastSearchTime(i) + rospy.Duration(secs=10)< rospy.Time.now()):
+                    elif(fInstance.lastSearchTime[i] + rospy.Duration(secs=10)< rospy.Time.now()):
                         goal_location.x += random.uniform(-0.5, 0.5)
                         goal_location.y += random.uniform(-0.5, 0.5)
                         fInstance.set_goals(i, goal_location)
                         fInstance.movebase_client(topic=topic, number=i, position=goal_location, delete=True)
-                        marker = fInstance.get_robotMarker()
+                        marker = fInstance.robotMarker
                         marker.header.stamp = rospy.Time.now()
                         marker.ns = 'beep'
                         id += 1

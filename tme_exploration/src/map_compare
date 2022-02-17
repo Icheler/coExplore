@@ -97,14 +97,18 @@ if __name__ == '__main__':
         base_file = os.path.join(os.path.expanduser('~'), map_file_location, map_file_name)
         baseLine = np.loadtxt(base_file, ndmin=2)
 
-        baseLine = baseLine.reshape(MAP_SIZE, -1)
+        try:
+            baseLine = baseLine.reshape(MAP_SIZE, -1)
+        except:
+            baseLine = baseLine.reshape(1002, -1)
+            MAP_SIZE = 1002
 
         while(np.size(baseLine, 1) > MAP_SIZE):
             baseLine = np.delete(baseLine, (0), axis=1)
         while(np.size(baseLine, 0) > MAP_SIZE):
             baseLine = np.delete(baseLine, (0), axis=0)
 
-        base_difference = np.full((1000, MAP_SIZE), -1)
+        base_difference = np.full(baseLine.shape, -1)
 
         base_metric = np.mean(baseLine != base_difference)
 
