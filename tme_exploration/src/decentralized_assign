@@ -58,7 +58,7 @@ class frontierAssign:
         self.explored_frontiers = np.empty(self.numberRobots)
         self.map_name = os.environ['tme_ROBOT_ENV']
         self.map = None
-        self.clean_area = self.get_clean_area(25)
+        self.clean_area = self.get_clean_area(100)
         self.robot_number = None
 
         atexit.register(self.exit_handler)
@@ -198,8 +198,9 @@ class frontierAssign:
                         r_distances[i][j] = 50
         else:
             r_distances = self.wavefront_robot_to_frontier(frontiers, positions, map)
-            r_distances = np.where(np.isinf(r_distances), 2000, r_distances)
-        r_distances = r_distances / np.max(r_distances)
+            r_distances = np.where(np.isinf(r_distances), 500, r_distances)
+        if np.max(r_distances) != 0:
+            r_distances = r_distances / np.max(r_distances)
         return r_distances
 
 
@@ -342,9 +343,9 @@ class frontierAssign:
             if type(centroid).__module__ == np.__name__:
                 return centroid
             else:
-                return [centroid.centroid.x, centroid.centroid.y]
+                return [centroid.initial.x, centroid.initial.y]
         except:
-            return [centroid.centroid.x, centroid.centroid.y]
+            return [centroid.initial.x, centroid.initial.y]
 
     def point_to_map_matrix(self, point_array):
         result = np.empty_like(point_array, dtype = int)
@@ -381,6 +382,19 @@ class frontierAssign:
             for j in range(len(goals)):
                 temp = goals[j]
                 testing = cost_array[temp[0]][temp[1]]
+                # if result is inf try to find result in vicinity with non-inf value
+                if np.isinf(testing):
+                    shapes = cost_array.shape
+                    x = temp[0]
+                    y = temp[1]
+                    for dx, dy in self.clean_area:
+                        x_test = x+dx
+                        y_test = y+dy
+                        if x_test < shapes[0] and y_test < shapes[1] and x_test > -1 and y_test > -1:
+                            if np.isinf(cost_array[x_test][y_test]):
+                                testing = cost_array[x_test][y_test]
+                                break
+
                 frontierDistances[j][i] = self.speedModifier[i] * testing
         return frontierDistances
 
@@ -392,6 +406,7 @@ class frontierAssign:
         ranks = np.argsort(order, axis=1)
         return ranks + 0.00001 * frontier_distance
 
+    # same as rank_matrix but matrix gets normalized at the end
     def rank_matrix_norm(self, frontiers, positions, map):
         frontier_distance = self.frontier_distance(frontiers, positions, map)
         order = np.argsort(frontier_distance, axis=1)
@@ -403,6 +418,7 @@ class frontierAssign:
             result = ranks
         return result
 
+    # ranks matrix from closest to robot to furthest
     def rank_distance(self, frontiers, positions, map):
         frontier_distance = self.frontier_distance(frontiers, positions, map)
         order = np.argsort(frontier_distance, axis=0)
@@ -451,7 +467,7 @@ if __name__ == '__main__':
     rospy.Subscriber("tme_frontier_search/frontierArray", frontierArray, fInstance.callback_frontiers)
     subscriber_position = []
 
-    rospy.Subscriber('new_map', OccupancyGrid, fInstance.callback_map)
+    rospy.Subscriber('map', OccupancyGrid, fInstance.callback_map)
 
     chosen_method_id = 0
 
@@ -513,23 +529,27 @@ if __name__ == '__main__':
                 cost_matrix = cost_matrix + visibility
 
             else:
-                visibility = fInstance.frontier_visibility_modifier(frontiers)
-                rank_distance = fInstance.rank_distance(frontiers, positions, map)[0]
+                visibility = fInstance.rank_visibility(frontiers)[:, i]
+                visibility = np.reshape(visibility, (-1, 1))
+                rank_distance = fInstance.rank_distance(frontiers, positions, map)[:, i]
+                rank_distance = np.reshape(rank_distance, (-1, 1))
                 rank_matrix_norm = fInstance.rank_matrix_norm(frontiers, [positions[i]], map)
-                rospy.logwarn(rank_matrix_norm)
-                rank_matrix_norm = rank_matrix_norm[0]
+                rospy.logwarn(f'visbility: {i}\{visibility}')
+                rospy.logwarn(f'rank_distance: {i}\{rank_distance}')
+                rospy.logwarn(f'rank_matrix: {i}\{rank_matrix_norm}')
                 cost_matrix = rank_distance
                 cost_matrix = cost_matrix + visibility
                 cost_matrix = cost_matrix + rank_matrix_norm
 
             cost_matrix = np.transpose(cost_matrix)
-            row_ind, col_ind = linear_sum_assignment(cost_matrix)
+            cost_index = np.argmin(cost_matrix)
+            rospy.logwarn(f'{i}\{cost_index}')
             
             last_valid = j
             topic = '/robot' + str(j) + '/move_base'
             temp_frontiers = frontiers.frontiers
 
-            temp_assignment = temp_frontiers[col_ind[0]]
+            temp_assignment = temp_frontiers[cost_index]
             goal_location = temp_assignment.centroid
 
             goals = fInstance.goals
@@ -543,7 +563,7 @@ if __name__ == '__main__':
                     marker.ns = 'beep'
                     id += 1
                     marker.id = id
-                    marker.pose.position = goal_location
+                    marker.pose.position = positions[i]
                     if i == 0:
                         marker.color.r = 0
                         marker.color.g = 0
@@ -584,7 +604,7 @@ if __name__ == '__main__':
                     marker.ns = 'beep'
                     id += 1
                     marker.id = id
-                    marker.pose.position = goal_location
+                    marker.pose.position = positions[i]
                     if i == 0:
                         marker.color.r = 0
                         marker.color.g = 0

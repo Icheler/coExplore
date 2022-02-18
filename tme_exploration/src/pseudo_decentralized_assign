@@ -92,7 +92,7 @@ class frontierAssign:
         self.robotMarker.color.a = 1.0
 
     def exit_handler(self):
-        travelDistances = self.travelDistances
+        """ travelDistances = self.travelDistances
 
         date_string = self.date_string
 
@@ -105,18 +105,12 @@ class frontierAssign:
 
         a_file.close()
 
-        rospy.logwarn('created file named: ' + file_name)
+        rospy.logwarn('created file named: ' + file_name) """
 
     # Getters for various parameters
 
     def set_goals(self, number, value):
         self.goals[number] = value
-
-    def set_searchNow_false(self):
-        self.searchNow = False
-
-    def set_chosenMethod(self, method):
-        self.chosenMethod = method
 
     def increment_frontiers(self, number):
         self.explored_frontiers[number] += 1
@@ -476,7 +470,7 @@ if __name__ == '__main__':
     # one of: nearest, greedy, combined, minPos
     chosen_method = rospy.get_param('~frontier_method')
     rospy.logwarn("Method is set to find {} goal".format(chosen_method))
-    fInstance.set_chosenMethod(chosen_method)
+    fInstance.chosenMethod = chosen_method
 
     rospy.Subscriber("/tme_frontier_search/frontierArray", frontierArray, fInstance.callback_frontiers)
     subscriber_position = []
