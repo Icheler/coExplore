@@ -59,6 +59,7 @@ class frontierAssign:
         self.map_name = os.environ['tme_ROBOT_ENV']
         self.map = None
         self.clean_area = self.get_clean_area(100)
+        self.robot_number = None
 
         atexit.register(self.exit_handler)
 
@@ -216,7 +217,7 @@ class frontierAssign:
                         r_distances[i][j] = 50
         else:
             r_distances = self.wavefront_robot_to_frontier(frontiers, positions, map)
-            r_distances = np.where(np.isinf(r_distances), 2000, r_distances)
+            r_distances = np.where(np.isinf(r_distances), 500, r_distances)
         if np.max(r_distances):
             r_distances = r_distances / np.max(r_distances)
         return r_distances
@@ -339,10 +340,15 @@ class frontierAssign:
 
     def clean_neighbors(self, array, indices, clean_area):
         result = array
+        shapes = result.shape
         for x,y in indices:
-            result[x][y] = 1
+            if x < shapes[0] and y < shapes[1] and x > -1 and y > -1:
+                result[x][y] = 1
             for dx, dy in clean_area:
-                result[x+dx][y+dy] = 1
+                x_test = x+dx
+                y_test = y+dy
+                if x_test < shapes[0] and y_test < shapes[1] and x_test > -1 and y_test > -1:
+                    result[x+dx][y+dy] = 1
         return result
 
     def point_to_matrix(self, point):
@@ -359,9 +365,9 @@ class frontierAssign:
                 rospy.logwarn(centroid)
                 return centroid
             else:
-                return [centroid.centroid.x, centroid.centroid.y]
+                return [centroid.initial.x, centroid.initial.y]
         except:
-            return [centroid.centroid.x, centroid.centroid.y]
+            return [centroid.initial.x, centroid.initial.y]
 
     def point_to_map_matrix(self, point_array):
         result = np.empty_like(point_array, dtype = int)
@@ -392,12 +398,13 @@ class frontierAssign:
         map = self.clean_neighbors(map, robots, self.clean_area)
         map = self.clean_neighbors(map, goals, self.clean_area)
         l_graph = graph.MCP(costs=map, fully_connected=False)
-        frontierDistances = np.ones((goals_len, self.numberRobots))
+        frontierDistances = np.ones((goals_len, robot_len))
         for i in range(robot_len):
             cost_array, tracebacks_array = l_graph.find_costs([robots[i]], goals, find_all_ends=True)
             for j in range(len(goals)):
                 temp = goals[j]
                 testing = cost_array[temp[0]][temp[1]]
+                # if result is inf try to find result in vicinity with non-inf value
                 if np.isinf(testing):
                     shapes = cost_array.shape
                     x = temp[0]
@@ -420,6 +427,7 @@ class frontierAssign:
         ranks = np.argsort(order, axis=1)
         return ranks + 0.00001 * frontier_distance
 
+    # same as rank_matrix but matrix gets normalized at the end
     def rank_matrix_norm(self, frontiers, positions, map):
         frontier_distance = self.frontier_distance(frontiers, positions, map)
         order = np.argsort(frontier_distance, axis=1)
@@ -431,6 +439,7 @@ class frontierAssign:
             result = ranks
         return result
 
+    # ranks matrix from closest to robot to furthest
     def rank_distance(self, frontiers, positions, map):
         frontier_distance = self.frontier_distance(frontiers, positions, map)
         order = np.argsort(frontier_distance, axis=0)
@@ -459,9 +468,13 @@ if __name__ == '__main__':
 
     param_rate = rospy.get_param('~frontier_rate', 5)
 
+    relative_name = rospy.get_name()
+    robot_number = int(list(filter(str.isdigit, relative_name))[0])
+
     data = rospy.wait_for_message('/tme_frontier_search/frontierArray', frontierArray)
 
     fInstance = frontierAssign()
+    fInstance.robot_number = robot_number - 1
 
     listener = tf.TransformListener()
 
@@ -475,14 +488,8 @@ if __name__ == '__main__':
     rospy.Subscriber("/tme_frontier_search/frontierArray", frontierArray, fInstance.callback_frontiers)
     subscriber_position = []
 
-    rospy.Subscriber('map', OccupancyGrid, fInstance.callback_map)
+    rospy.Subscriber('/map', OccupancyGrid, fInstance.callback_map)
 
-    #this was used in conjunction with hector_mapping, since switch to slam_toolbox this has become obsolete
-    #TODO cross-compatibility with slam_toolbox, gmapping, hector_mapping etc.    
-    #for i in range(fInstance.get_numberRobots()):
-    #    j = i+1
-    #   topic = '/' + fInstance.get_robotPrefix() + str(j) + '/poseupdate'
-    #    subscriber_position.append(rospy.Subscriber(topic, PoseWithCovarianceStamped, callback=fInstance.callback_position, callback_args = topic))
     chosen_method_id = 0
 
     if(chosen_method == 'nearest'):
@@ -508,6 +515,8 @@ if __name__ == '__main__':
     
     while not rospy.is_shutdown():
 
+        rospy.logwarn("Is this running?")
+
         cost_matrix = None
         fInstance.position_call_tf()
         
@@ -521,6 +530,9 @@ if __name__ == '__main__':
             distance_method = 'xyz'
             num_robots = copy.deepcopy(fInstance.numberRobots)
             
+            j = robot_number
+            i = j - 1
+
             if(chosen_method_id == 0):
                 distances = fInstance.frontier_distance(frontiers, positions, map)
                 cost_matrix = distances
@@ -530,128 +542,129 @@ if __name__ == '__main__':
                 cost_matrix = visibility
             
             elif(chosen_method_id == 2):
-                ranks = fInstance.rank_matrix(frontiers, positions, map)
-                distances = fInstance.frontier_distance(frontiers, positions, map)
-                cost_matrix = ranks + 0.00001 * distances
+                ranks = fInstance.rank_matrix(frontiers, [positions[i]], map)
+                cost_matrix = ranks
 
             elif(chosen_method_id == 3):
                 visibility = fInstance.frontier_visibility_modifier(frontiers)
-                distances = fInstance.frontier_distance(frontiers, positions, map)
+                distances = fInstance.frontier_distance(frontiers, [positions[i]], map)
                 cost_matrix = distances
                 cost_matrix = cost_matrix + visibility
 
             else:
-                visibility = fInstance.frontier_visibility_modifier(frontiers)
-                rank_distance = fInstance.rank_distance(frontiers, positions, map)
-                rank_matrix_norm = fInstance.rank_matrix_norm(frontiers, positions, map)
+                visibility = fInstance.rank_visibility(frontiers)[:, i]
+                visibility = np.reshape(visibility, (-1, 1))
+                rank_distance = fInstance.rank_distance(frontiers, positions, map)[:, i]
+                rank_distance = np.reshape(rank_distance, (-1, 1))
+                rank_matrix_norm = fInstance.rank_matrix_norm(frontiers, [positions[i]], map)
+                rospy.logwarn(f'visbility: {i}\{visibility}')
+                rospy.logwarn(f'rank_distance: {i}\{rank_distance}')
+                rospy.logwarn(f'rank_matrix: {i}\{rank_matrix_norm}')
                 cost_matrix = rank_distance
                 cost_matrix = cost_matrix + visibility
                 cost_matrix = cost_matrix + rank_matrix_norm
-
+            
             cost_matrix = np.transpose(cost_matrix)
             row_ind, col_ind = linear_sum_assignment(cost_matrix)
 
-
-            for i in range(num_robots):
-                j = i+1
-                last_valid = j
-                topic = '/robot' + str(j) + '/move_base'
-                temp_frontiers = frontiers.frontiers
-                tessting = []
-                if(len(temp_frontiers) <= num_robots):
-                    if(j > len(temp_frontiers)):
-                        tessting.append(i)
-                        temp_assignment = temp_frontiers[col_ind[len(temp_frontiers)-1]]
-                        goal_location = temp_assignment.centroid
-                    else:
-                        temp_assignment = temp_frontiers[col_ind[i]]
-                        goal_location = temp_assignment.centroid
+            last_valid = j
+            topic = '/robot' + str(j) + '/move_base'
+            temp_frontiers = frontiers.frontiers
+            tessting = []
+            if(len(temp_frontiers) <= num_robots):
+                if(j > len(temp_frontiers)):
+                    tessting.append(i)
+                    temp_assignment = temp_frontiers[col_ind[len(temp_frontiers)-1]]
+                    goal_location = temp_assignment.centroid
                 else:
                     temp_assignment = temp_frontiers[col_ind[i]]
                     goal_location = temp_assignment.centroid
+            else:
+                temp_assignment = temp_frontiers[col_ind[i]]
+                goal_location = temp_assignment.centroid
 
-                goals = fInstance.goals
+            goals = fInstance.goals
 
-                if(fInstance.lastSearchTime[i] + rospy.Duration(secs=5)< rospy.Time.now()):
-                    if(goal_location != goals[i]):
-                        fInstance.set_goals(i, goal_location)
-                        fInstance.movebase_client(topic=topic, number=i, position=goal_location)
-                        marker = fInstance.robotMarker
-                        marker.header.stamp = rospy.Time.now()
-                        marker.ns = 'beep'
-                        id += 1
-                        marker.id = id
-                        marker.pose.position = goal_location
-                        if i == 0:
-                            marker.color.r = 0
-                            marker.color.g = 0
-                            marker.color.b = 0
-                        elif i == 1:
-                            marker.color.r = 1
-                            marker.color.g = 1
-                            marker.color.b = 1
-                        elif i == 2:
-                            marker.color.r = 0
-                            marker.color.g = 1
-                            marker.color.b = 1
-                        elif i == 3:
-                            marker.color.r = 1
-                            marker.color.g = 0
-                            marker.color.b = 1
-                        elif i == 4:
-                            marker.color.r = 1
-                            marker.color.g = 1
-                            marker.color.b = 0
-                        else:
-                            marker.color.r = 0
-                            marker.color.g = 0
-                            marker.color.b = 1
-                        marker.lifetime = rospy.Duration(5)
+            if(fInstance.lastSearchTime[i] + rospy.Duration(secs=5)< rospy.Time.now()):
+                if(goal_location != goals[i]):
+                    fInstance.goals[i] = goal_location
+                    fInstance.movebase_client(topic=topic, number=i, position=goal_location)
+                    marker = fInstance.robotMarker
+                    marker.header.stamp = rospy.Time.now()
+                    marker.ns = 'beep'
+                    id += 1
+                    marker.id = id
+                    marker.pose.position = positions[i]
+                    if i == 0:
+                        marker.color.r = 0
+                        marker.color.g = 0
+                        marker.color.b = 0
+                    elif i == 1:
+                        marker.color.r = 1
+                        marker.color.g = 1
+                        marker.color.b = 1
+                    elif i == 2:
+                        marker.color.r = 0
+                        marker.color.g = 1
+                        marker.color.b = 1
+                    elif i == 3:
+                        marker.color.r = 1
+                        marker.color.g = 0
+                        marker.color.b = 1
+                    elif i == 4:
+                        marker.color.r = 1
+                        marker.color.g = 1
+                        marker.color.b = 0
+                    else:
+                        marker.color.r = 0
+                        marker.color.g = 0
+                        marker.color.b = 1
+                    marker.lifetime = rospy.Duration(5)
 
-                        markerPub.publish(marker)
+                    markerPub.publish(marker)
 
-                        #fInstance.movebase_spoof(number=i, position=goal_location)
-                        fInstance.increment_frontiers(i)
-                    elif(fInstance.lastSearchTime[i] + rospy.Duration(secs=10)< rospy.Time.now()):
-                        goal_location.x += random.uniform(-0.5, 0.5)
-                        goal_location.y += random.uniform(-0.5, 0.5)
-                        fInstance.set_goals(i, goal_location)
-                        fInstance.movebase_client(topic=topic, number=i, position=goal_location, delete=True)
-                        marker = fInstance.robotMarker
-                        marker.header.stamp = rospy.Time.now()
-                        marker.ns = 'beep'
-                        id += 1
-                        marker.id = id
-                        marker.pose.position = goal_location
-                        if i == 0:
-                            marker.color.r = 0
-                            marker.color.g = 0
-                            marker.color.b = 0
-                        elif i == 1:
-                            marker.color.r = 1
-                            marker.color.g = 1
-                            marker.color.b = 1
-                        elif i == 2:
-                            marker.color.r = 0
-                            marker.color.g = 1
-                            marker.color.b = 1
-                        elif i == 3:
-                            marker.color.r = 1
-                            marker.color.g = 0
-                            marker.color.b = 1
-                        elif i == 4:
-                            marker.color.r = 1
-                            marker.color.g = 1
-                            marker.color.b = 0
-                        else:
-                            marker.color.r = 0
-                            marker.color.g = 0
-                            marker.color.b = 1
-                        marker.lifetime = rospy.Duration(20)
+                    #fInstance.movebase_spoof(number=i, position=goal_location)
+                    fInstance.increment_frontiers(i)
+                elif(fInstance.lastSearchTime[i] + rospy.Duration(secs=10)< rospy.Time.now()):
+                    goal_location.x += random.uniform(-0.5, 0.5)
+                    goal_location.y += random.uniform(-0.5, 0.5)
+                    fInstance.goals[i] = goal_location
+                    fInstance.movebase_client(topic=topic, number=i, position=goal_location, delete=True)
+                    marker = fInstance.robotMarker
+                    marker.header.stamp = rospy.Time.now()
+                    marker.ns = 'beep'
+                    id += 1
+                    marker.id = id
+                    marker.pose.position = positions[i]
+                    if i == 0:
+                        marker.color.r = 0
+                        marker.color.g = 0
+                        marker.color.b = 0
+                    elif i == 1:
+                        marker.color.r = 1
+                        marker.color.g = 1
+                        marker.color.b = 1
+                    elif i == 2:
+                        marker.color.r = 0
+                        marker.color.g = 1
+                        marker.color.b = 1
+                    elif i == 3:
+                        marker.color.r = 1
+                        marker.color.g = 0
+                        marker.color.b = 1
+                    elif i == 4:
+                        marker.color.r = 1
+                        marker.color.g = 1
+                        marker.color.b = 0
+                    else:
+                        marker.color.r = 0
+                        marker.color.g = 0
+                        marker.color.b = 1
+                    marker.lifetime = rospy.Duration(20)
 
-                        markerPub.publish(marker)
+                    markerPub.publish(marker)
 
-                        #fInstance.movebase_spoof(number=i, position=goal_location)
+                    #fInstance.movebase_spoof(number=i, position=goal_location)
 
         else:
             if fInstance.frontiers:
@@ -660,11 +673,6 @@ if __name__ == '__main__':
                 rospy.logwarn('positions are empty')
 
         rate.sleep()
-
-        if(time_estimate % 25 == 0 or time_estimate == 0):
-            time_estimate = int(time_estimate)
-            temp_estimate = int(time_estimate / 5)
-            fInstance.distance_tracker(temp_estimate)
 
         time_estimate += time_increment
 
