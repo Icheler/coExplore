@@ -121,20 +121,6 @@ class frontierAssign:
     def callback_frontiers(self, data):
         self.frontiers = data
 
-    def callback_position(self, data, topic):
-        rospy.logerr(f'this is being called for {topic}')
-        number = (int)((re.search(r'\d+', topic)).group(0)) - 1
-        robot_location = data.pose.pose.position
-        try:
-            tf_topic = '/robot' + str(number+1) + '/map'
-            (trans, rot) = listener.lookupTransform('/map', tf_topic, rospy.Time(0))
-
-            robot_location.x = robot_location.x + trans[0]
-            robot_location.y = robot_location.y + trans[1]
-        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-            rospy.logerr(f'TF error for {tf_topic}')
-        self.robotPosition[number] = robot_location
-
     def callback_status(self, data, topic):
         number = (int)((re.search(r'\d+', topic)).group(0)) - 1
         status_list = data.status_list
@@ -465,13 +451,14 @@ class frontierAssign:
 if __name__ == '__main__':
     
     rospy.init_node('frontier_assign')
+    abc = 1
 
     param_rate = rospy.get_param('~frontier_rate', 5)
 
     relative_name = rospy.get_name()
     robot_number = int(list(filter(str.isdigit, relative_name))[0])
 
-    data = rospy.wait_for_message('/tme_frontier_search/frontierArray', frontierArray)
+    data = rospy.wait_for_message('tme_frontier_search/frontierArray', frontierArray)
 
     fInstance = frontierAssign()
     fInstance.robot_number = robot_number - 1
@@ -485,8 +472,7 @@ if __name__ == '__main__':
     rospy.logwarn("Method is set to find {} goal".format(chosen_method))
     fInstance.chosenMethod = chosen_method
 
-    rospy.Subscriber("/tme_frontier_search/frontierArray", frontierArray, fInstance.callback_frontiers)
-    subscriber_position = []
+    rospy.Subscriber("tme_frontier_search/frontierArray", frontierArray, fInstance.callback_frontiers)
 
     rospy.Subscriber('/map', OccupancyGrid, fInstance.callback_map)
 
@@ -514,8 +500,6 @@ if __name__ == '__main__':
     time_increment = 1
     
     while not rospy.is_shutdown():
-
-        rospy.logwarn("Is this running?")
 
         cost_matrix = None
         fInstance.position_call_tf()
@@ -552,14 +536,9 @@ if __name__ == '__main__':
                 cost_matrix = cost_matrix + visibility
 
             else:
-                visibility = fInstance.rank_visibility(frontiers)[:, i]
-                visibility = np.reshape(visibility, (-1, 1))
-                rank_distance = fInstance.rank_distance(frontiers, positions, map)[:, i]
-                rank_distance = np.reshape(rank_distance, (-1, 1))
-                rank_matrix_norm = fInstance.rank_matrix_norm(frontiers, [positions[i]], map)
-                rospy.logwarn(f'visbility: {i}\{visibility}')
-                rospy.logwarn(f'rank_distance: {i}\{rank_distance}')
-                rospy.logwarn(f'rank_matrix: {i}\{rank_matrix_norm}')
+                visibility = fInstance.rank_visibility(frontiers)
+                rank_distance = fInstance.rank_distance(frontiers, positions, map)
+                rank_matrix_norm = fInstance.rank_matrix_norm(frontiers, positions, map)
                 cost_matrix = rank_distance
                 cost_matrix = cost_matrix + visibility
                 cost_matrix = cost_matrix + rank_matrix_norm

@@ -5,7 +5,7 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
-      Splitter Ratio: 0.49705880880355835
+      Splitter Ratio: 0.49117645621299744
     Tree Height: 1079
   - Class: rviz/Selection
     Name: Selection
@@ -472,13 +472,13 @@ Visualization Manager:
       Value: true
       Visual Enabled: true
     - Class: rviz/MarkerArray
-      Enabled: false
+      Enabled: true
       Marker Topic: /robot1/tme_frontier_search/frontiers
       Name: MarkerArray
       Namespaces:
-        {}
+        frontiers: true
       Queue Size: 100
-      Value: false
+      Value: true
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
@@ -531,7 +531,7 @@ Visualization Manager:
       Buffer Length: 1
       Class: rviz/Path
       Color: 0; 0; 255
-      Enabled: false
+      Enabled: true
       Head Diameter: 0.30000001192092896
       Head Length: 0.20000000298023224
       Length: 0.30000001192092896
@@ -550,12 +550,12 @@ Visualization Manager:
       Shaft Length: 0.10000000149011612
       Topic: /robot3/move_base/NavfnROS/plan
       Unreliable: false
-      Value: false
+      Value: true
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
       Color: 255; 255; 0
-      Enabled: false
+      Enabled: true
       Head Diameter: 0.30000001192092896
       Head Length: 0.20000000298023224
       Length: 0.30000001192092896
@@ -574,12 +574,12 @@ Visualization Manager:
       Shaft Length: 0.10000000149011612
       Topic: /robot4/move_base/NavfnROS/plan
       Unreliable: false
-      Value: false
+      Value: true
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
       Color: 0; 255; 255
-      Enabled: false
+      Enabled: true
       Head Diameter: 0.30000001192092896
       Head Length: 0.20000000298023224
       Length: 0.30000001192092896
@@ -598,7 +598,7 @@ Visualization Manager:
       Shaft Length: 0.10000000149011612
       Topic: /robot5/move_base/NavfnROS/plan
       Unreliable: false
-      Value: false
+      Value: true
     - Alpha: 0.699999988079071
       Class: rviz/Map
       Color Scheme: map

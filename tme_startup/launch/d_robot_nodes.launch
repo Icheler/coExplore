@@ -20,7 +20,8 @@
         </node>
 
         <node pkg="tme_exploration" type="frontier_search" name="tme_frontier_search" respawn="True" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' ">
-            <param name="map_topic" value="new_map"/>
+            <param name="map_topic" value="/map"/>
+            <remap from="map" to="/map"/>
         </node>
 
         <node pkg="tme_exploration" type="pseudo_decentralized_assign" name="tme_frontier_p_assign" respawn="True" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' ">
