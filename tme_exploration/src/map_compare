@@ -43,33 +43,6 @@ class mapCompare:
      
         #add image to verify validity
 
-    def get_map(self):
-        return self.map
-
-    def get_mode(self):
-        return self.mode
-
-    def get_date_string(self):
-        return self.date_string
-
-    def get_differenceArrray(self):
-        return self.differenceArray
-    
-    def get_stopTime(self):
-        return self.stopTime
-
-    def get_map_name(self):
-        return self.map_name
-    
-    def get_map_info(self):
-        return self.info
-
-    def get_file_name(self):
-        return self.file_name
-
-    def set_differenceArray(self, data):
-        self.differenceArray = data
-
     def callback_map(self, data):
         self.map = data.data
         self.info = data.info
@@ -82,17 +55,17 @@ if __name__ == '__main__':
 
     #0 is log array, 1 is compare and log
     classy = mapCompare(mode=1)
-    mode = classy.get_mode()
+    mode = classy.mode
     num_robots = os.environ['tme_start_num']
     MAP_SIZE = 1000
 
     if(mode):
-        file_name = classy.get_file_name()
+        file_name = classy.file_name
         file_location = 'catkin_ws/src/TU_Much_Exploration/tme_data/coverage/measurements/' + str(num_robots)
         file_location = os.path.join(os.path.expanduser('~'), file_location)
         file_complete = os.path.join(os.path.expanduser('~'), file_location, file_name)
     
-        map_file_name = classy.get_map_name() + '.txt'
+        map_file_name = classy.map_name + '.txt'
         map_file_location = 'catkin_ws/src/TU_Much_Exploration/tme_data/coverage/base_line'
         base_file = os.path.join(os.path.expanduser('~'), map_file_location, map_file_name)
         baseLine = np.loadtxt(base_file, ndmin=2)
@@ -116,16 +89,16 @@ if __name__ == '__main__':
 
     time_estimate = 0
 
-    stopTime = classy.get_stopTime()
+    stopTime = classy.stopTime
     temp_difference = 0
 
     while not rospy.is_shutdown():
 
         if(mode):
             os.system('rosrun map_server map_saver -f ' + str(file_complete))
-            local_info = classy.get_map_info()
+            local_info = classy.info
             rospy.logwarn(f'{local_info.width} and height {local_info.height}')
-            localMap = np.array(classy.get_map()).reshape(local_info.height, local_info.width)
+            localMap = np.array(classy.map).reshape(local_info.height, local_info.width)
             while(np.size(localMap, 1) > MAP_SIZE):
                 localMap = np.delete(localMap, (0), axis=1)
             while(np.size(localMap, 0) > MAP_SIZE):
@@ -135,7 +108,7 @@ if __name__ == '__main__':
 
             temp_difference = (base_metric - difference) / base_metric
 
-            localArray = classy.get_differenceArrray()
+            localArray = classy.differenceArray
             temp_time = time_estimate
             test = [temp_time, temp_difference]
             time_estimate += 5
