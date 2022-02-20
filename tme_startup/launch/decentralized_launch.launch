@@ -21,5 +21,6 @@
       <arg name="node_start_delay" value="2.0" />
     </include>
     <include file="$(find tme_startup)/launch/multi_map_merge.launch"/>
+    <include file="$(find tme_startup)/launch/decentralized_analytics.launch"/>
     <node type="rviz" name="rviz" pkg="rviz" args="-d $(find tme_startup)/config/rviz_decentralized_setup.rviz"/>
 </launch>

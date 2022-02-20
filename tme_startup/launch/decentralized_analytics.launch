@@ -1,0 +1,8 @@
+<launch>
+    <arg name="node_start_delay_2" default="6.0" />
+    <node pkg='tme_exploration' type='map_compare' name='tme_map_compare' required='True' launch-prefix="bash -c 'sleep $(arg node_start_delay_2); $0 $@' ">
+      <param name="stop_time" value="$(env tme_stop_time)"/>
+    </node>
+    <node pkg='tme_exploration' type='analytics' name='tme_analytics' required='True' launch-prefix="bash -c 'sleep $(arg node_start_delay_2); $0 $@' ">
+    </node>
+</launch>

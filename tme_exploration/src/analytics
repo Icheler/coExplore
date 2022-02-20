@@ -13,13 +13,15 @@ from geometry_msgs.msg import Point
 class Analytics:
     def __init__(self):
         self.date_string = datetime.now().strftime("%Y-%m-%d|%H:%M:%S")
-        self.numberRobots = rospy.get_param('~number_of_robots')
+        self.numberRobots = int(os.environ['tme_start_num'])
         self.robotPosition = np.empty(self.numberRobots, dtype=Point)
         self.lastPos = np.empty(self.numberRobots, dtype=Point)
-        self.explored_frontiers = np.empty(self.numberRobots)
         self.map_name = os.environ['tme_ROBOT_ENV']
-        self.chosenMethod = rospy.get_param('~frontier_method')
+        self.chosenMethod = os.environ['tme_expl_method']
         self.travelDistances = []
+        self.travelDistancesTotal = np.zeros(self.numberRobots)
+        
+        atexit.register(self.exit_handler)
 
     def exit_handler(self):
         travelDistances = self.travelDistances
@@ -36,9 +38,6 @@ class Analytics:
         a_file.close()
 
         rospy.logwarn('created file named: ' + file_name)
-    
-    def increment_frontiers(self, number):
-        self.explored_frontiers[number] += 1
 
     def position_call_tf(self):
         for i in range(self.numberRobots):
@@ -73,11 +72,6 @@ class Analytics:
                 not_first = True
                 self.lastPos[i] = self.robotPosition[i]
                 temp_array.append(0)
-        for i in range(self.numberRobots):
-            if(not_first):
-                temp_array.append(self.explored_frontiers[i])
-            else:
-                temp_array.append(0)
 
         self.travelDistances.append(temp_array)
 
@@ -95,7 +89,7 @@ if __name__ == '__main__':
     time_increment = 1
 
     while not rospy.is_shutdown():
-        pass
+        analytics.position_call_tf()
 
         if (time_estimate % 25 == 0 or time_estimate == 0):
             time_estimate = int(time_estimate)
@@ -103,4 +97,6 @@ if __name__ == '__main__':
             analytics.distance_tracker(temp_estimate)
         
         time_estimate += time_increment
+
+        rate.sleep()
 
