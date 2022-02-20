@@ -24,7 +24,7 @@
             <remap from="map" to="/map"/>
         </node>
 
-        <node pkg="tme_exploration" type="pseudo_decentralized_assign" name="tme_frontier_p_assign" respawn="True" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' ">
+        <node pkg="tme_exploration" type="pseudo_decentralized_assign" name="tme_frontier_p_assign" required="True" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' ">
             <param name="number_of_robots" value="$(env tme_start_num)"/>
             <param name="robot_ns" value="robot"/>
             <param name="frontier_rate" value="5"/>

@@ -57,7 +57,8 @@ if __name__ == '__main__':
     classy = mapCompare(mode=1)
     mode = classy.mode
     num_robots = os.environ['tme_start_num']
-    MAP_SIZE = 1000
+    reduce_size = 1000
+    map_size = 1000
 
     if(mode):
         file_name = classy.file_name
@@ -71,14 +72,14 @@ if __name__ == '__main__':
         baseLine = np.loadtxt(base_file, ndmin=2)
 
         try:
-            baseLine = baseLine.reshape(MAP_SIZE, -1)
+            baseLine = baseLine.reshape(map_size, -1)
         except:
             baseLine = baseLine.reshape(1002, -1)
-            MAP_SIZE = 1002
+            map_size = 1002
 
-        while(np.size(baseLine, 1) > MAP_SIZE):
+        while(np.size(baseLine, 1) > map_size):
             baseLine = np.delete(baseLine, (0), axis=1)
-        while(np.size(baseLine, 0) > MAP_SIZE):
+        while(np.size(baseLine, 0) > map_size):
             baseLine = np.delete(baseLine, (0), axis=0)
 
         base_difference = np.full(baseLine.shape, -1)
@@ -92,6 +93,11 @@ if __name__ == '__main__':
     stopTime = classy.stopTime
     temp_difference = 0
 
+    while(np.size(baseLine, 1) > reduce_size):
+        baseLine = np.delete(baseLine, (0), axis=1)
+    while(np.size(baseLine, 0) > reduce_size):
+        baseLine = np.delete(baseLine, (0), axis=0)
+
     while not rospy.is_shutdown():
 
         if(mode):
@@ -99,9 +105,9 @@ if __name__ == '__main__':
             local_info = classy.info
             rospy.logwarn(f'{local_info.width} and height {local_info.height}')
             localMap = np.array(classy.map).reshape(local_info.height, local_info.width)
-            while(np.size(localMap, 1) > MAP_SIZE):
+            while(np.size(localMap, 1) > reduce_size):
                 localMap = np.delete(localMap, (0), axis=1)
-            while(np.size(localMap, 0) > MAP_SIZE):
+            while(np.size(localMap, 0) > reduce_size):
                 localMap = np.delete(localMap, (0), axis=0)
 
             difference = np.mean(baseLine != localMap)

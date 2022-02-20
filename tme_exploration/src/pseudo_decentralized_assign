@@ -538,7 +538,7 @@ if __name__ == '__main__':
 
             else:
                 visibility = fInstance.rank_visibility(frontiers)
-                rank_distance = fInstance.rank_distance(frontiers, positions, map)
+                rank_distance = fInstance.frontier_distance(frontiers, positions, map)
                 rank_matrix_norm = fInstance.rank_matrix_norm(frontiers, positions, map)
                 cost_matrix = rank_distance
                 cost_matrix = cost_matrix + visibility
@@ -550,11 +550,14 @@ if __name__ == '__main__':
             last_valid = j
             topic = '/robot' + str(j) + '/move_base'
             temp_frontiers = frontiers.frontiers
-            tessting = []
+            rospy.logwarn(cost_matrix)
             if(len(temp_frontiers) <= num_robots):
                 if(j > len(temp_frontiers)):
-                    tessting.append(i)
-                    temp_assignment = temp_frontiers[col_ind[len(temp_frontiers)-1]]
+                    try:
+                        new_assign = np.argmin(cost_matrix[:,i])
+                    except:
+                        new_assign = col_ind[len(temp_frontiers)-1]
+                    temp_assignment = temp_frontiers[new_assign]
                     goal_location = temp_assignment.centroid
                 else:
                     temp_assignment = temp_frontiers[col_ind[i]]
@@ -565,7 +568,7 @@ if __name__ == '__main__':
 
             goals = fInstance.goals
 
-            if(fInstance.lastSearchTime[i] + rospy.Duration(secs=5)< rospy.Time.now()):
+            if(fInstance.lastSearchTime[i] + rospy.Duration(secs=1)< rospy.Time.now()):
                 if(goal_location != goals[i]):
                     fInstance.goals[i] = goal_location
                     fInstance.movebase_client(topic=topic, number=i, position=goal_location)

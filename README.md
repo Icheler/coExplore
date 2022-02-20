@@ -9,6 +9,9 @@ needed:
     - check all compared approaches to increase validity  
     - \basic travel_distance logging  
     - one big map for testing  
+    - slam proofing all maps again
+    - rerunning mapping of all maps
+    - rerunning simulation
 
 possible:  
     - get more information about chosen frontiers (distance, visibility etc.)  
