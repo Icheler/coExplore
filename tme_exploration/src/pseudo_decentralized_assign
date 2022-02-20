@@ -93,6 +93,7 @@ class frontierAssign:
         self.robotMarker.color.a = 1.0
 
     def exit_handler(self):
+        pass
         """ travelDistances = self.travelDistances
 
         date_string = self.date_string

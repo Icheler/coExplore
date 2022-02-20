@@ -1,0 +1,106 @@
+#!/usr/bin/env python3
+
+import rospy
+import numpy as np 
+import atexit
+import tf
+import os
+
+from datetime import datetime
+
+from geometry_msgs.msg import Point
+
+class Analytics:
+    def __init__(self):
+        self.date_string = datetime.now().strftime("%Y-%m-%d|%H:%M:%S")
+        self.numberRobots = rospy.get_param('~number_of_robots')
+        self.robotPosition = np.empty(self.numberRobots, dtype=Point)
+        self.lastPos = np.empty(self.numberRobots, dtype=Point)
+        self.explored_frontiers = np.empty(self.numberRobots)
+        self.map_name = os.environ['tme_ROBOT_ENV']
+        self.chosenMethod = rospy.get_param('~frontier_method')
+        self.travelDistances = []
+
+    def exit_handler(self):
+        travelDistances = self.travelDistances
+
+        date_string = self.date_string
+
+        file_location = 'catkin_ws/src/TU_Much_Exploration/tme_data/distances/' + str(self.numberRobots)
+        file_name = str(self.map_name) + str("_") + str(self.chosenMethod) + str("_") + date_string + ".txt"
+        file_name = os.path.join(os.path.expanduser('~'),file_location, file_name)
+
+        a_file = open(file_name, 'w+')
+        np.savetxt(a_file, travelDistances)
+
+        a_file.close()
+
+        rospy.logwarn('created file named: ' + file_name)
+    
+    def increment_frontiers(self, number):
+        self.explored_frontiers[number] += 1
+
+    def position_call_tf(self):
+        for i in range(self.numberRobots):
+            j = i+1
+            try:
+                tf_topic = f'/robot{j}/map'
+                (trans, rot) = listener.lookupTransform(tf_topic, f'/robot{j}/base_link', rospy.Time(0))
+                robot_location = Point(x=trans[0], y=trans[1])
+                self.robotPosition[i] = robot_location
+            except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
+                rospy.logerr(f'TF error for {tf_topic} with message {e}')
+
+        return self.robotPosition
+        
+    # Get euclidean distance between two points
+    def euclid_distance(self, a: Point, b: Point):
+        testa = np.square(a.x - b.x)
+        testb = np.square(a.y - b.y)
+        testc = testa + testb
+        result = np.sqrt(testc)
+        return result
+
+    def distance_tracker(self, time_estimate):
+        temp_array = [time_estimate]
+        not_first = False
+        for i in range(self.numberRobots):
+            if(self.lastPos[i]):
+                self.travelDistancesTotal[i] += self.euclid_distance(self.lastPos[i], self.robotPosition[i])
+                temp_array.append(self.travelDistancesTotal[i])
+                self.lastPos[i] = self.robotPosition[i]
+            else:
+                not_first = True
+                self.lastPos[i] = self.robotPosition[i]
+                temp_array.append(0)
+        for i in range(self.numberRobots):
+            if(not_first):
+                temp_array.append(self.explored_frontiers[i])
+            else:
+                temp_array.append(0)
+
+        self.travelDistances.append(temp_array)
+
+if __name__ == '__main__':
+
+    rospy.init_node('analytics')
+
+    rate = rospy.Rate(5)
+
+    analytics = Analytics()
+
+    listener = tf.TransformListener()
+
+    time_estimate = 0 
+    time_increment = 1
+
+    while not rospy.is_shutdown():
+        pass
+
+        if (time_estimate % 25 == 0 or time_estimate == 0):
+            time_estimate = int(time_estimate)
+            temp_estimate = int(time_estimate / 5)
+            analytics.distance_tracker(temp_estimate)
+        
+        time_estimate += time_increment
+
