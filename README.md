@@ -9,8 +9,8 @@ needed:
     - check all compared approaches to increase validity  
     - \basic travel_distance logging  
     - one big map for testing  
-    - slam proofing all maps again
-    - rerunning mapping of all maps
+    - \slam proofing all maps again
+    - \rerunning mapping of all maps
     - rerunning simulation
 
 possible:  
