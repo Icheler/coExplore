@@ -550,7 +550,6 @@ if __name__ == '__main__':
             last_valid = j
             topic = '/robot' + str(j) + '/move_base'
             temp_frontiers = frontiers.frontiers
-            rospy.logwarn(cost_matrix)
             if(len(temp_frontiers) <= num_robots):
                 if(j > len(temp_frontiers)):
                     try:

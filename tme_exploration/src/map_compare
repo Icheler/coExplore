@@ -86,6 +86,11 @@ if __name__ == '__main__':
 
         base_metric = np.mean(baseLine != base_difference)
 
+        while(np.size(baseLine, 1) > reduce_size):
+            baseLine = np.delete(baseLine, (0), axis=1)
+        while(np.size(baseLine, 0) > reduce_size):
+            baseLine = np.delete(baseLine, (0), axis=0)
+
     rospy.Subscriber('/map', OccupancyGrid, callback=classy.callback_map)
 
     time_estimate = 0
@@ -93,10 +98,7 @@ if __name__ == '__main__':
     stopTime = classy.stopTime
     temp_difference = 0
 
-    while(np.size(baseLine, 1) > reduce_size):
-        baseLine = np.delete(baseLine, (0), axis=1)
-    while(np.size(baseLine, 0) > reduce_size):
-        baseLine = np.delete(baseLine, (0), axis=0)
+   
 
     while not rospy.is_shutdown():
 
