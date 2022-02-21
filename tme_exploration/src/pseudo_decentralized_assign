@@ -205,8 +205,13 @@ class frontierAssign:
         else:
             r_distances = self.wavefront_robot_to_frontier(frontiers, positions, map)
             r_distances = np.where(np.isinf(r_distances), 500, r_distances)
-        if np.max(r_distances):
-            r_distances = r_distances / np.max(r_distances)
+        maximum = 0
+        try:
+            maximum = np.max(r_distances)
+        except:
+            pass
+        if maximum != 0 and maximum:
+            r_distances = r_distances / maximum
         return r_distances
 
 
@@ -419,7 +424,11 @@ class frontierAssign:
         frontier_distance = self.frontier_distance(frontiers, positions, map)
         order = np.argsort(frontier_distance, axis=1)
         ranks = np.argsort(order, axis=1)
-        maximum = np.max(ranks)
+        maximum = 0
+        try:
+            maximum = np.max(ranks)
+        except:
+            pass
         if maximum != 0 and maximum:
             result = ranks / maximum
         else:
@@ -431,7 +440,11 @@ class frontierAssign:
         frontier_distance = self.frontier_distance(frontiers, positions, map)
         order = np.argsort(frontier_distance, axis=0)
         ranks = np.argsort(order, axis=0)
-        maximum = np.max(ranks)
+        maximum = 0
+        try:
+            maximum = np.max(ranks)
+        except:
+            pass
         if maximum != 0 and maximum:
             result = ranks / maximum
         else:
@@ -442,7 +455,11 @@ class frontierAssign:
         frontier_vis = self.frontier_visibility_modifier(frontiers)
         order = np.argsort(frontier_vis, axis = 0)
         ranks = np.argsort(order, axis = 0)
-        maximum = np.max(ranks)
+        maximum = 0
+        try:
+            maximum = np.max(ranks)
+        except:
+            pass
         if maximum:
             result = ranks / maximum
         else:
@@ -555,7 +572,10 @@ if __name__ == '__main__':
                     try:
                         new_assign = np.argmin(cost_matrix[:,i])
                     except:
-                        new_assign = col_ind[len(temp_frontiers)-1]
+                        if len(temp_frontiers) != 0:
+                            new_assign = col_ind[len(temp_frontiers)-1]
+                        else:
+                            break
                     temp_assignment = temp_frontiers[new_assign]
                     goal_location = temp_assignment.centroid
                 else:
