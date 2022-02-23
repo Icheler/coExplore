@@ -15,7 +15,7 @@ needed:
 
 possible:  
     - get more information about chosen frontiers (distance, visibility etc.)  
-    - new spreading method for better overall spreading of robots  
+    - \new spreading method for better overall spreading of robots  
       - try max spreading  
       - and mean method  
     - big refactor with liniting and removing all unneeded files  

@@ -711,7 +711,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: false
       Name: Map
-      Topic: /robot3/move_base/local_costmap/costmap
+      Topic: /robot1/move_base/local_costmap/costmap
       Unreliable: false
       Use Timestamp: false
       Value: false
@@ -721,7 +721,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: false
       Name: Map
-      Topic: /robot3/move_base/global_costmap/costmap
+      Topic: /robot1/move_base/global_costmap/costmap
       Unreliable: false
       Use Timestamp: false
       Value: false
@@ -805,5 +805,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1563
-  X: 2560
-  Y: 0
+  X: 72
+  Y: 27

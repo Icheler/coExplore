@@ -152,12 +152,17 @@ class frontierAssign:
     def blacklist_check(self, frontiers):
         foundSth = 0
         localFrontiers = frontiers
-        if(len(localFrontiers.frontiers) == 0):
+        if(len(localFrontiers.frontiers) != 0):
             for i in range(len(localFrontiers.frontiers)):
                 foundSth = 0
-                x = i - foundSth
                 for j in range(len(self.blacklist)):
-                    if (localFrontiers.frontiers[x].centroid == self.blacklist[j]):
+                    x = i - foundSth
+                    try:
+                        test1 = localFrontiers.frontiers[x].centroid
+                    except:
+                        break
+                    test2 = self.blacklist[j]
+                    if (test1 == test2):
                         foundSth += 1
                         localFrontiers.frontiers.pop(x)
         return localFrontiers
@@ -466,6 +471,33 @@ class frontierAssign:
             result = ranks
         return result
 
+    def alpha_beta_dist(self, frontiers, positions, map, alpha=5, beta=5):
+        frontier_distance = self.frontier_distance(frontiers, positions, map)
+        temp = np.power(frontier_distance, alpha) * np.power((1-frontier_distance), beta)
+        maximum = 0 
+        try: 
+            maximum = np.max(temp)
+        except:
+            pass
+        if maximum:
+            result = temp / maximum
+        else:
+            result = temp
+        return result
+
+    def robot_spread(self, distances, frontiers, positions, map):
+        distance_sum = np.sum(distances, axis=0)
+        new_dist = np.reshape(distance_sum, (1, self.numberRobots)) - distances
+        minimum = np.min(new_dist)
+        maximum = np.max(new_dist)
+        if maximum != 0:
+            result = new_dist - minimum
+            result = result / (maximum - minimum)
+            result = 1 - result
+        else:
+            result = new_dist
+        return result
+
 if __name__ == '__main__':
     
     rospy.init_node('frontier_assign')
@@ -502,7 +534,7 @@ if __name__ == '__main__':
         chosen_method_id = 1
     elif(chosen_method == 'minPos'):
         chosen_method_id = 2
-    elif(chosen_method == 'combined'):
+    elif(chosen_method == 'nextFrontier'):
         chosen_method_id = 3
         visibility_weighting = rospy.get_param('~visibility_weighting', 1)
         speed_weighting = rospy.get_param('~speed_weighting', 1)
@@ -525,6 +557,8 @@ if __name__ == '__main__':
         if(fInstance.frontiers and np.all(fInstance.robotPosition)):
             frontiers = copy.deepcopy(fInstance.frontiers)
             frontiers = fInstance.blacklist_check(frontiers)
+            if not frontiers:
+                break
             positions = copy.deepcopy(fInstance.robotPosition)
             map = copy.deepcopy(fInstance.map)
             distances = None
@@ -544,18 +578,18 @@ if __name__ == '__main__':
                 cost_matrix = visibility
             
             elif(chosen_method_id == 2):
-                ranks = fInstance.rank_matrix(frontiers, [positions[i]], map)
+                ranks = fInstance.rank_matrix(frontiers, positions, map)
                 cost_matrix = ranks
 
             elif(chosen_method_id == 3):
                 visibility = fInstance.frontier_visibility_modifier(frontiers)
-                distances = fInstance.frontier_distance(frontiers, [positions[i]], map)
+                distances = fInstance.frontier_distance(frontiers, positions, map)
                 cost_matrix = distances
                 cost_matrix = cost_matrix + visibility
 
             else:
                 visibility = fInstance.rank_visibility(frontiers)
-                rank_distance = fInstance.frontier_distance(frontiers, positions, map)
+                rank_distance = fInstance.frontier_distance(frontiers, positions, map) * 3
                 rank_matrix_norm = fInstance.rank_matrix_norm(frontiers, positions, map)
                 cost_matrix = rank_distance
                 cost_matrix = cost_matrix + visibility
@@ -567,22 +601,27 @@ if __name__ == '__main__':
             last_valid = j
             topic = '/robot' + str(j) + '/move_base'
             temp_frontiers = frontiers.frontiers
-            if(len(temp_frontiers) <= num_robots):
-                if(j > len(temp_frontiers)):
+            if(len(temp_frontiers) <= num_robots or len(col_ind) <= num_robots):
+                if(j >= len(temp_frontiers)):
                     try:
-                        new_assign = np.argmin(cost_matrix[:,i])
+                        new_assign = np.argmin(cost_matrix[i,:])
+                        rospy.logwarn('argmin')
                     except:
                         if len(temp_frontiers) != 0:
-                            new_assign = col_ind[len(temp_frontiers)-1]
+                            new_assign = len(temp_frontiers)-1
+                            rospy.logwarn('other')
                         else:
+                            rospy.logerr('RIP something went reall wrong here. ')
                             break
                     temp_assignment = temp_frontiers[new_assign]
                     goal_location = temp_assignment.centroid
                 else:
-                    temp_assignment = temp_frontiers[col_ind[i]]
+                    l_test = col_ind[i]
+                    temp_assignment = temp_frontiers[l_test]
                     goal_location = temp_assignment.centroid
             else:
-                temp_assignment = temp_frontiers[col_ind[i]]
+                l_test = col_ind[i]
+                temp_assignment = temp_frontiers[l_test]
                 goal_location = temp_assignment.centroid
 
             goals = fInstance.goals
@@ -627,46 +666,10 @@ if __name__ == '__main__':
 
                     #fInstance.movebase_spoof(number=i, position=goal_location)
                     fInstance.increment_frontiers(i)
-                elif(fInstance.lastSearchTime[i] + rospy.Duration(secs=10)< rospy.Time.now()):
-                    goal_location.x += random.uniform(-0.5, 0.5)
-                    goal_location.y += random.uniform(-0.5, 0.5)
-                    fInstance.goals[i] = goal_location
-                    fInstance.movebase_client(topic=topic, number=i, position=goal_location, delete=True)
-                    marker = fInstance.robotMarker
-                    marker.header.stamp = rospy.Time.now()
-                    marker.ns = 'beep'
-                    id += 1
-                    marker.id = id
-                    marker.pose.position = positions[i]
-                    if i == 0:
-                        marker.color.r = 0
-                        marker.color.g = 0
-                        marker.color.b = 0
-                    elif i == 1:
-                        marker.color.r = 1
-                        marker.color.g = 1
-                        marker.color.b = 1
-                    elif i == 2:
-                        marker.color.r = 0
-                        marker.color.g = 1
-                        marker.color.b = 1
-                    elif i == 3:
-                        marker.color.r = 1
-                        marker.color.g = 0
-                        marker.color.b = 1
-                    elif i == 4:
-                        marker.color.r = 1
-                        marker.color.g = 1
-                        marker.color.b = 0
-                    else:
-                        marker.color.r = 0
-                        marker.color.g = 0
-                        marker.color.b = 1
-                    marker.lifetime = rospy.Duration(20)
-
-                    markerPub.publish(marker)
-
-                    #fInstance.movebase_spoof(number=i, position=goal_location)
+                elif(fInstance.lastSearchTime[i] + rospy.Duration(secs=30)< rospy.Time.now()):
+                    rospy.logwarn(f'{goal_location} has been put on the blacklist')
+                    fInstance.blacklist = np.append(fInstance.blacklist, goal_location)
+                    rospy.logwarn(fInstance.blacklist)
 
         else:
             if fInstance.frontiers:

@@ -36,12 +36,16 @@ class mapCompare:
             a_file.close()
             rospy.logwarn('created file named: ' + file_complete)
         else:
+            """ file_map = str(self.map_name) + '_' + str(self.expl_method) + '_' + 'mfile' + '_' + date_string + '.txt'
+            file_map_complete =  os.path.join(os.path.expanduser('~'), file_location, file_map)
+            a_file = open(file_map_complete, 'w+')
+            np.savetxt(a_file, self.map)
+            a_file.close()
+            rospy.logwarn('created file named: ' + file_map_complete) """
             a_file = open(file_complete, 'w+')
             np.savetxt(a_file, self.differenceArray)
             a_file.close()
             rospy.logwarn('created file named: ' + file_complete)
-     
-        #add image to verify validity
 
     def callback_map(self, data):
         self.map = data.data
@@ -57,8 +61,8 @@ if __name__ == '__main__':
     classy = mapCompare(mode=1)
     mode = classy.mode
     num_robots = os.environ['tme_start_num']
+    map_size = (1000, 1002)
     reduce_size = 1000
-    map_size = 1000
 
     if(mode):
         file_name = classy.file_name
@@ -71,25 +75,16 @@ if __name__ == '__main__':
         base_file = os.path.join(os.path.expanduser('~'), map_file_location, map_file_name)
         baseLine = np.loadtxt(base_file, ndmin=2)
 
-        try:
-            baseLine = baseLine.reshape(map_size, -1)
-        except:
-            baseLine = baseLine.reshape(1002, -1)
-            map_size = 1002
-
-        while(np.size(baseLine, 1) > map_size):
-            baseLine = np.delete(baseLine, (0), axis=1)
-        while(np.size(baseLine, 0) > map_size):
-            baseLine = np.delete(baseLine, (0), axis=0)
-
-        base_difference = np.full(baseLine.shape, -1)
-
-        base_metric = np.mean(baseLine != base_difference)
+        baseLine = baseLine.reshape(map_size)
 
         while(np.size(baseLine, 1) > reduce_size):
             baseLine = np.delete(baseLine, (0), axis=1)
         while(np.size(baseLine, 0) > reduce_size):
             baseLine = np.delete(baseLine, (0), axis=0)
+
+        base_difference = np.full(baseLine.shape, -1)
+
+        base_metric = np.mean(baseLine != base_difference)
 
     rospy.Subscriber('/map', OccupancyGrid, callback=classy.callback_map)
 
@@ -97,8 +92,6 @@ if __name__ == '__main__':
 
     stopTime = classy.stopTime
     temp_difference = 0
-
-   
 
     while not rospy.is_shutdown():
 
