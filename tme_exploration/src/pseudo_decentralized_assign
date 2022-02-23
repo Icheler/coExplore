@@ -471,7 +471,7 @@ class frontierAssign:
             result = ranks
         return result
 
-    def alpha_beta_dist(self, frontiers, positions, map, alpha=5, beta=5):
+    def alpha_beta_dist(self, frontiers, positions, map, alpha=7, beta=7):
         frontier_distance = self.frontier_distance(frontiers, positions, map)
         temp = np.power(frontier_distance, alpha) * np.power((1-frontier_distance), beta)
         maximum = 0 
@@ -530,7 +530,7 @@ if __name__ == '__main__':
 
     if(chosen_method == 'nearest'):
         chosen_method_id = 0
-    elif(chosen_method == 'greedy'):
+    elif(chosen_method == 'co131'):
         chosen_method_id = 1
     elif(chosen_method == 'minPos'):
         chosen_method_id = 2
@@ -538,6 +538,10 @@ if __name__ == '__main__':
         chosen_method_id = 3
         visibility_weighting = rospy.get_param('~visibility_weighting', 1)
         speed_weighting = rospy.get_param('~speed_weighting', 1)
+    elif(chosen_method == 'counterSpread'):
+        chosen_method_id = 5
+    elif(chosen_method == 'co122'):
+        chosen_method_id = 6
     else:
         chosen_method_id = 4
         visibility_weighting = rospy.get_param('~visibility_weighting', 1)
@@ -574,8 +578,12 @@ if __name__ == '__main__':
                 cost_matrix = distances
             
             elif(chosen_method_id == 1):
-                visibility = fInstance.frontier_visibility_modifier(frontiers)
-                cost_matrix = visibility
+                visibility = fInstance.rank_visibility(frontiers)
+                rank_distance = fInstance.frontier_distance(frontiers, positions, map) * 3
+                rank_matrix_norm = fInstance.rank_matrix_norm(frontiers, positions, map)
+                cost_matrix = rank_distance
+                cost_matrix = cost_matrix + visibility
+                cost_matrix = cost_matrix + rank_matrix_norm
             
             elif(chosen_method_id == 2):
                 ranks = fInstance.rank_matrix(frontiers, positions, map)
@@ -584,12 +592,28 @@ if __name__ == '__main__':
             elif(chosen_method_id == 3):
                 visibility = fInstance.frontier_visibility_modifier(frontiers)
                 distances = fInstance.frontier_distance(frontiers, positions, map)
+                alpha_beta = fInstance.alpha_beta_dist(frontiers, positions, map)
+                spread = fInstance.robot_spread(distances, frontiers, positions, map)
                 cost_matrix = distances
                 cost_matrix = cost_matrix + visibility
+                cost_matrix = cost_matrix - (1 - spread)
+
+            elif(chosen_method_id == 5):
+                distances = fInstance.frontier_distance(frontiers, positions, map)
+                spread = fInstance.robot_spread(distances, frontiers, positions, map)
+                cost_matrix = spread
+
+            elif(chosen_method_id == 6):
+                visibility = fInstance.rank_visibility(frontiers)
+                rank_distance = fInstance.frontier_distance(frontiers, positions, map) * 2
+                rank_matrix_norm = fInstance.rank_matrix_norm(frontiers, positions, map) * 2
+                cost_matrix = rank_distance
+                cost_matrix = cost_matrix + visibility
+                cost_matrix = cost_matrix + rank_matrix_norm
 
             else:
                 visibility = fInstance.rank_visibility(frontiers)
-                rank_distance = fInstance.frontier_distance(frontiers, positions, map) * 3
+                rank_distance = fInstance.frontier_distance(frontiers, positions, map)
                 rank_matrix_norm = fInstance.rank_matrix_norm(frontiers, positions, map)
                 cost_matrix = rank_distance
                 cost_matrix = cost_matrix + visibility

@@ -47,9 +47,9 @@ if __name__ == '__main__':
 
     numRobots = [2, 3, 4, 5]
     world = ['v2_maze', 'map_3'] #'v2_maze', 'map_3', 'marty'
-    method = ['co131'] #['nearest', 'minPos', 'coExplore']
+    method = ['co122', 'nextFrontier', 'counterSpread'] #['nearest', 'minPos', 'coExplore']
     stopTime = [500, 400, 300, 250]
-    tries = [1, 1, 1, 1, 1, 1, 1, 1]
+    tries = [1, 1, 1]
     for x in range(len(tries)):
         for j in range(len(numRobots)):
             for i in range(len(world)):
