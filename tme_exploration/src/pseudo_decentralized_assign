@@ -7,199 +7,182 @@ import re
 import actionlib
 import tf
 import os
-import atexit
-import random
-import time
-import math
 import copy
 
 from skimage import graph
 from scipy.optimize import linear_sum_assignment
 from datetime import datetime
 
-from tme_exploration.msg import frontier, frontierArray
-from geometry_msgs.msg import Point, Pose, PoseWithCovarianceStamped
+from tme_exploration.msg import frontierArray
+from geometry_msgs.msg import Point
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from sensor_msgs.msg import LaserScan
-from visualization_msgs.msg import Marker, MarkerArray
+from visualization_msgs.msg import Marker
 from actionlib_msgs.msg import GoalStatusArray
 from nav_msgs.msg import OccupancyGrid
 
 
-class frontierAssign:
+class FrontierAssign:
+    """
+    This class provides all the needed utility to gather frontier and
+    robot_position data and distribute each robot that runs the associated
+    __main__ to the best possible frontier given certain parameters.
+    """
+
     def __init__(self):
         self.date_string = datetime.now().strftime("%Y-%m-%d|%H:%M:%S")
         self.frontiers = []
         self.distances = []
-        self.numberRobots = rospy.get_param('~number_of_robots')
-        self.robotPrefix = rospy.get_param('~robot_ns')
-        self.robotPosition = np.empty(self.numberRobots, dtype=Point)
-        self.robotSpeeds = np.empty(self.numberRobots)
-        self.maxSpeed = None
-        self.speedModifier = np.empty(self.numberRobots)
-        self.visibilityModifier = np.empty(self.numberRobots)
-        self.frontierVisibilityModifier = None
-        self.frontierDistanceModifier = None
+        self.number_robots = rospy.get_param("~number_of_robots")
+        self.robot_prefix = rospy.get_param("~robot_ns")
+        self.robot_position = np.empty(self.number_robots, dtype=Point)
+        self.robot_speeds = np.empty(self.number_robots)
+        self.max_speed = None
+        self.speed_modifier = np.empty(self.number_robots)
+        self.visibility_modifier = np.empty(self.number_robots)
         self.assign_robot_speed()
         self.speed_modifier()
         self.visibility_params()
-        self.lastSearchTime = np.empty(self.numberRobots, dtype=rospy.Time)
-        self.goals = np.empty(self.numberRobots, dtype=Point)
+        self.last_search_time = np.empty(self.number_robots, dtype=rospy.Time)
+        self.goals = np.empty(self.number_robots, dtype=Point)
         self.publisher_position = []
-        self.robotMarker = Marker()
-        self.searchNow = False
-        self.lastPos = np.empty(self.numberRobots, dtype=Point)
-        self.travelDistances = []
-        self.travelDistancesTotal = np.zeros(self.numberRobots)
-        self.chosenMethod = rospy.get_param('~frontier_method')
-        self.goalStatus = np.empty(self.numberRobots)
-        self.subStatus = []
+        self.robot_marker = Marker()
+        self.chosen_method = rospy.get_param("~frontier_method")
+        self.sub_status = []
         self.blacklist = []
-        self.explored_frontiers = np.empty(self.numberRobots)
-        self.map_name = os.environ['tme_ROBOT_ENV']
+        self.explored_frontiers = np.empty(self.number_robots)
+        self.map_name = os.environ["tme_ROBOT_ENV"]
         self.map = None
         self.clean_area = self.get_clean_area(100)
         self.robot_number = None
 
-        atexit.register(self.exit_handler)
+        for i in range(self.number_robots):
+            self.last_search_time[i] = rospy.Time.now() - rospy.Duration(5)
+            j = i + 1
+            topic = "/" + self.robot_prefix + str(j) + "/point_relay"
+            self.publisher_position.append(rospy.Publisher(
+                topic, Point, queue_size=10
+            ))
 
-        for i in range(self.numberRobots):
-            self.lastSearchTime[i] = rospy.Time.now() - rospy.Duration(5)
-            j = i+1
-            topic = '/' + self.robotPrefix + str(j) + '/point_relay'
-            self.publisher_position.append(rospy.Publisher(topic, Point, queue_size=10))
+            topic = "/" + self.robot_prefix + str(j) + "/move_base/status"
+            self.sub_status.append(
+                rospy.Subscriber(
+                    topic, GoalStatusArray, queue_size=10, callback_args=topic
+                )
+            )
 
-            topic = '/' + self.robotPrefix + str(j) + '/move_base/status'
-            self.subStatus.append(rospy.Subscriber(topic, GoalStatusArray, queue_size=10, callback_args = topic))
+        self.robot_marker.header.frame_id = "map"
+        self.robot_marker.id = 0
+        self.robot_marker.type = 2  # sphere
+        self.robot_marker.action = 0
+        self.robot_marker.pose.orientation.x = 0
+        self.robot_marker.pose.orientation.y = 0
+        self.robot_marker.pose.orientation.z = 0
+        self.robot_marker.pose.orientation.w = 1.0
+        self.robot_marker.scale.x = 1.0
+        self.robot_marker.scale.y = 1.0
+        self.robot_marker.scale.z = 1.0
 
-        self.robotMarker.header.frame_id = "map"
-        self.robotMarker.id = 0
-        self.robotMarker.type = 2  # sphere
-        self.robotMarker.action = 0
-        self.robotMarker.pose.orientation.x = 0
-        self.robotMarker.pose.orientation.y = 0
-        self.robotMarker.pose.orientation.z = 0
-        self.robotMarker.pose.orientation.w = 1.0
-        self.robotMarker.scale.x = 1.0
-        self.robotMarker.scale.y = 1.0
-        self.robotMarker.scale.z = 1.0
-
-        self.robotMarker.color.a = 1.0
-
-    def exit_handler(self):
-        pass
-        """ travelDistances = self.travelDistances
-
-        date_string = self.date_string
-
-        file_location = 'catkin_ws/src/TU_Much_Exploration/tme_data/distances/' + str(self.numberRobots)
-        file_name = str(self.map_name) + str("_") + str(self.chosenMethod) + str("_") + date_string + ".txt"
-        file_name = os.path.join(os.path.expanduser('~'),file_location, file_name)
-
-        a_file = open(file_name, 'w+')
-        np.savetxt(a_file, travelDistances)
-
-        a_file.close()
-
-        rospy.logwarn('created file named: ' + file_name) """
-
-    # Getters for various parameters
-
-    def set_goals(self, number, value):
-        self.goals[number] = value
+        self.robot_marker.color.a = 1.0
 
     def increment_frontiers(self, number):
+        """Increment value of assigned frontiers to have a rolling maximum"""
         self.explored_frontiers[number] += 1
 
     # Callbacks for the frontiers and position data from the ros topics
-
     def callback_frontiers(self, data):
+        """Callback for frontier data to get assigned to self.frontiers"""
         self.frontiers = data
 
     def callback_status(self, data, topic):
-        number = (int)((re.search(r'\d+', topic)).group(0)) - 1
+        """Get status for move_base data"""
+        number = (int)((re.search(r"\d+", topic)).group(0)) - 1
         status_list = data.status_list
 
         for i in range(len(status_list)):
-            if(status_list[i].status == 4):
+            if status_list[i].status == 4:
                 np.append(self.blacklist, self.goals[number])
 
     def callback_map(self, data):
-        self.map = np.asarray(data.data, dtype=np.int8).reshape(data.info.height, data.info.width)
+        """Callback for OccupancyGrid map data"""
+        self.map = np.asarray(data.data, dtype=np.int8).reshape(
+            data.info.height, data.info.width
+        )
         self.map_res = data.info.resolution
-        self.map_origin = [data.info.origin.position.x, data.info.origin.position.y]
+        self.map_origin = [
+            data.info.origin.position.x, data.info.origin.position.y
+        ]
         self.map_middle = int(data.info.height / 2)
 
     def position_call_tf(self):
-        for i in range(self.numberRobots):
-            j = i+1
+        """Update position data for each robot to have current estimate"""
+        for i in range(self.number_robots):
+            j = i + 1
             try:
-                tf_topic = f'/robot{j}/map'
-                (trans, rot) = listener.lookupTransform(tf_topic, f'/robot{j}/base_link', rospy.Time(0))
+                tf_topic = f"/robot{j}/map"
+                (trans, rot) = listener.lookupTransform(
+                    tf_topic, f"/robot{j}/base_link", rospy.Time(0)
+                )
                 robot_location = Point(x=trans[0], y=trans[1])
-                self.robotPosition[i] = robot_location
-            except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
-                rospy.logerr(f'TF error for {tf_topic} with message {e}')
+                self.robot_position[i] = robot_location
+            except (
+                tf.LookupException,
+                tf.ConnectivityException,
+                tf.ExtrapolationException,
+            ) as e:
+                rospy.logerr(f"TF error for {tf_topic} with message {e}")
 
-        return self.robotPosition
+        return self.robot_position
 
     def blacklist_check(self, frontiers):
+        """
+        Check if any of the current frontiers are on the blacklist and
+        remove those from the list of frontiers which gets returned
+        """
         foundSth = 0
-        localFrontiers = copy.deepcopy(frontiers)
-        if(len(localFrontiers.frontiers) != 0):
-            for i in range(len(localFrontiers.frontiers)):
+        local_frontiers = copy.deepcopy(frontiers)
+        if len(local_frontiers.frontiers) != 0:
+            for i in range(len(local_frontiers.frontiers)):
                 foundSth = 0
                 for j in range(len(self.blacklist)):
                     x = i - foundSth
                     try:
-                        test1 = localFrontiers.frontiers[x].centroid
-                    except:
+                        test1 = local_frontiers.frontiers[x].centroid
+                    except ValueError:
                         break
                     test2 = self.blacklist[j]
-                    if (test1 == test2):
+                    if test1 == test2:
                         foundSth += 1
-                        localFrontiers.frontiers.pop(x)
-        return localFrontiers
+                        local_frontiers.frontiers.pop(x)
+        return local_frontiers
 
-    def distance_tracker(self, time_estimate):
-        temp_array = [time_estimate]
-        not_first = True
-        for i in range(self.numberRobots):
-            if(self.lastPos[i]):
-                self.travelDistancesTotal[i] += self.euclid_distance(self.lastPos[i], self.robotPosition[i])
-                temp_array.append(self.travelDistancesTotal[i])
-                self.lastPos[i] = self.robotPosition[i]
-            else:
-                not_first = True
-                self.lastPos[i] = self.robotPosition[i]
-                temp_array.append(0)
-        for i in range(self.numberRobots):
-            if(not_first):
-                temp_array.append(self.explored_frontiers[i])
-            else:
-                temp_array.append(0)
-
-        self.travelDistances.append(temp_array)
-
-    # Get euclidean distance between two points
     def euclid_distance(self, a: Point, b: Point):
+        """Get euclidean distance between two points"""
         testa = np.square(a.x - b.x)
         testb = np.square(a.y - b.y)
         testc = testa + testb
         result = np.sqrt(testc)
         return result
 
-    # Instanciate the self.distances matrix with the distance for every robot to every frontier
-    def frontier_distance(self, frontiers, positions, map, estimate='xyz'):
+    def frontier_distance(self, frontiers, positions, map, estimate="xyz"):
+        """
+        Instanciate the self.distances matrix with the distance for every robot
+        to every frontier
+        """
         local_frontiers = frontiers
         l_positions = positions
-        r_distances = np.empty((len(local_frontiers.frontiers), len(l_positions)))
-        if estimate == 'euclid':
+        r_distances = np.empty((
+            len(local_frontiers.frontiers), len(l_positions)
+        ))
+        if estimate == "euclid":
             for i in range(len(local_frontiers.frontiers)):
                 for j in range(len(l_positions)):
                     try:
-                        r_distances[i][j] = self.euclid_distance(local_frontiers.frontiers[i].centroid, l_positions[j])
-                    except: 
+                        r_distances[i][j] = self.euclid_distance(
+                            local_frontiers.frontiers[i].centroid,
+                            l_positions[j]
+                        )
+                    except:
                         r_distances[i][j] = 50
         else:
             r_distances = self.wavefront_robot_to_frontier(frontiers, positions, map)
@@ -213,52 +196,66 @@ class frontierAssign:
             r_distances = r_distances / maximum
         return r_distances
 
-
-    # Get speed for every robot from ros parameters and assign maxSpeed
     def assign_robot_speed(self):
-        for i in range(0, self.numberRobots):
-            temp_str = '/' + self.robotPrefix + str(i+1) + '/max_velocity'
-            #TODO
-            self.robotSpeeds[i] = 1#rospy.get_param(temp_str)
-        self.maxSpeed = np.max(self.robotSpeeds)
+        """Get speed for every robot from ros parameters and assign max_speed"""
+        for i in range(0, self.number_robots):
+            temp_str = "/" + self.robot_prefix + str(i + 1) + "/max_velocity"
+            # TODO
+            self.robot_speeds[i] = 1  # rospy.get_param(temp_str)
+        self.max_speed = np.max(self.robot_speeds)
 
-    # Assign speed modifiers for every robot by normalizing the values to 0,1 through dividing with the maxSpeed
     def speed_modifier(self):
-        self.speedModifier = np.empty(self.numberRobots)
-        for i in range(self.numberRobots):
-            self.speedModifier[i] = self.robotSpeeds[i]/self.maxSpeed
-        
-    # Find angle and range of every robot, multiply them and normalize for all values
+        """
+        Assign speed modifiers for every robot by normalizing the values to 0,1
+        through dividing with the max_speed
+        """
+        self.speed_modifier = np.empty(self.number_robots)
+        for i in range(self.number_robots):
+            self.speed_modifier[i] = self.robot_speeds[i] / self.max_speed
+
     def visibility_params(self):
-        self.visibilityModifier = np.zeros(self.numberRobots)
-        for i in range(self.numberRobots):
-            topic = '/' + self.robotPrefix + str(self.numberRobots) + '/scan'
+        """
+        Find angle and range of every robot, multiply them and normalize for
+        all values
+        """
+        self.visibility_modifier = np.zeros(self.number_robots)
+        for i in range(self.number_robots):
+            topic = "/" + self.robot_prefix + str(self.number_robots) + "/scan"
             data = rospy.wait_for_message(topic, LaserScan)
             overall_angle = data.angle_max - data.angle_min
             overall_range = data.range_max - data.range_min
-            self.visibilityModifier[i] = overall_angle * overall_range
-        maximum = np.max(self.visibilityModifier)
-        self.visiblityModifier = self.visibilityModifier / maximum
-    
-    # Computes the modifier from robot speed and distance between robot and frontiers, Normalize again
+            self.visibility_modifier[i] = overall_angle * overall_range
+        maximum = np.max(self.visibility_modifier)
+        self.visiblityModifier = self.visibility_modifier / maximum
+
     def frontier_distance_modifier(self, frontiers, distances):
-        result = np.ones((len(frontiers.frontiers), self.numberRobots))
+        """
+        Computes the modifier from robot speed and distance between robot and
+        frontiers, Normalize again
+        """
+        result = np.ones((len(frontiers.frontiers), self.number_robots))
         try:
             for i in range(len(frontiers.frontiers)):
-                for j in range(self.numberRobots):
-                    result[i][j] = self.speedModifier[j] * distances[i][j]
+                for j in range(self.number_robots):
+                    result[i][j] = self.speed_modifier[j] * distances[i][j]
             result = result / np.max(result)
         except ValueError:
             pass
         return result
 
-    # Computes the modifier from robot visibility and size of frontiers, Normalize again
     def frontier_visibility_modifier(self, frontiers):
-        result = np.ones((len(frontiers.frontiers), self.numberRobots))
+        """
+        Computes the modifier from robot visibility and size of frontiers,
+        Normalize again
+        """
+        result = np.ones((len(frontiers.frontiers), self.number_robots))
         try:
             for i in range(len(frontiers.frontiers)):
-                for j in range(self.numberRobots):
-                    result[i][j] = self.visibilityModifier[j] * frontiers.frontiers[i].size
+                for j in range(self.number_robots):
+                    result[i][j] = (
+                        self.visibility_modifier[j] *
+                        frontiers.frontiers[i].size
+                    )
             result = result / np.max(result)
             result = 1 - result
 
@@ -267,17 +264,22 @@ class frontierAssign:
         return result
 
     def active_cb(self):
-        rospy.loginfo("Goal pose is now being processed by the Action Server...")
+        """Callback if move_base is still active"""
+        rospy.loginfo("Goal pose is now being processed by the Action Server")
 
     def feedback_cb(self, feedback):
+        """Callback if feedback for goal is received"""
         rospy.loginfo("Feedback for goal pose received")
 
     def done_cb(self, status, result):
-    # Reference for terminal status values: http://docs.ros.org/diamondback/api/actcombinedionlib_msgs/html/msg/GoalStatus.html
+        """Callback with what status the move_base was exited"""
         rospy.logwarn("move_base exited with status: " + str(status))
-        
+
         if status == 2:
-            rospy.loginfo("Goal pose received a cancel request after it started executing, completed execution!")
+            rospy.loginfo(
+                """Goal pose received a cancel request after it started
+                executing, completed execution!"""
+            )
 
         if status == 3:
             rospy.loginfo("Goal pose reached")
@@ -291,17 +293,22 @@ class frontierAssign:
             return
 
         if status == 8:
-            rospy.loginfo("Goal pose received a cancel request before it started executing, successfully cancelled!")
+            rospy.loginfo(
+                """Goal pose received a cancel request before it 
+                started executing, successfully cancelled!"""
+            )
 
-    # Method to allow the parsing of move_base actions 
-    def movebase_client(self, topic, number, position, orientation=[0,0,0,1], delete=False):
+    def movebase_client(
+        self, topic, number, position, orientation=[0, 0, 0, 1], delete=False
+    ):
+        """Method to allow the parsing of move_base actions"""
 
         client = actionlib.SimpleActionClient(topic, MoveBaseAction)
 
         client.wait_for_server()
 
         goal = MoveBaseGoal()
-        goal.target_pose.header.frame_id = 'map'
+        goal.target_pose.header.frame_id = "map"
         goal.target_pose.header.stamp = rospy.Time.now()
         goal.target_pose.pose.position.x = position.x
         goal.target_pose.pose.position.y = position.y
@@ -311,38 +318,48 @@ class frontierAssign:
         goal.target_pose.pose.orientation.z = orientation[2]
         goal.target_pose.pose.orientation.w = orientation[3]
 
-        self.lastSearchTime[number] = rospy.Time.now()
+        self.last_search_time[number] = rospy.Time.now()
 
         client.send_goal(goal, self.done_cb, self.active_cb, self.feedback_cb)
 
-    def movebase_spoof(self, number, position):
-        self.lastSearchTime = rospy.Time.now()
-        self.publisher_position[number].publish(position)
-
     def get_clean_area(self, number):
-        size = number*2+1
+        """
+        Creates array of size: (number * 2 + 1) by (number * 2 + 1)
+        """
+        size = number * 2 + 1
         result = []
         for i in range(size):
             x = i - number
             for j in range(size):
                 y = j - number
                 result.append([x, y])
-        return result   
+        return result
 
     def clean_neighbors(self, array, indices, clean_area):
+        """
+        Returns input array where all areas with size clean_area are cleaned
+        """
         result = array
         shapes = result.shape
-        for x,y in indices:
+        for x, y in indices:
             if x < shapes[0] and y < shapes[1] and x > -1 and y > -1:
                 result[x][y] = 1
             for dx, dy in clean_area:
-                x_test = x+dx
-                y_test = y+dy
-                if x_test < shapes[0] and y_test < shapes[1] and x_test > -1 and y_test > -1:
-                    result[x+dx][y+dy] = 1
+                x_test = x + dx
+                y_test = y + dy
+                if (
+                    x_test < shapes[0]
+                    and y_test < shapes[1]
+                    and x_test > -1
+                    and y_test > -1
+                ):
+                    result[x + dx][y + dy] = 1
         return result
 
     def point_to_matrix(self, point):
+        """
+        Convert from Point object to [x,y] matrix
+        """
         try:
             if point.size != 0:
                 rospy.logwarn(point)
@@ -351,6 +368,9 @@ class frontierAssign:
             return [point.x, point.y]
 
     def centroid_to_matrix(self, centroid):
+        """
+        Convert from Centroid object to [x,y] matrix
+        """
         try:
             if type(centroid).__module__ == np.__name__:
                 rospy.logwarn(centroid)
@@ -361,18 +381,27 @@ class frontierAssign:
             return [centroid.initial.x, centroid.initial.y]
 
     def point_to_map_matrix(self, point_array):
-        result = np.empty_like(point_array, dtype = int)
+        """
+        Convert from point_array to [x,y] in map coordinates
+        """
+        result = np.empty_like(point_array, dtype=int)
         result[0] = round((point_array[0] - self.map_origin[0]) / self.map_res)
         result[1] = round((point_array[1] - self.map_origin[1]) / self.map_res)
         return result
 
     def map_to_point_matrix(self, point_array):
+        """
+        Convert from point in map coordinates to matrix coordinates
+        """
         result = np.empty_like(point_array, dtype=float)
-        result[0] = point_array[0] * self.map_res + self.map_origin[0]        
+        result[0] = point_array[0] * self.map_res + self.map_origin[0]
         result[1] = point_array[1] * self.map_res + self.map_origin[1]
         return result
 
     def wavefront_robot_to_frontier(self, frontiers, positions, maps):
+        """
+        Get distances from frontier positions to robot positions on map array
+        """
         robots = copy.deepcopy(positions)
         robot_len = len(robots)
         goals = copy.deepcopy(frontiers.frontiers)
@@ -391,35 +420,45 @@ class frontierAssign:
         l_graph = graph.MCP(costs=map, fully_connected=False)
         frontierDistances = np.ones((goals_len, robot_len))
         for i in range(robot_len):
-            cost_array, tracebacks_array = l_graph.find_costs([robots[i]], goals, find_all_ends=True)
+            cost_array, tracebacks_array = l_graph.find_costs(
+                [robots[i]], goals, find_all_ends=True
+            )
             for j in range(len(goals)):
                 temp = goals[j]
                 testing = cost_array[temp[0]][temp[1]]
-                # if result is inf try to find result in vicinity with non-inf value
+                # if result is inf try to find result in vicinity with
+                # non-inf value
                 if np.isinf(testing):
                     shapes = cost_array.shape
                     x = temp[0]
                     y = temp[1]
                     for dx, dy in self.clean_area:
-                        x_test = x+dx
-                        y_test = y+dy
-                        if x_test < shapes[0] and y_test < shapes[1] and x_test > -1 and y_test > -1:
+                        x_test = x + dx
+                        y_test = y + dy
+                        if (
+                            x_test < shapes[0]
+                            and y_test < shapes[1]
+                            and x_test > -1
+                            and y_test > -1
+                        ):
                             if np.isinf(cost_array[x_test][y_test]):
                                 testing = cost_array[x_test][y_test]
                                 break
-                frontierDistances[j][i] = self.speedModifier[i] * testing
+                frontierDistances[j][i] = self.speed_modifier[i] * testing
         return frontierDistances
 
-    # minPos approximation by assigning rank based on distance between goal and robot locations
-    # this is done from frontiers perspective
-    def rank_matrix(self, frontiers, positions, map, estimate='xyz'):
-        frontier_distance = self.frontier_distance(frontiers, positions, map, estimate)
+    def rank_matrix(self, frontiers, positions, map, estimate="xyz"):
+        """minPos approximation by assigning rank based on distance between
+        goal and robot locations this is done from frontiers perspective"""
+        frontier_distance = self.frontier_distance(
+            frontiers, positions, map, estimate
+        )
         order = np.argsort(frontier_distance, axis=1)
         ranks = np.argsort(order, axis=1)
         return ranks + 0.00001 * frontier_distance
 
-    # same as rank_matrix but matrix gets normalized at the end
     def rank_matrix_norm(self, distances, frontiers, positions, map):
+        """same as rank_matrix but matrix gets normalized at the end"""
         frontier_distance = distances
         order = np.argsort(frontier_distance, axis=1)
         ranks = np.argsort(order, axis=1)
@@ -434,8 +473,8 @@ class frontierAssign:
             result = ranks
         return result
 
-    # ranks matrix from closest to robot to furthest
     def rank_distance(self, frontiers, positions, map):
+        """ranks matrix from closest to robot to furthest"""
         frontier_distance = self.frontier_distance(frontiers, positions, map)
         order = np.argsort(frontier_distance, axis=0)
         ranks = np.argsort(order, axis=0)
@@ -451,9 +490,10 @@ class frontierAssign:
         return result
 
     def rank_visibility(self, frontiers):
+        """Rank all frontiers by how much visible area they have"""
         frontier_vis = self.frontier_visibility_modifier(frontiers)
-        order = np.argsort(frontier_vis, axis = 0)
-        ranks = np.argsort(order, axis = 0)
+        order = np.argsort(frontier_vis, axis=0)
+        ranks = np.argsort(order, axis=0)
         maximum = 0
         try:
             maximum = np.max(ranks)
@@ -466,10 +506,17 @@ class frontierAssign:
         return result
 
     def alpha_beta_dist(self, frontiers, positions, map, alpha=7, beta=7):
+        """
+        Alpha_beta distance according to nextFrontier paper
+        Higher Alpha prioritizes closer frontiers
+        Higher Beta prioritizes further frontiers
+        """
         frontier_distance = self.frontier_distance(frontiers, positions, map)
-        temp = np.power(frontier_distance, alpha) * np.power((1-frontier_distance), beta)
-        maximum = 0 
-        try: 
+        temp = np.power(frontier_distance, alpha) * np.power(
+            (1 - frontier_distance), beta
+        )
+        maximum = 0
+        try:
             maximum = np.max(temp)
         except:
             pass
@@ -480,8 +527,17 @@ class frontierAssign:
         return result
 
     def robot_spread(self, distances, frontiers, positions, map):
-        distance_sum = np.sum(distances, axis=0)
-        new_dist = np.reshape(distance_sum, (1, self.numberRobots)) - distances
+        """
+        Get distance of every other robot to every frontier so we know which
+        frontiers are furthest away from all other robots without the current
+        one
+        """
+        if not distances:
+            dist = self.frontier_distance(frontiers, positions, map)
+            distance_sum = np.sum(dist, axis=0)
+        else:
+            distance_sum = np.sum(distances, axis=0)
+        new_dist = np.reshape(distance_sum, (1, self.number_robots)) - distances
         minimum = np.min(new_dist)
         maximum = np.max(new_dist)
         if maximum != 0:
@@ -492,167 +548,218 @@ class frontierAssign:
             result = new_dist
         return result
 
-if __name__ == '__main__':
-    
-    rospy.init_node('frontier_assign')
+
+if __name__ == "__main__":
+    """
+    Main method where the node gets declared and pretty much everything happens
+    """
+
+    rospy.init_node("frontier_assign")
     abc = 1
 
-    param_rate = rospy.get_param('~frontier_rate', 5)
+    param_rate = rospy.get_param("~frontier_rate", 5)
 
     relative_name = rospy.get_name()
     robot_number = int(list(filter(str.isdigit, relative_name))[0])
 
-    data = rospy.wait_for_message('tme_frontier_search/frontierArray', frontierArray)
+    data = rospy.wait_for_message(
+        "tme_frontier_search/frontierArray",
+        frontierArray
+    )
 
-    fInstance = frontierAssign()
+    fInstance = FrontierAssign()
     fInstance.robot_number = robot_number - 1
 
     listener = tf.TransformListener()
 
-    markerPub = rospy.Publisher('robotMarker', Marker, queue_size=10)
-    
+    marker_pub = rospy.Publisher("robot_marker", Marker, queue_size=10)
+
     # one of: nearest, greedy, combined, minPos
-    chosen_method = rospy.get_param('~frontier_method')
+    chosen_method = rospy.get_param("~frontier_method")
     rospy.logwarn("Method is set to find {} goal".format(chosen_method))
-    fInstance.chosenMethod = chosen_method
+    fInstance.chosen_method = chosen_method
 
-    rospy.Subscriber("tme_frontier_search/frontierArray", frontierArray, fInstance.callback_frontiers)
+    rospy.Subscriber(
+        "tme_frontier_search/frontierArray",
+        frontierArray,
+        fInstance.callback_frontiers
+    )
 
-    rospy.Subscriber('/map', OccupancyGrid, fInstance.callback_map)
+    rospy.Subscriber("/map", OccupancyGrid, fInstance.callback_map)
 
     chosen_method_id = 0
 
-    if(chosen_method == 'nearest'):
+    if chosen_method == "nearest":
         chosen_method_id = 0
-    elif(chosen_method == 'co131'):
+    elif chosen_method == "co131":
         chosen_method_id = 1
-    elif(chosen_method == 'minPos'):
+    elif chosen_method == "minPos":
         chosen_method_id = 2
-    elif(chosen_method == 'nextFrontier'):
+    elif chosen_method == "nextFrontier":
         chosen_method_id = 3
-        visibility_weighting = rospy.get_param('~visibility_weighting', 1)
-        speed_weighting = rospy.get_param('~speed_weighting', 1)
-    elif(chosen_method == 'counterSpread'):
+        visibility_weighting = rospy.get_param("~visibility_weighting", 1)
+        speed_weighting = rospy.get_param("~speed_weighting", 1)
+    elif chosen_method == "counterSpread":
         chosen_method_id = 5
-    elif(chosen_method == 'co122'):
+    elif chosen_method == "co122":
         chosen_method_id = 6
-    elif(chosen_method == 'combined'):
+    elif chosen_method == "combined":
         chosen_method_id = 7
-    elif(chosen_method == 'coEuclid'):
+    elif chosen_method == "coEuclid":
         chosen_method_id = 8
-    elif(chosen_method == 'minEuclid'):
+    elif chosen_method == "minEuclid":
         chosen_method_id = 9
     else:
         chosen_method_id = 4
-        visibility_weighting = rospy.get_param('~visibility_weighting', 1)
-        speed_weighting = rospy.get_param('~speed_weighting', 1)
+        visibility_weighting = rospy.get_param("~visibility_weighting", 1)
+        speed_weighting = rospy.get_param("~speed_weighting", 1)
 
     rate = rospy.Rate(param_rate)
     id = 0
 
     time_estimate = 0
     time_increment = 1
-    
+
     while not rospy.is_shutdown():
 
         cost_matrix = None
         fInstance.position_call_tf()
-        
-        if(fInstance.frontiers and np.all(fInstance.robotPosition)):
+
+        if fInstance.frontiers and np.all(fInstance.robot_position):
             frontiers = copy.deepcopy(fInstance.frontiers)
             frontiers = fInstance.blacklist_check(frontiers)
             if frontiers and len(frontiers.frontiers) != 0:
-                positions = copy.deepcopy(fInstance.robotPosition)
+                positions = copy.deepcopy(fInstance.robot_position)
                 map = copy.deepcopy(fInstance.map)
                 distances = None
                 visibility = None
-                distance_method = 'xyz'
-                num_robots = copy.deepcopy(fInstance.numberRobots)
-                
+                distance_method = "xyz"
+                num_robots = copy.deepcopy(fInstance.number_robots)
+
                 j = robot_number
                 i = j - 1
 
-                if(chosen_method_id == 0):
-                    distances = fInstance.frontier_distance(frontiers, positions, map)
+                if chosen_method_id == 0:
+                    distances = fInstance.frontier_distance(
+                        frontiers, positions, map
+                    )
                     cost_matrix = distances
-                
-                elif(chosen_method_id == 1):
+
+                elif chosen_method_id == 1:
                     visibility = fInstance.rank_visibility(frontiers)
-                    distances = fInstance.frontier_distance(frontiers, positions, map) * 3
-                    rank_matrix_norm = fInstance.rank_matrix_norm(distances, frontiers, positions, map)
+                    distances = (
+                        fInstance.frontier_distance(
+                            frontiers, positions, map
+                        ) * 3
+                    )
+                    rank_matrix_norm = fInstance.rank_matrix_norm(
+                        distances, frontiers, positions, map
+                    )
                     cost_matrix = distances
                     cost_matrix = cost_matrix + visibility
                     cost_matrix = cost_matrix + rank_matrix_norm
-                
-                elif(chosen_method_id == 2):
+
+                elif chosen_method_id == 2:
                     ranks = fInstance.rank_matrix(frontiers, positions, map)
                     cost_matrix = ranks
 
-                elif(chosen_method_id == 3):
-                    visibility = fInstance.frontier_visibility_modifier(frontiers)
-                    distances = fInstance.frontier_distance(frontiers, positions, map)
-                    alpha_beta = fInstance.alpha_beta_dist(frontiers, positions, map)
-                    spread = fInstance.robot_spread(distances, frontiers, positions, map)
+                elif chosen_method_id == 3:
+                    visibility = fInstance.frontier_visibility_modifier(
+                        frontiers
+                        )
+                    distances = fInstance.frontier_distance(
+                        frontiers, positions, map
+                    )
+                    alpha_beta = fInstance.alpha_beta_dist(
+                        frontiers, positions, map
+                    )
+                    spread = fInstance.robot_spread(
+                        distances, frontiers, positions, map
+                    )
                     cost_matrix = distances
                     cost_matrix = cost_matrix + visibility
                     cost_matrix = cost_matrix - (1 - spread)
 
-                elif(chosen_method_id == 5):
-                    distances = fInstance.frontier_distance(frontiers, positions, map)
-                    spread = fInstance.robot_spread(distances, frontiers, positions, map)
+                elif chosen_method_id == 5:
+                    distances = fInstance.frontier_distance(
+                        frontiers, positions, map
+                    )
+                    spread = fInstance.robot_spread(
+                        distances, frontiers, positions, map
+                    )
                     cost_matrix = spread
 
-                elif(chosen_method_id == 6):
+                elif chosen_method_id == 6:
                     visibility = fInstance.rank_visibility(frontiers)
-                    distances = fInstance.frontier_distance(frontiers, positions, map) * 2
-                    rank_matrix_norm = fInstance.rank_matrix_norm(distances, frontiers, positions, map) * 2
+                    distances = (
+                        fInstance.frontier_distance(
+                            frontiers, positions, map
+                        ) * 2
+                    )
+                    rank_matrix_norm = (
+                        fInstance.rank_matrix_norm(
+                            distances, frontiers, positions, map
+                        ) * 2
+                    )
                     cost_matrix = distances
                     cost_matrix = cost_matrix + visibility
                     cost_matrix = cost_matrix + rank_matrix_norm
 
-                elif(chosen_method_id == 7):
+                elif chosen_method_id == 7:
                     visibility = fInstance.rank_visibility(frontiers)
-                    rank_distance = fInstance.frontier_distance(frontiers, positions, map, 'euclid')
+                    rank_distance = fInstance.frontier_distance(
+                        frontiers, positions, map, "euclid"
+                    )
                     cost_matrix = rank_distance
                     cost_matrix = cost_matrix + visibility
 
-                elif(chosen_method_id == 8):
+                elif chosen_method_id == 8:
                     visibility = fInstance.rank_visibility(frontiers)
-                    distances = fInstance.frontier_distance(frontiers, positions, map, 'euclid')
-                    rank_matrix_norm = fInstance.rank_matrix_norm(distances, frontiers, positions, map)
+                    distances = fInstance.frontier_distance(
+                        frontiers, positions, map, "euclid"
+                    )
+                    rank_matrix_norm = fInstance.rank_matrix_norm(
+                        distances, frontiers, positions, map
+                    )
                     cost_matrix = distances
                     cost_matrix = cost_matrix + visibility
                     cost_matrix = cost_matrix + rank_matrix_norm
 
-                elif(chosen_method_id == 9):
-                    ranks = fInstance.rank_matrix(frontiers, positions, map, 'euclid')
+                elif chosen_method_id == 9:
+                    ranks = fInstance.rank_matrix(
+                        frontiers, positions, map, "euclid"
+                    )
                     cost_matrix = ranks
 
                 else:
                     visibility = fInstance.rank_visibility(frontiers)
-                    distances = fInstance.frontier_distance(frontiers, positions, map)
-                    rank_matrix_norm = fInstance.rank_matrix_norm(distances, frontiers, positions, map)
+                    distances = fInstance.frontier_distance(
+                        frontiers, positions, map
+                    )
+                    rank_matrix_norm = fInstance.rank_matrix_norm(
+                        distances, frontiers, positions, map
+                    )
                     cost_matrix = distances
                     cost_matrix = cost_matrix + visibility
                     cost_matrix = cost_matrix + rank_matrix_norm
-                
+
                 cost_matrix = np.transpose(cost_matrix)
                 row_ind, col_ind = linear_sum_assignment(cost_matrix)
 
                 last_valid = j
-                topic = '/robot' + str(j) + '/move_base'
+                topic = "/robot" + str(j) + "/move_base"
                 temp_frontiers = frontiers.frontiers
-                if(len(temp_frontiers) <= num_robots or len(col_ind) <= num_robots):
-                    if(j >= len(temp_frontiers)):
+                if len(temp_frontiers) <= num_robots or len(col_ind) <= num_robots:
+                    if j >= len(temp_frontiers):
                         try:
-                            new_assign = np.argmin(cost_matrix[i,:])
-                            rospy.logwarn('argmin')
+                            new_assign = np.argmin(cost_matrix[i, :])
+                            rospy.logwarn("argmin")
                         except:
                             if len(temp_frontiers) != 0:
-                                new_assign = len(temp_frontiers)-1
-                                rospy.logwarn('other')
+                                new_assign = len(temp_frontiers) - 1
+                                rospy.logwarn("other")
                             else:
-                                rospy.logerr('RIP something went reall wrong here. ')
+                                rospy.logerr("RIP something went reall wrong here. ")
                                 break
                         temp_assignment = temp_frontiers[new_assign]
                         goal_location = temp_assignment.centroid
@@ -667,13 +774,18 @@ if __name__ == '__main__':
 
                 goals = fInstance.goals
 
-                if(fInstance.lastSearchTime[i] + rospy.Duration(secs=2)< rospy.Time.now()):
-                    if(goal_location != goals[i]):
+                if (
+                    fInstance.last_search_time[i] + rospy.Duration(secs=2)
+                    < rospy.Time.now()
+                ):
+                    if goal_location != goals[i]:
                         fInstance.goals[i] = goal_location
-                        fInstance.movebase_client(topic=topic, number=i, position=goal_location)
-                        marker = fInstance.robotMarker
+                        fInstance.movebase_client(
+                            topic=topic, number=i, position=goal_location
+                        )
+                        marker = fInstance.robot_marker
                         marker.header.stamp = rospy.Time.now()
-                        marker.ns = 'beep'
+                        marker.ns = "beep"
                         id += 1
                         marker.id = id
                         marker.pose.position = positions[i]
@@ -703,24 +815,27 @@ if __name__ == '__main__':
                             marker.color.b = 1
                         marker.lifetime = rospy.Duration(5)
 
-                        markerPub.publish(marker)
+                        marker_pub.publish(marker)
 
-                        #fInstance.movebase_spoof(number=i, position=goal_location)
                         fInstance.increment_frontiers(i)
-                    elif(fInstance.lastSearchTime[i] + rospy.Duration(secs=30)< rospy.Time.now()):
-                        rospy.logwarn(f'{goal_location} has been put on the blacklist')
-                        fInstance.blacklist = np.append(fInstance.blacklist, goal_location)
+                    elif (
+                        fInstance.last_search_time[i] + rospy.Duration(secs=30)
+                        < rospy.Time.now()
+                    ):
+                        rospy.logwarn(
+                            f"{goal_location} has been put on the blacklist"
+                        )
+                        fInstance.blacklist = np.append(
+                            fInstance.blacklist, goal_location
+                        )
                         rospy.logwarn(fInstance.blacklist)
 
         else:
             if fInstance.frontiers:
                 rospy.logwarn("frontiers is empty")
-            if not np.all(fInstance.robotPosition):
-                rospy.logwarn('positions are empty')
+            if not np.all(fInstance.robot_position):
+                rospy.logwarn("positions are empty")
 
         rate.sleep()
 
         time_estimate += time_increment
-
-
-

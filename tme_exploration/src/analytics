@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import rospy
-import numpy as np 
+import numpy as np
 import atexit
 import tf
 import os
@@ -9,6 +9,7 @@ import os
 from datetime import datetime
 
 from geometry_msgs.msg import Point
+
 
 class Analytics:
     def __init__(self):
@@ -20,7 +21,7 @@ class Analytics:
         self.chosenMethod = os.environ['tme_expl_method']
         self.travelDistances = []
         self.travelDistancesTotal = np.zeros(self.numberRobots)
-        
+
         atexit.register(self.exit_handler)
 
     def exit_handler(self):
@@ -28,9 +29,12 @@ class Analytics:
 
         date_string = self.date_string
 
-        file_location = 'catkin_ws/src/TU_Much_Exploration/tme_data/distances/' + str(self.numberRobots)
-        file_name = str(self.map_name) + str("_") + str(self.chosenMethod) + str("_") + date_string + ".txt"
-        file_name = os.path.join(os.path.expanduser('~'),file_location, file_name)
+        file_location = 'catkin_ws/src/TU_Much_Exploration/' \
+            + 'tme_data/distances/' + str(self.numberRobots)
+        file_name = str(self.map_name) + str("_") + \
+            str(self.chosenMethod) + str("_") + date_string + ".txt"
+        file_name = os.path.join(
+            os.path.expanduser('~'), file_location, file_name)
 
         a_file = open(file_name, 'w+')
         np.savetxt(a_file, travelDistances)
@@ -44,14 +48,18 @@ class Analytics:
             j = i+1
             try:
                 tf_topic = f'/robot{j}/map'
-                (trans, rot) = listener.lookupTransform(tf_topic, f'/robot{j}/base_link', rospy.Time(0))
+                (trans, rot) = listener.lookupTransform(
+                    tf_topic, f'/robot{j}/base_link', rospy.Time(0))
                 robot_location = Point(x=trans[0], y=trans[1])
                 self.robotPosition[i] = robot_location
-            except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
+            except (
+                    tf.LookupException,
+                    tf.ConnectivityException,
+                    tf.ExtrapolationException) as e:
                 rospy.logerr(f'TF error for {tf_topic} with message {e}')
 
         return self.robotPosition
-        
+
     # Get euclidean distance between two points
     def euclid_distance(self, a: Point, b: Point):
         testa = np.square(a.x - b.x)
@@ -65,7 +73,8 @@ class Analytics:
         not_first = False
         for i in range(self.numberRobots):
             if(self.lastPos[i]):
-                self.travelDistancesTotal[i] += self.euclid_distance(self.lastPos[i], self.robotPosition[i])
+                self.travelDistancesTotal[i] += self.euclid_distance(
+                    self.lastPos[i], self.robotPosition[i])
                 temp_array.append(self.travelDistancesTotal[i])
                 self.lastPos[i] = self.robotPosition[i]
             else:
@@ -74,6 +83,7 @@ class Analytics:
                 temp_array.append(0)
 
         self.travelDistances.append(temp_array)
+
 
 if __name__ == '__main__':
 
@@ -85,7 +95,7 @@ if __name__ == '__main__':
 
     listener = tf.TransformListener()
 
-    time_estimate = 0 
+    time_estimate = 0
     time_increment = 1
 
     while not rospy.is_shutdown():
@@ -95,8 +105,7 @@ if __name__ == '__main__':
             time_estimate = int(time_estimate)
             temp_estimate = int(time_estimate / 5)
             analytics.distance_tracker(temp_estimate)
-        
+
         time_estimate += time_increment
 
         rate.sleep()
-

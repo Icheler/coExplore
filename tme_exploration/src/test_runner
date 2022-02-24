@@ -6,26 +6,28 @@ import os
 import roslaunch
 
 
-def runner(numRobots=2, world='v2_maze', method='combined', stopTime=400, tries=10):
-    os.environ["tme_start_num"] = str(numRobots)
-    os.environ["tme_stop_time"] = str(stopTime)
+def runner(
+    num_robots=2, world="v2_maze", method="combined", stop_time=400, tries=10
+):
+    os.environ["tme_start_num"] = str(num_robots)
+    os.environ["tme_stop_time"] = str(stop_time)
     print(method)
     os.environ["tme_expl_method"] = str(method)
     os.environ["tme_ROBOT_ENV"] = str(world)
-    os.environ["tme_ROBOT"] = 'rto-1'
+    os.environ["tme_ROBOT"] = "rto-1"
 
     start_two = False
     start_three = False
     start_four = False
     start_five = False
 
-    if (numRobots >= 2):
+    if num_robots >= 2:
         start_two = True
-        if (numRobots >= 3):
+        if num_robots >= 3:
             start_three = True
-            if (numRobots >= 4):
+            if num_robots >= 4:
                 start_four = True
-                if (numRobots >= 5):
+                if num_robots >= 5:
                     start_five = True
 
     os.environ["tme_start_two"] = str(start_two)
@@ -33,26 +35,34 @@ def runner(numRobots=2, world='v2_maze', method='combined', stopTime=400, tries=
     os.environ["tme_start_four"] = str(start_four)
     os.environ["tme_start_five"] = str(start_five)
 
-    file_location = 'catkin_ws/src/TU_Much_Exploration/tme_startup/launch'
+    file_location = "catkin_ws/src/TU_Much_Exploration/tme_startup/launch"
     file_name = "decentralized_launch.launch"
-    file_name = os.path.join(os.path.expanduser('~'), file_location, file_name)
-    
+    file_name = os.path.join(os.path.expanduser("~"), file_location, file_name)
+
     for i in range(tries):
-        os.system('roslaunch tme_startup decentralized_launch.launch')
+        os.system("roslaunch tme_startup decentralized_launch.launch")
 
-def runAll(numRobots = 2, world = 'v2_maze', methods = ['coExplore'], stopTime=400, tries = 10):
+
+def run_all(
+    num_robots=2, world="v2_maze", methods=["coExplore"],
+    stop_time=400, tries=10
+):
     for i in range(len(methods)):
-        runner(numRobots, world, methods[i], stopTime, tries)
+        runner(num_robots, world, methods[i], stop_time, tries)
 
-if __name__ == '__main__':
 
-    numRobots = [2, 3, 4, 5]
-    world = ['v2_maze', 'map_3'] #'v2_maze', 'map_3', 'marty'
-    method = ['minEuclid'] #['nearest', 'minPos', 'coExplore']
-    stopTime = [500, 400, 300, 250]
+if __name__ == "__main__":
+
+    num_robots = [2, 3, 4, 5]
+    world = ["v2_maze", "map_3"]  # 'v2_maze', 'map_3', 'marty'
+    method = ["minEuclid"]  # ['nearest', 'minPos', 'coExplore']
+    stop_time = [500, 400, 300, 250]
     tries = [1, 1, 1, 2, 2]
     for x in range(len(tries)):
-        for j in range(len(numRobots)):
+        for j in range(len(num_robots)):
             for i in range(len(world)):
                 for y in range(len(method)):
-                    runner(numRobots[j], world[i], method[y], stopTime[j], tries[x])
+                    runner(
+                        num_robots[j], world[i], method[y],
+                        stop_time[j], tries[x]
+                    )
