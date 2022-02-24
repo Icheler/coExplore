@@ -73,12 +73,9 @@ class frontierAssign:
             self.subStatus.append(rospy.Subscriber(topic, GoalStatusArray, queue_size=10, callback_args = topic))
 
         self.robotMarker.header.frame_id = "map"
-        #self.robotMarker.header.stamp    = rospy.get_rostime()
-        #self.robotMarker.ns = "robot"
         self.robotMarker.id = 0
-        self.robotMarker.type = 2 # sphere
+        self.robotMarker.type = 2  # sphere
         self.robotMarker.action = 0
-        #self.robotMarker.pose.position = self.state.point
         self.robotMarker.pose.orientation.x = 0
         self.robotMarker.pose.orientation.y = 0
         self.robotMarker.pose.orientation.z = 0
@@ -87,9 +84,6 @@ class frontierAssign:
         self.robotMarker.scale.y = 1.0
         self.robotMarker.scale.z = 1.0
 
-        #self.robotMarker.color.r = 0.0
-        #self.robotMarker.color.g = 1.0
-        #self.robotMarker.color.b = 0.0
         self.robotMarker.color.a = 1.0
 
     def exit_handler(self):
@@ -151,7 +145,7 @@ class frontierAssign:
 
     def blacklist_check(self, frontiers):
         foundSth = 0
-        localFrontiers = frontiers
+        localFrontiers = copy.deepcopy(frontiers)
         if(len(localFrontiers.frontiers) != 0):
             for i in range(len(localFrontiers.frontiers)):
                 foundSth = 0
@@ -418,15 +412,15 @@ class frontierAssign:
 
     # minPos approximation by assigning rank based on distance between goal and robot locations
     # this is done from frontiers perspective
-    def rank_matrix(self, frontiers, positions, map):
-        frontier_distance = self.frontier_distance(frontiers, positions, map)
+    def rank_matrix(self, frontiers, positions, map, estimate='xyz'):
+        frontier_distance = self.frontier_distance(frontiers, positions, map, estimate)
         order = np.argsort(frontier_distance, axis=1)
         ranks = np.argsort(order, axis=1)
         return ranks + 0.00001 * frontier_distance
 
     # same as rank_matrix but matrix gets normalized at the end
-    def rank_matrix_norm(self, frontiers, positions, map):
-        frontier_distance = self.frontier_distance(frontiers, positions, map)
+    def rank_matrix_norm(self, distances, frontiers, positions, map):
+        frontier_distance = distances
         order = np.argsort(frontier_distance, axis=1)
         ranks = np.argsort(order, axis=1)
         maximum = 0
@@ -542,6 +536,12 @@ if __name__ == '__main__':
         chosen_method_id = 5
     elif(chosen_method == 'co122'):
         chosen_method_id = 6
+    elif(chosen_method == 'combined'):
+        chosen_method_id = 7
+    elif(chosen_method == 'coEuclid'):
+        chosen_method_id = 8
+    elif(chosen_method == 'minEuclid'):
+        chosen_method_id = 9
     else:
         chosen_method_id = 4
         visibility_weighting = rospy.get_param('~visibility_weighting', 1)
@@ -561,139 +561,156 @@ if __name__ == '__main__':
         if(fInstance.frontiers and np.all(fInstance.robotPosition)):
             frontiers = copy.deepcopy(fInstance.frontiers)
             frontiers = fInstance.blacklist_check(frontiers)
-            if not frontiers:
-                break
-            positions = copy.deepcopy(fInstance.robotPosition)
-            map = copy.deepcopy(fInstance.map)
-            distances = None
-            visibility = None
-            distance_method = 'xyz'
-            num_robots = copy.deepcopy(fInstance.numberRobots)
-            
-            j = robot_number
-            i = j - 1
+            if frontiers and len(frontiers.frontiers) != 0:
+                positions = copy.deepcopy(fInstance.robotPosition)
+                map = copy.deepcopy(fInstance.map)
+                distances = None
+                visibility = None
+                distance_method = 'xyz'
+                num_robots = copy.deepcopy(fInstance.numberRobots)
+                
+                j = robot_number
+                i = j - 1
 
-            if(chosen_method_id == 0):
-                distances = fInstance.frontier_distance(frontiers, positions, map)
-                cost_matrix = distances
-            
-            elif(chosen_method_id == 1):
-                visibility = fInstance.rank_visibility(frontiers)
-                rank_distance = fInstance.frontier_distance(frontiers, positions, map) * 3
-                rank_matrix_norm = fInstance.rank_matrix_norm(frontiers, positions, map)
-                cost_matrix = rank_distance
-                cost_matrix = cost_matrix + visibility
-                cost_matrix = cost_matrix + rank_matrix_norm
-            
-            elif(chosen_method_id == 2):
-                ranks = fInstance.rank_matrix(frontiers, positions, map)
-                cost_matrix = ranks
+                if(chosen_method_id == 0):
+                    distances = fInstance.frontier_distance(frontiers, positions, map)
+                    cost_matrix = distances
+                
+                elif(chosen_method_id == 1):
+                    visibility = fInstance.rank_visibility(frontiers)
+                    distances = fInstance.frontier_distance(frontiers, positions, map) * 3
+                    rank_matrix_norm = fInstance.rank_matrix_norm(distances, frontiers, positions, map)
+                    cost_matrix = distances
+                    cost_matrix = cost_matrix + visibility
+                    cost_matrix = cost_matrix + rank_matrix_norm
+                
+                elif(chosen_method_id == 2):
+                    ranks = fInstance.rank_matrix(frontiers, positions, map)
+                    cost_matrix = ranks
 
-            elif(chosen_method_id == 3):
-                visibility = fInstance.frontier_visibility_modifier(frontiers)
-                distances = fInstance.frontier_distance(frontiers, positions, map)
-                alpha_beta = fInstance.alpha_beta_dist(frontiers, positions, map)
-                spread = fInstance.robot_spread(distances, frontiers, positions, map)
-                cost_matrix = distances
-                cost_matrix = cost_matrix + visibility
-                cost_matrix = cost_matrix - (1 - spread)
+                elif(chosen_method_id == 3):
+                    visibility = fInstance.frontier_visibility_modifier(frontiers)
+                    distances = fInstance.frontier_distance(frontiers, positions, map)
+                    alpha_beta = fInstance.alpha_beta_dist(frontiers, positions, map)
+                    spread = fInstance.robot_spread(distances, frontiers, positions, map)
+                    cost_matrix = distances
+                    cost_matrix = cost_matrix + visibility
+                    cost_matrix = cost_matrix - (1 - spread)
 
-            elif(chosen_method_id == 5):
-                distances = fInstance.frontier_distance(frontiers, positions, map)
-                spread = fInstance.robot_spread(distances, frontiers, positions, map)
-                cost_matrix = spread
+                elif(chosen_method_id == 5):
+                    distances = fInstance.frontier_distance(frontiers, positions, map)
+                    spread = fInstance.robot_spread(distances, frontiers, positions, map)
+                    cost_matrix = spread
 
-            elif(chosen_method_id == 6):
-                visibility = fInstance.rank_visibility(frontiers)
-                rank_distance = fInstance.frontier_distance(frontiers, positions, map) * 2
-                rank_matrix_norm = fInstance.rank_matrix_norm(frontiers, positions, map) * 2
-                cost_matrix = rank_distance
-                cost_matrix = cost_matrix + visibility
-                cost_matrix = cost_matrix + rank_matrix_norm
+                elif(chosen_method_id == 6):
+                    visibility = fInstance.rank_visibility(frontiers)
+                    distances = fInstance.frontier_distance(frontiers, positions, map) * 2
+                    rank_matrix_norm = fInstance.rank_matrix_norm(distances, frontiers, positions, map) * 2
+                    cost_matrix = distances
+                    cost_matrix = cost_matrix + visibility
+                    cost_matrix = cost_matrix + rank_matrix_norm
 
-            else:
-                visibility = fInstance.rank_visibility(frontiers)
-                rank_distance = fInstance.frontier_distance(frontiers, positions, map)
-                rank_matrix_norm = fInstance.rank_matrix_norm(frontiers, positions, map)
-                cost_matrix = rank_distance
-                cost_matrix = cost_matrix + visibility
-                cost_matrix = cost_matrix + rank_matrix_norm
-            
-            cost_matrix = np.transpose(cost_matrix)
-            row_ind, col_ind = linear_sum_assignment(cost_matrix)
+                elif(chosen_method_id == 7):
+                    visibility = fInstance.rank_visibility(frontiers)
+                    rank_distance = fInstance.frontier_distance(frontiers, positions, map, 'euclid')
+                    cost_matrix = rank_distance
+                    cost_matrix = cost_matrix + visibility
 
-            last_valid = j
-            topic = '/robot' + str(j) + '/move_base'
-            temp_frontiers = frontiers.frontiers
-            if(len(temp_frontiers) <= num_robots or len(col_ind) <= num_robots):
-                if(j >= len(temp_frontiers)):
-                    try:
-                        new_assign = np.argmin(cost_matrix[i,:])
-                        rospy.logwarn('argmin')
-                    except:
-                        if len(temp_frontiers) != 0:
-                            new_assign = len(temp_frontiers)-1
-                            rospy.logwarn('other')
-                        else:
-                            rospy.logerr('RIP something went reall wrong here. ')
-                            break
-                    temp_assignment = temp_frontiers[new_assign]
-                    goal_location = temp_assignment.centroid
+                elif(chosen_method_id == 8):
+                    visibility = fInstance.rank_visibility(frontiers)
+                    distances = fInstance.frontier_distance(frontiers, positions, map, 'euclid')
+                    rank_matrix_norm = fInstance.rank_matrix_norm(distances, frontiers, positions, map)
+                    cost_matrix = distances
+                    cost_matrix = cost_matrix + visibility
+                    cost_matrix = cost_matrix + rank_matrix_norm
+
+                elif(chosen_method_id == 9):
+                    ranks = fInstance.rank_matrix(frontiers, positions, map, 'euclid')
+                    cost_matrix = ranks
+
+                else:
+                    visibility = fInstance.rank_visibility(frontiers)
+                    distances = fInstance.frontier_distance(frontiers, positions, map)
+                    rank_matrix_norm = fInstance.rank_matrix_norm(distances, frontiers, positions, map)
+                    cost_matrix = distances
+                    cost_matrix = cost_matrix + visibility
+                    cost_matrix = cost_matrix + rank_matrix_norm
+                
+                cost_matrix = np.transpose(cost_matrix)
+                row_ind, col_ind = linear_sum_assignment(cost_matrix)
+
+                last_valid = j
+                topic = '/robot' + str(j) + '/move_base'
+                temp_frontiers = frontiers.frontiers
+                if(len(temp_frontiers) <= num_robots or len(col_ind) <= num_robots):
+                    if(j >= len(temp_frontiers)):
+                        try:
+                            new_assign = np.argmin(cost_matrix[i,:])
+                            rospy.logwarn('argmin')
+                        except:
+                            if len(temp_frontiers) != 0:
+                                new_assign = len(temp_frontiers)-1
+                                rospy.logwarn('other')
+                            else:
+                                rospy.logerr('RIP something went reall wrong here. ')
+                                break
+                        temp_assignment = temp_frontiers[new_assign]
+                        goal_location = temp_assignment.centroid
+                    else:
+                        l_test = col_ind[i]
+                        temp_assignment = temp_frontiers[l_test]
+                        goal_location = temp_assignment.centroid
                 else:
                     l_test = col_ind[i]
                     temp_assignment = temp_frontiers[l_test]
                     goal_location = temp_assignment.centroid
-            else:
-                l_test = col_ind[i]
-                temp_assignment = temp_frontiers[l_test]
-                goal_location = temp_assignment.centroid
 
-            goals = fInstance.goals
+                goals = fInstance.goals
 
-            if(fInstance.lastSearchTime[i] + rospy.Duration(secs=1)< rospy.Time.now()):
-                if(goal_location != goals[i]):
-                    fInstance.goals[i] = goal_location
-                    fInstance.movebase_client(topic=topic, number=i, position=goal_location)
-                    marker = fInstance.robotMarker
-                    marker.header.stamp = rospy.Time.now()
-                    marker.ns = 'beep'
-                    id += 1
-                    marker.id = id
-                    marker.pose.position = positions[i]
-                    if i == 0:
-                        marker.color.r = 0
-                        marker.color.g = 0
-                        marker.color.b = 0
-                    elif i == 1:
-                        marker.color.r = 1
-                        marker.color.g = 1
-                        marker.color.b = 1
-                    elif i == 2:
-                        marker.color.r = 0
-                        marker.color.g = 1
-                        marker.color.b = 1
-                    elif i == 3:
-                        marker.color.r = 1
-                        marker.color.g = 0
-                        marker.color.b = 1
-                    elif i == 4:
-                        marker.color.r = 1
-                        marker.color.g = 1
-                        marker.color.b = 0
-                    else:
-                        marker.color.r = 0
-                        marker.color.g = 0
-                        marker.color.b = 1
-                    marker.lifetime = rospy.Duration(5)
+                if(fInstance.lastSearchTime[i] + rospy.Duration(secs=2)< rospy.Time.now()):
+                    if(goal_location != goals[i]):
+                        fInstance.goals[i] = goal_location
+                        fInstance.movebase_client(topic=topic, number=i, position=goal_location)
+                        marker = fInstance.robotMarker
+                        marker.header.stamp = rospy.Time.now()
+                        marker.ns = 'beep'
+                        id += 1
+                        marker.id = id
+                        marker.pose.position = positions[i]
+                        if i == 0:
+                            marker.color.r = 0
+                            marker.color.g = 0
+                            marker.color.b = 0
+                        elif i == 1:
+                            marker.color.r = 1
+                            marker.color.g = 1
+                            marker.color.b = 1
+                        elif i == 2:
+                            marker.color.r = 0
+                            marker.color.g = 1
+                            marker.color.b = 1
+                        elif i == 3:
+                            marker.color.r = 1
+                            marker.color.g = 0
+                            marker.color.b = 1
+                        elif i == 4:
+                            marker.color.r = 1
+                            marker.color.g = 1
+                            marker.color.b = 0
+                        else:
+                            marker.color.r = 0
+                            marker.color.g = 0
+                            marker.color.b = 1
+                        marker.lifetime = rospy.Duration(5)
 
-                    markerPub.publish(marker)
+                        markerPub.publish(marker)
 
-                    #fInstance.movebase_spoof(number=i, position=goal_location)
-                    fInstance.increment_frontiers(i)
-                elif(fInstance.lastSearchTime[i] + rospy.Duration(secs=30)< rospy.Time.now()):
-                    rospy.logwarn(f'{goal_location} has been put on the blacklist')
-                    fInstance.blacklist = np.append(fInstance.blacklist, goal_location)
-                    rospy.logwarn(fInstance.blacklist)
+                        #fInstance.movebase_spoof(number=i, position=goal_location)
+                        fInstance.increment_frontiers(i)
+                    elif(fInstance.lastSearchTime[i] + rospy.Duration(secs=30)< rospy.Time.now()):
+                        rospy.logwarn(f'{goal_location} has been put on the blacklist')
+                        fInstance.blacklist = np.append(fInstance.blacklist, goal_location)
+                        rospy.logwarn(fInstance.blacklist)
 
         else:
             if fInstance.frontiers:
