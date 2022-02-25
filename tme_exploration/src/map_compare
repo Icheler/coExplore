@@ -20,17 +20,17 @@ class mapCompare:
         self.stopTime = int(rospy.get_param("~stop_time", "400"))
         self.map_name = os.environ["tme_ROBOT_ENV"]
         self.expl_method = os.environ["tme_expl_method"]
-        self.file_name = str(self.map_name) + "_"
-        +str(self.expl_method) + "_" + self.date_string
+        self.file_name = str(self.map_name) + "_"\
+            + str(self.expl_method) + "_" + self.date_string
         self.info = None
 
     def exit_handler(self):
         date_string = self.date_string
 
-        file_name = str(self.map_name) + "_" + str(self.expl_method)
-        +"_" + date_string + ".txt"
-        file_location = "catkin_ws/src/TU_Much_Exploration/"
-        +"tme_data/coverage/measurements/" + str(num_robots)
+        file_name = str(self.map_name) + "_" + str(self.expl_method)\
+            + "_" + date_string + ".txt"
+        file_location = "catkin_ws/src/TU_Much_Exploration/"\
+            + "tme_data/coverage/measurements/" + str(num_robots)
         file_location = os.path.join(os.path.expanduser("~"), file_location)
         file_complete = os.path.join(
             os.path.expanduser("~"), file_location, file_name
@@ -75,16 +75,16 @@ if __name__ == "__main__":
 
     if mode:
         file_name = classy.file_name
-        file_location = "catkin_ws/src/TU_Much_Exploration/tme_data/"
-        +"coverage/measurements/" + str(num_robots)
+        file_location = "catkin_ws/src/TU_Much_Exploration/tme_data/"\
+            + "coverage/measurements/" + str(num_robots)
         file_location = os.path.join(os.path.expanduser("~"), file_location)
         file_complete = os.path.join(
             os.path.expanduser("~"), file_location, file_name
         )
 
         map_file_name = classy.map_name + ".txt"
-        map_file_location = "catkin_ws/src/TU_Much_Exploration/"
-        +"tme_data/coverage/base_line"
+        map_file_location = "catkin_ws/src/TU_Much_Exploration/"\
+            + "tme_data/coverage/base_line"
         base_file = os.path.join(
             os.path.expanduser("~"), map_file_location, map_file_name
         )
@@ -137,9 +137,22 @@ if __name__ == "__main__":
             rospy.logerr("Current coverage is :" + str(temp_difference))
 
             if time_estimate >= stopTime:
+                rospy.logerr("System has exceeded stopTime, shut down")
                 os.system("rosnode kill -a")
 
-            if temp_difference > 0.93:
-                os.system("rosnode kill -a")
+            if classy.map_name == 'marty':
+                if temp_difference > 0.90:
+                    rospy.logerr("Map matched enough, shut down")
+                    os.system("rosnode kill -a")
+
+            elif classy.map_name == 'map_3':
+                if temp_difference > 0.94:
+                    rospy.logerr("Map matched enough, shut down")
+                    os.system("rosnode kill -a")
+
+            else:
+                if temp_difference > 0.92:
+                    rospy.logerr("Map matched enough, shut down")
+                    os.system("rosnode kill -a")
 
         rate.sleep()

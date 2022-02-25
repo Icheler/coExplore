@@ -25,6 +25,10 @@ class Analytics:
         atexit.register(self.exit_handler)
 
     def exit_handler(self):
+        """
+        This method is triggered when the program is terminated to save the
+        current state of the travel_distances
+        """
         travelDistances = self.travelDistances
 
         date_string = self.date_string

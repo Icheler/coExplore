@@ -53,10 +53,10 @@ def run_all(
 
 if __name__ == "__main__":
 
-    num_robots = [2, 3, 4, 5]
-    world = ["v2_maze", "map_3"]  # 'v2_maze', 'map_3', 'marty'
-    method = ["minEuclid"]  # ['nearest', 'minPos', 'coExplore']
-    stop_time = [500, 400, 300, 250]
+    num_robots = [4]  # [2, 3, 4, 5]
+    world = ["marty"]  # 'v2_maze', 'map_3', 'marty'
+    method = ["minEuclid", 'coEuclid', 'minPos', 'nearest']  # ['nearest', 'minPos', 'coExplore']
+    stop_time = [300]  # [500, 400, 300, 250]
     tries = [1, 1, 1, 2, 2]
     for x in range(len(tries)):
         for j in range(len(num_robots)):

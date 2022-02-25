@@ -4,7 +4,6 @@ import rospy
 import math
 import tf
 import numpy as np
-print(np.version.version)
 import geometry_msgs.msg
 from geometry_msgs.msg import Point, Pose
 from std_msgs.msg import Float32
@@ -23,7 +22,7 @@ import matplotlib.pyplot as plt
 """
 
 
-class Trace_removal(object):
+class TraceRemoval(object):
     def __init__(self):
 
         self.robot1_position = Point()

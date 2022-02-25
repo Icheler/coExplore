@@ -38,7 +38,7 @@ class FrontierAssign:
         self.robot_position = np.empty(self.number_robots, dtype=Point)
         self.robot_speeds = np.empty(self.number_robots)
         self.max_speed = None
-        self.speed_modifier = np.empty(self.number_robots)
+        self.var_speed_modifier = np.empty(self.number_robots)
         self.visibility_modifier = np.empty(self.number_robots)
         self.assign_robot_speed()
         self.speed_modifier()
@@ -54,7 +54,6 @@ class FrontierAssign:
         self.map_name = os.environ["tme_ROBOT_ENV"]
         self.map = None
         self.clean_area = self.get_clean_area(100)
-        self.robot_number = None
 
         for i in range(self.number_robots):
             self.last_search_time[i] = rospy.Time.now() - rospy.Duration(5)
@@ -148,7 +147,7 @@ class FrontierAssign:
                     x = i - foundSth
                     try:
                         test1 = local_frontiers.frontiers[x].centroid
-                    except ValueError:
+                    except:
                         break
                     test2 = self.blacklist[j]
                     if test1 == test2:
@@ -185,7 +184,9 @@ class FrontierAssign:
                     except:
                         r_distances[i][j] = 50
         else:
-            r_distances = self.wavefront_robot_to_frontier(frontiers, positions, map)
+            r_distances = self.wavefront_robot_to_frontier(
+                frontiers, positions, map
+            )
             r_distances = np.where(np.isinf(r_distances), 500, r_distances)
         maximum = 0
         try:
@@ -197,7 +198,9 @@ class FrontierAssign:
         return r_distances
 
     def assign_robot_speed(self):
-        """Get speed for every robot from ros parameters and assign max_speed"""
+        """
+        Get speed for every robot from ros parameters and assign max_speed
+        """
         for i in range(0, self.number_robots):
             temp_str = "/" + self.robot_prefix + str(i + 1) + "/max_velocity"
             # TODO
@@ -209,9 +212,9 @@ class FrontierAssign:
         Assign speed modifiers for every robot by normalizing the values to 0,1
         through dividing with the max_speed
         """
-        self.speed_modifier = np.empty(self.number_robots)
+        self.var_speed_modifier = np.empty(self.number_robots)
         for i in range(self.number_robots):
-            self.speed_modifier[i] = self.robot_speeds[i] / self.max_speed
+            self.var_speed_modifier[i] = self.robot_speeds[i] / self.max_speed
 
     def visibility_params(self):
         """
@@ -237,9 +240,9 @@ class FrontierAssign:
         try:
             for i in range(len(frontiers.frontiers)):
                 for j in range(self.number_robots):
-                    result[i][j] = self.speed_modifier[j] * distances[i][j]
+                    result[i][j] = self.var_speed_modifier[j] * distances[i][j]
             result = result / np.max(result)
-        except ValueError:
+        except:
             pass
         return result
 
@@ -259,7 +262,7 @@ class FrontierAssign:
             result = result / np.max(result)
             result = 1 - result
 
-        except ValueError:
+        except:
             pass
         return result
 
@@ -444,7 +447,7 @@ class FrontierAssign:
                             if np.isinf(cost_array[x_test][y_test]):
                                 testing = cost_array[x_test][y_test]
                                 break
-                frontierDistances[j][i] = self.speed_modifier[i] * testing
+                frontierDistances[j][i] = self.var_speed_modifier[i] * testing
         return frontierDistances
 
     def rank_matrix(self, frontiers, positions, map, estimate="xyz"):
@@ -537,7 +540,8 @@ class FrontierAssign:
             distance_sum = np.sum(dist, axis=0)
         else:
             distance_sum = np.sum(distances, axis=0)
-        new_dist = np.reshape(distance_sum, (1, self.number_robots)) - distances
+        new_dist = np.reshape(
+            distance_sum, (1, self.number_robots)) - distances
         minimum = np.min(new_dist)
         maximum = np.max(new_dist)
         if maximum != 0:
@@ -568,7 +572,6 @@ if __name__ == "__main__":
     )
 
     fInstance = FrontierAssign()
-    fInstance.robot_number = robot_number - 1
 
     listener = tf.TransformListener()
 
@@ -618,7 +621,7 @@ if __name__ == "__main__":
     id = 0
 
     time_estimate = 0
-    time_increment = 1
+    time_increment = 2
 
     while not rospy.is_shutdown():
 
@@ -628,7 +631,8 @@ if __name__ == "__main__":
         if fInstance.frontiers and np.all(fInstance.robot_position):
             frontiers = copy.deepcopy(fInstance.frontiers)
             frontiers = fInstance.blacklist_check(frontiers)
-            if frontiers and len(frontiers.frontiers) != 0:
+            if frontiers and len(frontiers.frontiers) != 0\
+                    and time_estimate > 10:
                 positions = copy.deepcopy(fInstance.robot_position)
                 map = copy.deepcopy(fInstance.map)
                 distances = None
@@ -666,7 +670,7 @@ if __name__ == "__main__":
                 elif chosen_method_id == 3:
                     visibility = fInstance.frontier_visibility_modifier(
                         frontiers
-                        )
+                    )
                     distances = fInstance.frontier_distance(
                         frontiers, positions, map
                     )
@@ -749,7 +753,8 @@ if __name__ == "__main__":
                 last_valid = j
                 topic = "/robot" + str(j) + "/move_base"
                 temp_frontiers = frontiers.frontiers
-                if len(temp_frontiers) <= num_robots or len(col_ind) <= num_robots:
+                if len(temp_frontiers) <= num_robots or \
+                        len(col_ind) <= num_robots:
                     if j >= len(temp_frontiers):
                         try:
                             new_assign = np.argmin(cost_matrix[i, :])
@@ -759,7 +764,8 @@ if __name__ == "__main__":
                                 new_assign = len(temp_frontiers) - 1
                                 rospy.logwarn("other")
                             else:
-                                rospy.logerr("RIP something went reall wrong here. ")
+                                rospy.logerr(
+                                    "Planning with empty frontiers")
                                 break
                         temp_assignment = temp_frontiers[new_assign]
                         goal_location = temp_assignment.centroid
@@ -775,8 +781,8 @@ if __name__ == "__main__":
                 goals = fInstance.goals
 
                 if (
-                    fInstance.last_search_time[i] + rospy.Duration(secs=2)
-                    < rospy.Time.now()
+                    fInstance.last_search_time[i]
+                    + rospy.Duration(secs=2) < rospy.Time.now()
                 ):
                     if goal_location != goals[i]:
                         fInstance.goals[i] = goal_location
@@ -835,6 +841,17 @@ if __name__ == "__main__":
                 rospy.logwarn("frontiers is empty")
             if not np.all(fInstance.robot_position):
                 rospy.logwarn("positions are empty")
+            else:
+                fInstance.position_call_tf()
+                i = robot_number - 1
+                robot_location = copy.deepcopy(fInstance.robot_position[i])
+                goal_location = Point()
+                goal_location.x = robot_location.x + 0.5
+                goal_location.y = robot_location.y + 0.5
+                topic = "/robot" + str(robot_number) + "/move_base"
+                fInstance.movebase_client(
+                    topic=topic, number=i, position=goal_location
+                )
 
         rate.sleep()
 
