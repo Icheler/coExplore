@@ -35,7 +35,7 @@ int main(int argc, char * argv[])
   const auto new_map_pub = nh.advertise<nav_msgs::OccupancyGrid>("new_map", 100);
   const auto map_meta_sub = nh.subscribe<nav_msgs::OccupancyGrid>("map", 100, mapCallback);
 
-  ros::Rate loop_rate(100);
+  ros::Rate loop_rate(10);
 
   while (ros::ok())
   {

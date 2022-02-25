@@ -141,7 +141,7 @@ if __name__ == "__main__":
                 os.system("rosnode kill -a")
 
             if classy.map_name == 'marty':
-                if temp_difference > 0.90:
+                if temp_difference > 0.88:
                     rospy.logerr("Map matched enough, shut down")
                     os.system("rosnode kill -a")
 

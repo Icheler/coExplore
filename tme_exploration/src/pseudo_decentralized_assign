@@ -53,7 +53,7 @@ class FrontierAssign:
         self.explored_frontiers = np.empty(self.number_robots)
         self.map_name = os.environ["tme_ROBOT_ENV"]
         self.map = None
-        self.clean_area = self.get_clean_area(100)
+        self.clean_area = self.get_clean_area(20)
 
         for i in range(self.number_robots):
             self.last_search_time[i] = rospy.Time.now() - rospy.Duration(5)
@@ -187,7 +187,8 @@ class FrontierAssign:
             r_distances = self.wavefront_robot_to_frontier(
                 frontiers, positions, map
             )
-            r_distances = np.where(np.isinf(r_distances), 500, r_distances)
+            r_distances = np.where(np.isinf(r_distances), 1000, r_distances)
+
         maximum = 0
         try:
             maximum = np.max(r_distances)
@@ -374,13 +375,10 @@ class FrontierAssign:
         """
         Convert from Centroid object to [x,y] matrix
         """
-        try:
-            if type(centroid).__module__ == np.__name__:
-                rospy.logwarn(centroid)
-                return centroid
-            else:
-                return [centroid.initial.x, centroid.initial.y]
-        except:
+        if type(centroid).__module__ == np.__name__:
+            rospy.logwarn(centroid)
+            return centroid
+        else:
             return [centroid.initial.x, centroid.initial.y]
 
     def point_to_map_matrix(self, point_array):
@@ -535,7 +533,7 @@ class FrontierAssign:
         frontiers are furthest away from all other robots without the current
         one
         """
-        if not distances:
+        if not np.any(distances):
             dist = self.frontier_distance(frontiers, positions, map)
             distance_sum = np.sum(dist, axis=0)
         else:
@@ -628,11 +626,11 @@ if __name__ == "__main__":
         cost_matrix = None
         fInstance.position_call_tf()
 
-        if fInstance.frontiers and np.all(fInstance.robot_position):
+        if fInstance.frontiers and np.all(fInstance.robot_position) \
+                and time_estimate > 20:
             frontiers = copy.deepcopy(fInstance.frontiers)
             frontiers = fInstance.blacklist_check(frontiers)
-            if frontiers and len(frontiers.frontiers) != 0\
-                    and time_estimate > 10:
+            if frontiers and len(frontiers.frontiers) != 0:
                 positions = copy.deepcopy(fInstance.robot_position)
                 map = copy.deepcopy(fInstance.map)
                 distances = None

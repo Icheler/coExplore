@@ -1,0 +1,162 @@
+#!/usr/bin/env python3
+
+import rospy
+import numpy as np
+import tf
+import tf2_ros
+import re
+import copy
+
+from nav_msgs.msg import OccupancyGrid, MapMetaData
+from geometry_msgs.msg import Point
+
+
+class TraceRemoval:
+    def __init__(self):
+        self.number_robots = rospy.get_param("~number_of_robots")
+        self.robot_positions = np.empty(self.number_robots, dtype=Point)
+        self.map = None
+        self.map_res = None
+        self.map_origin = None
+        self.map_middle = None
+        self.info = None
+
+    def callback_map(self, data):
+        self.map = np.asarray(data.data, dtype=np.int8).reshape(
+            data.info.height, data.info.width
+        )
+        self.map_res = data.info.resolution
+        self.map_origin = [
+            data.info.origin.position.x, data.info.origin.position.y
+        ]
+        self.map_middle = int(data.info.height / 2)
+        self.info = data.info
+
+    def position_call_tf(self):
+        """Update position data for each robot to have current estimate"""
+        for i in range(self.number_robots):
+            j = i + 1
+            try:
+                tf_topic = "merged_map"
+                (trans, rot) = listener.lookupTransform(
+                    tf_topic, f"/robot{j}/base_link", rospy.Time(0)
+                )
+                robot_location = Point(x=trans[0], y=trans[1])
+                self.robot_positions[i] = robot_location
+            except (
+                tf.LookupException,
+                tf.ConnectivityException,
+                tf.ExtrapolationException,
+            ) as e:
+                rospy.logerr(f"TF error beep {tf_topic} with message {e}")
+
+        return self.robot_positions
+
+    def get_clean_area(self, number):
+        """
+        Creates array of size: (number * 2 + 1) by (number * 2 + 1)
+        """
+        size = number * 2 + 1
+        result = []
+        for i in range(size):
+            x = i - number
+            for j in range(size):
+                y = j - number
+                result.append([x, y])
+        return result
+
+    def clean_neighbors(self, array, indices, clean_area):
+        """
+        Returns input array where all areas with size clean_area are cleaned
+        """
+        result = array
+        shapes = result.shape
+        for x, y in indices:
+            if x < shapes[0] and y < shapes[1] and x > -1 and y > -1:
+                result[x][y] = 10
+            for dx, dy in clean_area:
+                x_test = x + dx
+                y_test = y + dy
+                if (
+                    x_test < shapes[0]
+                    and y_test < shapes[1]
+                    and x_test > -1
+                    and y_test > -1
+                ):
+                    result[x + dx][y + dy] = 10
+        return np.array(result)
+
+    def point_to_matrix(self, point):
+        """
+        Convert from Point object to [x,y] matrix
+        """
+        try:
+            if point.size != 0:
+                return point
+        except:
+            result = [point.y, point.x]
+            return result
+
+    def point_to_map_matrix(self, point_array):
+        """
+        Convert from point_array to [x,y] in map coordinates
+        """
+        result = np.empty_like(point_array, dtype=int)
+        result[0] = int(round(
+            (point_array[0] - self.map_origin[0]) / self.map_res
+        ))
+        result[1] = int(round(
+            (point_array[1] - self.map_origin[1]) / self.map_res
+        ))
+        return result
+
+    def numpy_to_occupancy_grid(self, arr, info=None):
+        if not len(arr.shape) == 2:
+            raise TypeError('Array must be 2D')
+        if not arr.dtype == np.int8:
+            raise TypeError('Array must be of int8s')
+
+        grid = OccupancyGrid()
+        if isinstance(arr, np.ma.MaskedArray):
+            # We assume that the masked value are already -1, for speed
+            arr = arr.data
+        grid.data = arr.ravel()
+        grid.info = info or MapMetaData()
+        grid.info.height = arr.shape[0]
+        grid.info.width = arr.shape[1]
+        grid.header.frame_id = 'map'
+
+        return grid
+
+
+if __name__ == "__main__":
+    rospy.init_node("trace_removal")
+
+    tr = TraceRemoval()
+    robot_number = tr.number_robots
+
+    rate = rospy.Rate(5)
+    listener = tf.TransformListener()
+
+    rospy.Subscriber('/merged_map', OccupancyGrid, tr.callback_map)
+    map_pub = rospy.Publisher('/map', OccupancyGrid, queue_size=10)
+
+    clean_area = tr.get_clean_area(5)
+
+    while not rospy.is_shutdown():
+        positions = copy.deepcopy(tr.position_call_tf())
+        map = copy.deepcopy(tr.map)
+        info = copy.deepcopy(tr.info)
+        data = None
+
+        if np.all(positions) and np.any(map):
+            point_positions = np.empty((robot_number, 2))
+            real_positions = np.empty((robot_number, 2), dtype=int)
+            for i in range(robot_number):
+                point_positions[i] = tr.point_to_matrix(positions[i])
+                real_positions[i] = tr.point_to_map_matrix(point_positions[i])
+            map = tr.clean_neighbors(map, real_positions, clean_area)
+            data = tr.numpy_to_occupancy_grid(map, info)
+            map_pub.publish(data)
+
+        rate.sleep()

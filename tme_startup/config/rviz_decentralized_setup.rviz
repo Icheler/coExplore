@@ -43,6 +43,16 @@ Visualization Manager:
       Unreliable: false
       Use Timestamp: false
       Value: true
+    - Alpha: 0.699999988079071
+      Class: rviz/Map
+      Color Scheme: map
+      Draw Behind: true
+      Enabled: false
+      Name: Map
+      Topic: /merged_map
+      Unreliable: false
+      Use Timestamp: false
+      Value: false
     - Alpha: 0.5
       Cell Size: 1
       Class: rviz/Grid
@@ -769,7 +779,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 27.79453468322754
+      Distance: 28.9521541595459
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -805,5 +815,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1563
-  X: 72
-  Y: 27
+  X: 3557
+  Y: 0
