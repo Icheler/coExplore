@@ -540,13 +540,15 @@ class FrontierAssign:
             distance_sum = np.sum(distances, axis=0)
         new_dist = np.reshape(
             distance_sum, (1, self.number_robots)) - distances
-        minimum = np.min(new_dist)
         maximum = np.max(new_dist)
-        if maximum != 0:
-            result = new_dist - minimum
-            result = result / (maximum - minimum)
-            result = 1 - result
-        else:
+        try:
+            if maximum != 0:
+                result = new_dist
+                result = result / maximum
+                result = (1 - result)
+            else:
+                result = new_dist
+        except:
             result = new_dist
         return result
 
@@ -822,17 +824,17 @@ if __name__ == "__main__":
                         marker_pub.publish(marker)
 
                         fInstance.increment_frontiers(i)
-                    elif (
-                        fInstance.last_search_time[i] + rospy.Duration(secs=30)
-                        < rospy.Time.now()
-                    ):
-                        rospy.logwarn(
-                            f"{goal_location} has been put on the blacklist"
-                        )
-                        fInstance.blacklist = np.append(
-                            fInstance.blacklist, goal_location
-                        )
-                        rospy.logwarn(fInstance.blacklist)
+                elif (
+                    fInstance.last_search_time[i] + rospy.Duration(secs=30)
+                    < rospy.Time.now()
+                ):
+                    rospy.logwarn(
+                        f"{goal_location} has been put on the blacklist"
+                    )
+                    fInstance.blacklist = np.append(
+                        fInstance.blacklist, goal_location
+                    )
+                    rospy.logwarn(fInstance.blacklist)
 
         else:
             if fInstance.frontiers:
