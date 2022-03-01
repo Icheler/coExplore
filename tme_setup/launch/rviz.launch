@@ -1,3 +1,0 @@
-<launch>
-    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find tme_startup)/config/rviz_basic_setup.rviz"/>
-</launch>
