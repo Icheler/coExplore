@@ -10,3 +10,7 @@
     local-name: m-explore
     uri: https://github.com/hrnr/m-explore.git
     version: noetic-devel
+- git:
+    local-name: slam_toolbox
+    uri: https://github.com/SteveMacenski/slam_toolbox
+    version: noetic-devel

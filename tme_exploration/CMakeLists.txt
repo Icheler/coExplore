@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.0.2)
 project(tme_exploration)
 
 find_package(catkin REQUIRED COMPONENTS
+  tf
+  message_runtime
   roscpp
   sensor_msgs
   std_msgs
@@ -32,6 +34,8 @@ generate_messages(
 
 catkin_package(
   CATKIN_DEPENDS
+    tf
+    message_runtime
     roscpp
     sensor_msgs
     std_msgs
@@ -67,4 +71,14 @@ install(TARGETS frontier_search
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+catkin_install_python(
+  PROGRAMS 
+  src/analytics
+  src/frontier_assign
+  src/map_compare
+  src/pseudo_decentralized_assign
+  src/trace_removal
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

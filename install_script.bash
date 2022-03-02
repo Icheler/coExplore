@@ -43,7 +43,7 @@ git clone https://github.com/dietriro/rto_simulation.git
 
 git clone https://github.com/hrnr/m-explore.git
 
-git clone https://github.com/Icheler/TU_Many_Bots.git
+git clone https://github.com/SteveMacenski/slam_toolbox
 
 # Install dependencies using rosdep
 cd ~/catkin_ws
@@ -53,3 +53,5 @@ rosdep install -y --from-paths src --ignore-src --rosdistro $ROS_DISTRO --os=$RO
 source /opt/ros/$ROS_DISTRO/setup.bash
 cd ~/catkin_ws
 catkin build
+
+cd coExplore
