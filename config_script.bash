@@ -1,10 +1,10 @@
 #!/bin/bash
 echo "-------------------------------------------------------------"
-echo "TU Many Bots configuration"
+echo "coExplore configuration"
 echo "-------------------------------------------------------------"
-echo "tme_ROBOT_ENV: [simple_corridor, maze, maze_clutter, maze_clutter_limited]"
+echo "tme_ROBOT_ENV: [marty, v2_maze, map_3]"
 echo "tme_start_num: [2 - 5]"
-echo "tme_expl_method: [nearest, greedy, minPos, combined]"
+echo "tme_expl_method: [nearest, minPos, nextFrontier, coExplore, co122]"
 echo "tme_stop_time: number in seconds the simluation should run"
 echo "-------------------------------------------------------------"
 if [ -z ${tme_ROBOT_ENV+x} ]
@@ -110,138 +110,58 @@ then
   export tme_start_robot5_z="0.0"
   export tme_start_robot5_yaw="0"
 fi
-if [ $world="maze" ]
+if [ $world="v2_maze" ]
 then
-  export tme_start_robot1_x="1.0"
+  export tme_start_robot1_x="0.0"
   export tme_start_robot1_y="0.0"
   export tme_start_robot1_z="0.0"
-  export tme_start_robot1_yaw="0.0"
+  export tme_start_robot1_yaw="0"
 
-  export tme_start_robot2_x="-1.0"
+  export tme_start_robot2_x="1.0"
   export tme_start_robot2_y="0.0"
   export tme_start_robot2_z="0.0"
-  export tme_start_robot2_yaw="0.0"
+  export tme_start_robot2_yaw="0"
 
   export tme_start_robot3_x="-1.0"
   export tme_start_robot3_y="1.0"
   export tme_start_robot3_z="0.0"
-  export tme_start_robot3_yaw="0.0"
+  export tme_start_robot3_yaw="0"
 
   export tme_start_robot4_x="-1.0"
   export tme_start_robot4_y="-1.0"
   export tme_start_robot4_z="0.0"
-  export tme_start_robot4_yaw="0.0"
+  export tme_start_robot4_yaw="0"
 
   export tme_start_robot5_x="1.0"
   export tme_start_robot5_y="1.0"
   export tme_start_robot5_z="0.0"
-  export tme_start_robot5_yaw="0.0"
+  export tme_start_robot5_yaw="0"
 fi
-if [ $world="maze_simple" ]
+
+if [ $world="marty" ]
 then
-  export tme_start_robot1_x="1.0"
+  export tme_start_robot1_x="0.0"
   export tme_start_robot1_y="0.0"
   export tme_start_robot1_z="0.0"
-  export tme_start_robot1_yaw="0.0"
+  export tme_start_robot1_yaw="0"
 
-  export tme_start_robot2_x="-1.0"
+  export tme_start_robot2_x="1.0"
   export tme_start_robot2_y="0.0"
   export tme_start_robot2_z="0.0"
-  export tme_start_robot2_yaw="0.0"
+  export tme_start_robot2_yaw="0"
 
   export tme_start_robot3_x="-1.0"
   export tme_start_robot3_y="1.0"
   export tme_start_robot3_z="0.0"
-  export tme_start_robot3_yaw="0.0"
+  export tme_start_robot3_yaw="0"
 
   export tme_start_robot4_x="-1.0"
   export tme_start_robot4_y="-1.0"
   export tme_start_robot4_z="0.0"
-  export tme_start_robot4_yaw="0.0"
+  export tme_start_robot4_yaw="0"
 
   export tme_start_robot5_x="1.0"
   export tme_start_robot5_y="1.0"
   export tme_start_robot5_z="0.0"
-  export tme_start_robot5_yaw="0.0"
-fi
-if [ $world="maze_simple_2" ]
-then
-  export tme_start_robot1_x="1.0"
-  export tme_start_robot1_y="0.0"
-  export tme_start_robot1_z="0.0"
-  export tme_start_robot1_yaw="0.0"
-
-  export tme_start_robot2_x="-1.0"
-  export tme_start_robot2_y="0.0"
-  export tme_start_robot2_z="0.0"
-  export tme_start_robot2_yaw="0.0"
-
-  export tme_start_robot3_x="-1.0"
-  export tme_start_robot3_y="1.0"
-  export tme_start_robot3_z="0.0"
-  export tme_start_robot3_yaw="0.0"
-
-  export tme_start_robot4_x="-1.0"
-  export tme_start_robot4_y="-1.0"
-  export tme_start_robot4_z="0.0"
-  export tme_start_robot4_yaw="0.0"
-
-  export tme_start_robot5_x="1.0"
-  export tme_start_robot5_y="1.0"
-  export tme_start_robot5_z="0.0"
-  export tme_start_robot5_yaw="0.0"
-fi
-if [ $world="maze_clutter" ]
-then
-  export tme_start_robot1_x="1.0"
-  export tme_start_robot1_y="0.0"
-  export tme_start_robot1_z="0.0"
-  export tme_start_robot1_yaw="0.0"
-
-  export tme_start_robot2_x="-1.0"
-  export tme_start_robot2_y="0.0"
-  export tme_start_robot2_z="0.0"
-  export tme_start_robot2_yaw="0.0"
-
-  export tme_start_robot3_x="-1.0"
-  export tme_start_robot3_y="1.0"
-  export tme_start_robot3_z="0.0"
-  export tme_start_robot3_yaw="0.0"
-
-  export tme_start_robot4_x="-1.0"
-  export tme_start_robot4_y="-1.0"
-  export tme_start_robot4_z="0.0"
-  export tme_start_robot4_yaw="0.0"
-
-  export tme_start_robot5_x="1.0"
-  export tme_start_robot5_y="1.0"
-  export tme_start_robot5_z="0.0"
-  export tme_start_robot5_yaw="0.0"
-fi
-if [ $world="maze_clutter_limited" ]
-then
-  export tme_start_robot1_x="1.0"
-  export tme_start_robot1_y="0.0"
-  export tme_start_robot1_z="0.0"
-  export tme_start_robot1_yaw="0.0"
-
-  export tme_start_robot2_x="-1.0"
-  export tme_start_robot2_y="0.0"
-  export tme_start_robot2_z="0.0"
-  export tme_start_robot2_yaw="0.0"
-
-  export tme_start_robot3_x="-1.0"
-  export tme_start_robot3_y="1.0"
-  export tme_start_robot3_z="0.0"
-  export tme_start_robot3_yaw="0.0"
-
-  export tme_start_robot4_x="-1.0"
-  export tme_start_robot4_y="-1.0"
-  export tme_start_robot4_z="0.0"
-  export tme_start_robot4_yaw="0.0"
-
-  export tme_start_robot5_x="1.0"
-  export tme_start_robot5_y="1.0"
-  export tme_start_robot5_z="0.0"
-  export tme_start_robot5_yaw="0.0"
+  export tme_start_robot5_yaw="0"
 fi
