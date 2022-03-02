@@ -9,6 +9,9 @@ import roslaunch
 def runner(
     num_robots=2, world="v2_maze", method="combined", stop_time=400, tries=10
 ):
+    """
+    sets the environment variables for the search and starts the search
+    """
     os.environ["tme_start_num"] = str(num_robots)
     os.environ["tme_stop_time"] = str(stop_time)
     print(method)
@@ -43,22 +46,16 @@ def runner(
         os.system("roslaunch tme_startup decentralized_launch.launch")
 
 
-def run_all(
-    num_robots=2, world="v2_maze", methods=["coExplore"],
-    stop_time=400, tries=10
-):
-    for i in range(len(methods)):
-        runner(num_robots, world, methods[i], stop_time, tries)
-
-
 if __name__ == "__main__":
+    # this is the main method for running multiple simulations without needing
+    # to roslaunch manually
 
-    num_robots = [2, 3, 4, 5]  # [2, 3, 4, 5]
-    world = ['v2_maze', 'marty', 'map_3']  # 'v2_maze', 'map_3', 'marty'
+    num_robots = [2]  # [2, 3, 4, 5]
+    world = ['v2_maze']  # 'v2_maze', 'map_3', 'marty'
     # ["nearest", 'minPos', 'nextFrontier', 'coExplore', 'co122']
-    method = ["nearest", 'minPos', 'nextFrontier', 'coExplore', 'co122']
-    stop_time = [500, 400, 300, 250]  # [500, 400, 300, 250]
-    tries = [1, 1, 1, 1, 3, 3, 3, 3, 3, 3, 3]
+    method = ['minPos', 'nextFrontier', 'co122']
+    stop_time = [500]  # [500, 400, 300, 250]
+    tries = [4]
     for x in range(len(tries)):
         for j in range(len(num_robots)):
             for i in range(len(world)):

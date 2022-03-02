@@ -111,6 +111,9 @@ class TraceRemoval:
         return result
 
     def numpy_to_occupancy_grid(self, arr, info=None):
+        """
+        Numpy to occupancy grid translation
+        """
         if not len(arr.shape) == 2:
             raise TypeError('Array must be 2D')
         if not arr.dtype == np.int8:

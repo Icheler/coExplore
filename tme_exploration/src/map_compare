@@ -25,6 +25,9 @@ class mapCompare:
         self.info = None
 
     def exit_handler(self):
+        """
+        Is run on exit to save files
+        """
         date_string = self.date_string
 
         file_name = str(self.map_name) + "_" + str(self.expl_method)\

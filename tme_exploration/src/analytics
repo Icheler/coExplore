@@ -48,6 +48,9 @@ class Analytics:
         rospy.logwarn('created file named: ' + file_name)
 
     def position_call_tf(self):
+        """
+        Updates self.robotPosition with current positions of all robots
+        """
         for i in range(self.numberRobots):
             j = i+1
             try:
@@ -73,6 +76,10 @@ class Analytics:
         return result
 
     def distance_tracker(self, time_estimate):
+        """
+        Tracks distance covered between last known location and current
+        location of robots and updates the current location
+        """
         temp_array = [time_estimate]
         not_first = False
         for i in range(self.numberRobots):

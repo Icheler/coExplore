@@ -25,7 +25,7 @@
   <include file="$(find tme_startup)/launch/decentralized_analytics.launch" />
 
   <node pkg="tme_exploration" type="trace_removal" name="tme_trace_removal" required="True" launch-prefix="bash -c 'sleep $(arg node_start_delay_2); $0 $@' ">
-    <param name="number_of_robots" value="$(env tme_start_num)"/>
+    <param name="number_of_robots" value="$(env tme_start_num)" />
   </node>
   <node pkg="tf2_ros" type="static_transform_publisher" name="merged_map_to_map_tf_broadcaster" args="0 0 0 0 0 0 /map /merged_map" />
 
