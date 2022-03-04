@@ -1,15 +1,20 @@
 # coExplore: Repository for multi-robot exploration
 ---
+<table style="margin-left: auto; margin-right: auto; table-layout: fixed; width: 100%"; class="center">
+  <tr>
+    <td style="width: 33%;"> <img src="tme_visualization/coExplore_open.gif" width='400'><p align="center">5 robots in open environment</p></td>
+    <td style="width: 33%;"> <img src="tme_visualization/coExplore_marty.gif" width='400'><p align="center">5 robots in office environment</p></td>
+    <td style="width: 33%;"> <img src="tme_visualization/coExplore_maze.gif" width='400'><p align="center">5 robots in maze environment</p></td>
+  </tr>
+</table>
+
 This repository contains research code for the development of our novel multi-robot exploration algorithm built with ROS1 called coExplore. Throughout this README we go over the installation, configuration, packages and possibilities in augmentation of this repository.
 
 <table style="margin-left: auto; margin-right: auto; table-layout: fixed; width: 100%"; class="center">
   <tr>
-    <td style="width: 50%;"> <img src="tme_visualization/map_3_results.svg" width='400'>Performance on map_3/open environment</td>
-    <td style="width: 50%;"> <img src="tme_visualization/marty_results.svg" width='400'>Performance on marty/office environment</td>
-  </tr>
-  <tr>
-    <td style="width: 50%;"> <img src="tme_visualization/maze_results.svg" width='400'>Performance on maze environment</td>
-    <td style="width: 50%;"> <img src="tme_visualization/" width='400'>Performance on maze environment</td>
+    <td style="width: 50%;"> <img src="tme_visualization/map_3_results.svg" width='400'><p align="center">Performance on map_3/open environment</p></td>
+    <td style="width: 50%;"> <img src="tme_visualization/marty_results.svg" width='400'><p align="center">Performance on marty/office environment</p></td>
+    <td style="width: 50%;"> <img src="tme_visualization/maze_results.svg" width='400'><p align="center">Performance on maze environment</p></td>
   </tr>
 </table>
 
