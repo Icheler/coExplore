@@ -2,18 +2,29 @@
 ---
 This repository contains research code for the development of our novel multi-robot exploration algorithm built with ROS1 called coExplore. 
 
-### System Prerequisites
+<table style="margin-left: auto; margin-right: auto; table-layout: fixed; width: 100%"; class="center">
+  <tr>
+    <td style="width: 50%;"> <img src="map_3_results.svg" width='400'>Performance on map_3/open environment</td>
+    <td style="width: 50%;"> <img src="marty_results.svg" width='400'>Performance on marty/office environment</td>
+  </tr>
+  <tr>
+    <td style="width: 50%;"> <img src="maze_results.svg" width='400'>Performance on maze environment</td>
+    
+  </tr>
+</table>
+
+## System Prerequisites
 This project was built with   
 - ROS Noetic on Ubuntu 20.04.
 
-### Install
+## Install
 </br>
 This project is an extension of an existing repository for robotino robots.
 To install these dependencies, first run the install_script.bash from a suitable catkin directory. This completely installs all the needed packages to run a minimal working version of the project.
 </br>
 </br>
 
-### Configuration
+## Configuration
 
 Sourcing the config_script will give a printout of the options available
 as well as the currently active setup.
