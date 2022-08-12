@@ -7,6 +7,7 @@
             <remap from="/map" to="map"/>
             <remap from="/map_metadata" to="map_metadata"/>
             <rosparam command="load" file="$(find tme_startup)/config/$(arg robot_name)/mapper_params_online_async.yaml" />
+            <rosparam command="load" file="$(find tme_startup)/config/mapper_params_online_async_global.yaml" />
         </node>
         
         <node pkg="move_base" type="move_base" respawn="true" name="move_base" output="screen">

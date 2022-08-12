@@ -4,10 +4,16 @@ import string
 import numpy as np
 import os
 import roslaunch
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "-viz", type=int, help='Bool if visualization should be used'
+)
 
 
 def runner(
-    num_robots=2, world="v2_maze", method="combined", stop_time=400, tries=10
+    num_robots=2, world="v2_maze", method="combined", stop_time=400, tries=10, args=None
 ):
     """
     sets the environment variables for the search and starts the search
@@ -43,24 +49,25 @@ def runner(
     file_name = os.path.join(os.path.expanduser("~"), file_location, file_name)
 
     for i in range(tries):
-        os.system("roslaunch tme_startup decentralized_launch.launch")
+        os.system(f"roslaunch tme_startup decentralized_launch.launch arg_viz:={args.viz}")
 
 
 if __name__ == "__main__":
     # this is the main method for running multiple simulations without needing
     # to roslaunch manually
+    args = parser.parse_args()
 
-    num_robots = [2]  # [2, 3, 4, 5]
+    num_robots = [5]  # [2, 3, 4, 5]
     world = ['v2_maze']  # 'v2_maze', 'map_3', 'marty'
     # ["nearest", 'minPos', 'nextFrontier', 'coExplore', 'co122']
-    method = ['minPos', 'nextFrontier', 'co122']
-    stop_time = [500]  # [500, 400, 300, 250]
-    tries = [4]
+    method = ['coExplore']
+    stop_time = [250]  # [500, 400, 300, 250]
+    tries = [1]
     for x in range(len(tries)):
         for j in range(len(num_robots)):
             for i in range(len(world)):
                 for y in range(len(method)):
                     runner(
                         num_robots[j], world[i], method[y],
-                        stop_time[j], tries[x]
+                        stop_time[j], tries[x], args
                     )
