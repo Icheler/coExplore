@@ -29,5 +29,5 @@
   </node>
   <node pkg="tf2_ros" type="static_transform_publisher" name="merged_map_to_map_tf_broadcaster" args="0 0 0 0 0 0 /map /merged_map" />
 
-  <node type="rviz" name="rviz" pkg="rviz" args="-d $(find tme_startup)/config/rviz_decentralized_setup.rviz" />
+  <!-- <node type="rviz" name="rviz" pkg="rviz" args="-d $(find tme_startup)/config/rviz_decentralized_setup.rviz" /> !-->
 </launch>
