@@ -1,15 +1,10 @@
 #!/usr/bin/env python3
 
-import string
-import numpy as np
-import os
-import roslaunch
 import argparse
+import os
 
 parser = argparse.ArgumentParser()
-parser.add_argument(
-    "-viz", type=int, help='Bool if visualization should be used'
-)
+parser.add_argument("-viz", type=int, help="Bool if visualization should be used")
 
 
 def runner(
@@ -49,7 +44,9 @@ def runner(
     file_name = os.path.join(os.path.expanduser("~"), file_location, file_name)
 
     for i in range(tries):
-        os.system(f"roslaunch tme_startup decentralized_launch.launch arg_viz:={args.viz}")
+        os.system(
+            f"roslaunch tme_startup decentralized_launch.launch arg_viz:={args.viz}"
+        )
 
 
 if __name__ == "__main__":
@@ -58,9 +55,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     num_robots = [5]  # [2, 3, 4, 5]
-    world = ['v2_maze']  # 'v2_maze', 'map_3', 'marty'
+    world = ["v2_maze"]  # 'v2_maze', 'map_3', 'marty'
     # ["nearest", 'minPos', 'nextFrontier', 'coExplore', 'co122']
-    method = ['coExplore']
+    method = ["coExplore"]
     stop_time = [250]  # [500, 400, 300, 250]
     tries = [1]
     for x in range(len(tries)):
@@ -68,6 +65,5 @@ if __name__ == "__main__":
             for i in range(len(world)):
                 for y in range(len(method)):
                     runner(
-                        num_robots[j], world[i], method[y],
-                        stop_time[j], tries[x], args
+                        num_robots[j], world[i], method[y], stop_time[j], tries[x], args
                     )
