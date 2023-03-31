@@ -8,11 +8,21 @@
   </tr>
 </table>
 
-This repository contains research code for the development of our novel multi-robot exploration algorithm built with ROS1 called coExplore. Throughout this README we go over the installation, configuration, packages and possibilities in augmentation of this repository.
+This repository contains research code for the development of our novel multi-robot exploration algorithm built with ROS1 called coExplore. Throughout this README we go over the installation, configuration, packages and possibilities in augmentation of this repository. If you use this code in your research please include this bibtex:
+```
+@misc{scheler2023coexplore,
+      title={coExplore: Combining multiple rankings for multi-robot exploration}, 
+      author={Ingo Scheler and Robin Dietrich},
+      year={2023},
+      eprint={2303.17459},
+      archivePrefix={arXiv},
+      primaryClass={cs.RO}
+}
+```
 
 <table style="margin-left: auto; margin-right: auto; table-layout: fixed; width: 100%"; class="center">
   <tr>
-    <td style="width: 50%;"> <img src="tme_visualization/map_3_results.svg" width='400'><p align="center">Performance on map_3/open environment</p></td>
+    <td style="width: 50%;"> <img src="tme_visualization/map_results.svg" width='400'><p align="center">Performance on map_3/open environment</p></td>
     <td style="width: 50%;"> <img src="tme_visualization/marty_results.svg" width='400'><p align="center">Performance on marty/office environment</p></td>
     <td style="width: 50%;"> <img src="tme_visualization/maze_results.svg" width='400'><p align="center">Performance on maze environment</p></td>
   </tr>
