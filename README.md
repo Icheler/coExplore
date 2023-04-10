@@ -8,7 +8,7 @@
   </tr>
 </table>
 
-This repository contains research code for the development of our novel multi-robot exploration algorithm built with ROS1 called coExplore. Throughout this README we go over the installation, configuration, packages and possibilities in augmentation of this repository. If you use this code in your research please include this bibtex:
+This repository contains research code for the development of our novel multi-robot exploration algorithm built with ROS1 called coExplore. Throughout this README we go over the installation, configuration, packages and possibilities in augmentation of this repository. The paper can be found [here](https://arxiv.org/abs/2303.17459). If you use this code in your research please include this bibtex:
 ```
 @misc{scheler2023coexplore,
       title={coExplore: Combining multiple rankings for multi-robot exploration}, 
