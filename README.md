@@ -1,4 +1,4 @@
-# coExplore: Repository for multi-robot exploration
+# DEPRECATED: coExplore: Repository for multi-robot exploration
 ---
 <table style="margin-left: auto; margin-right: auto; table-layout: fixed; width: 100%"; class="center">
   <tr>
